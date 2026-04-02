@@ -1,29 +1,35 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/timetable_storage.dart';
 import '../models/timetable_models.dart';
 
+/// 负责承载当前激活课表、当前周数，以及所有持久化写回操作。
 class TimetableProvider extends ChangeNotifier {
-  static const _storageKey = 'classmate_app_data';
+  TimetableProvider({TimetableStorage? storage}) : _storage = storage ?? TimetableStorage();
+
+  final TimetableStorage _storage;
 
   AppData _appData = buildSampleAppData();
   int _selectedWeek = 1;
   bool _isLoaded = false;
+  String? _storagePath;
 
   bool get isLoaded => _isLoaded;
   List<TimetableData> get timetables => _appData.timetables;
   int get selectedWeek => _selectedWeek;
+  String? get storagePath => _storagePath;
 
   TimetableData get activeTimetable => _appData.timetables.firstWhere(
     (item) => item.id == _appData.activeTimetableId,
     orElse: () => _appData.timetables.first,
   );
 
+  /// 应用启动时加载 JSON 文件，没有文件时写入示例数据。
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    if (raw != null && raw.isNotEmpty) {
-      _appData = AppData.decode(raw);
+    _storagePath = await _storage.filePath();
+    final fileData = await _storage.load();
+    if (fileData != null) {
+      _appData = fileData;
     } else {
       await _save();
     }
@@ -32,6 +38,7 @@ class TimetableProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 切换当前活跃课表，并重置到该课表对应的当前周。
   Future<void> switchTimetable(String timetableId) async {
     if (_appData.activeTimetableId == timetableId) {
       return;
@@ -44,6 +51,7 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  /// 只更新当前周，不触发文件写入，避免滑动切周时频繁落盘。
   Future<void> setSelectedWeek(int week) async {
     final maxWeek = activeTimetable.config.totalWeeks;
     final nextWeek = week.clamp(1, maxWeek);
@@ -54,6 +62,7 @@ class TimetableProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 保存课表设置，包括可编辑的节次时间段。
   Future<void> updateTimetableConfig(TimetableConfig config) async {
     final updated = _appData.timetables
         .map((item) => item.id == activeTimetable.id ? item.copyWith(config: config) : item)
@@ -66,6 +75,7 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  /// 新增或覆盖一门课程。
   Future<void> saveCourse(CourseItem course) async {
     final courses = [...activeTimetable.courses];
     final index = courses.indexWhere((item) => item.id == course.id);
@@ -77,13 +87,16 @@ class TimetableProvider extends ChangeNotifier {
     await _replaceActiveTimetable(activeTimetable.copyWith(courses: courses));
   }
 
+  /// 删除指定课程。
   Future<void> deleteCourse(String courseId) async {
     final courses = activeTimetable.courses.where((item) => item.id != courseId).toList();
     await _replaceActiveTimetable(activeTimetable.copyWith(courses: courses));
   }
 
+  /// 新建课表时沿用 JSON 存储结构，保证多课表数据格式一致。
   Future<void> addTimetable() async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    final defaults = buildDefaultPeriodTimes();
     final timetable = TimetableData(
       id: 'table_$now',
       config: TimetableConfig(
@@ -91,7 +104,7 @@ class TimetableProvider extends ChangeNotifier {
         startDate: DateTime.now(),
         totalWeeks: 18,
         dailyPeriods: 10,
-        periodTimes: buildDefaultPeriodTimes().take(10).toList(),
+        periodTimes: defaults.take(10).toList(),
       ),
       courses: const [],
     );
@@ -121,7 +134,6 @@ class TimetableProvider extends ChangeNotifier {
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_storageKey, _appData.encode());
+    await _storage.save(_appData);
   }
 }

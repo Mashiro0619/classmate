@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/timetable_models.dart';
 
+/// 编辑器返回值：要么保存课程，要么删除课程，要么取消关闭。
 class CourseEditorResult {
   const CourseEditorResult.save(this.course) : delete = false;
   const CourseEditorResult.delete()
@@ -12,6 +13,7 @@ class CourseEditorResult {
   final bool delete;
 }
 
+/// 课程编辑弹窗支持任意时间范围，不再强依赖标准节次边界。
 class CourseEditorSheet extends StatefulWidget {
   const CourseEditorSheet({
     super.key,

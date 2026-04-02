@@ -7,6 +7,10 @@ import '../models/timetable_models.dart';
 const _minuteHeight = 1.4;
 const _headerHeight = 56.0;
 
+/// 课表主网格：
+/// - 负责按真实时间定位课程块
+/// - 负责按优先级直接重叠显示冲突课程
+/// - 负责在不同宽度下动态调整列宽
 class TimetableGrid extends StatelessWidget {
   const TimetableGrid({
     super.key,
@@ -28,7 +32,6 @@ class TimetableGrid extends StatelessWidget {
     final endMinutes = slots.last.endMinutes;
     final totalHeight = (endMinutes - startMinutes) * _minuteHeight;
     final colors = Theme.of(context).colorScheme;
-    final grouped = _buildLayout(timetable.courses);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -111,7 +114,7 @@ class TimetableGrid extends StatelessWidget {
                                 width: metrics.dayColumnWidth,
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    left: BorderSide(color: colors.outlineVariant),
+                                    left: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.25)),
                                   ),
                                 ),
                                 child: GestureDetector(
@@ -129,12 +132,12 @@ class TimetableGrid extends StatelessWidget {
                                             height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
                                             decoration: BoxDecoration(
                                               border: Border(
-                                                top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.45)),
+                                                top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.18)),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ...grouped.where((item) => item.course.weekday == weekday).map(
+                                      ..._buildDayLayouts(timetable.courses, weekday).map(
                                         (item) => _CourseCard(
                                           layout: item,
                                           dayStartMinutes: startMinutes,
@@ -161,6 +164,7 @@ class TimetableGrid extends StatelessWidget {
   }
 }
 
+/// 针对不同窗口宽度生成网格布局参数，保证窄窗口下仍可读。
 class _TimetableMetrics {
   const _TimetableMetrics({
     required this.timeLabelWidth,
@@ -182,13 +186,13 @@ class _TimetableMetrics {
     final safeWidth = width.isFinite && width > 0 ? width : 980.0;
     final compact = safeWidth < 840;
     final timeLabelWidth = compact ? 56.0 : 68.0;
-    final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 7 * 88.0);
+    final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 7 * 92.0);
     final computedDayWidth = availableDaysWidth / 7;
     return _TimetableMetrics(
       timeLabelWidth: timeLabelWidth,
-      dayColumnWidth: computedDayWidth.clamp(88.0, 180.0),
+      dayColumnWidth: computedDayWidth.clamp(92.0, 180.0),
       courseGap: compact ? 4.0 : 6.0,
-      cardPadding: compact ? 6.0 : 8.0,
+      cardPadding: compact ? 6.0 : 10.0,
       sidePadding: compact ? 4.0 : 8.0,
       compact: compact,
     );
@@ -222,16 +226,17 @@ class _DayHeader extends StatelessWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 2),
-          Text(
-            '${date.month}/${date.day}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text('${date.month}/${date.day}', style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
   }
 }
 
+/// 单个课程块：
+/// - 统一占满单日列宽，不再并排分栏
+/// - 根据冲突优先级调整颜色深浅
+/// - 在高卡片里把标题/地点/时间分布得更均匀
 class _CourseCard extends StatelessWidget {
   const _CourseCard({
     required this.layout,
@@ -251,77 +256,70 @@ class _CourseCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final top = (layout.course.startMinutes - dayStartMinutes) * _minuteHeight;
     final height = math.max(
-      84.0,
+      92.0,
       (layout.course.endMinutes - layout.course.startMinutes) * _minuteHeight - metrics.courseGap,
     ).toDouble();
-    final availableWidth = metrics.dayColumnWidth - metrics.courseGap * (layout.columns + 1);
-    final slotWidth = math.max(56.0, availableWidth / layout.columns);
-    final left = metrics.courseGap + layout.column * (slotWidth + metrics.courseGap);
-    final narrow = slotWidth < 92;
+    final width = metrics.dayColumnWidth - (metrics.courseGap * 2);
+    final compact = width < 110 || height < 120;
+    final color = Color.lerp(
+      colorScheme.secondaryContainer,
+      colorScheme.primaryContainer,
+      0.18 + (layout.priorityDepth * 0.18),
+    );
 
     return Positioned(
       top: top,
-      left: left,
-      width: slotWidth,
+      left: metrics.courseGap,
+      width: width,
       height: height,
       child: Card.filled(
-        color: colorScheme.secondaryContainer,
+        color: color,
         clipBehavior: Clip.antiAlias,
+        elevation: 0,
         child: InkWell(
           onTap: onTap,
           child: Padding(
             padding: EdgeInsets.all(metrics.cardPadding),
-            child: DefaultTextStyle(
-              style: textTheme.bodySmall ?? const TextStyle(),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final nameStyle = (narrow ? textTheme.titleSmall : textTheme.titleMedium)?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: narrow ? 13 : null,
-                    height: 1.1,
-                  );
-                  final locationStyle = (narrow ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(
-                    fontSize: narrow ? 11 : null,
-                    height: 1.1,
-                  );
-                  final timeStyle = textTheme.labelMedium?.copyWith(
-                    fontSize: narrow ? 10 : null,
-                    height: 1.1,
-                  );
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final titleStyle = (compact ? textTheme.titleSmall : textTheme.titleMedium)?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                );
+                final bodyStyle = (compact ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(height: 1.15);
+                final timeStyle = textTheme.labelMedium?.copyWith(height: 1.15);
 
-                  return SingleChildScrollView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            layout.course.name,
-                            softWrap: true,
-                            overflow: TextOverflow.visible,
-                            style: nameStyle,
-                          ),
-                          SizedBox(height: narrow ? 2 : 4),
-                          Text(
-                            layout.course.location,
-                            softWrap: true,
-                            overflow: TextOverflow.visible,
-                            style: locationStyle,
-                          ),
-                          SizedBox(height: narrow ? 2 : 6),
-                          Text(
-                            layout.course.timeRange,
-                            softWrap: true,
-                            overflow: TextOverflow.visible,
-                            style: timeStyle,
-                          ),
-                        ],
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      layout.course.name,
+                      maxLines: compact ? 3 : 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: titleStyle,
+                    ),
+                    SizedBox(height: compact ? 4 : 8),
+                    Expanded(
+                      child: Align(
+                        alignment: compact ? Alignment.topLeft : Alignment.centerLeft,
+                        child: Text(
+                          layout.course.location,
+                          maxLines: compact ? 2 : 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: bodyStyle,
+                        ),
                       ),
                     ),
-                  );
-                },
-              ),
+                    const SizedBox(height: 6),
+                    Text(
+                      layout.course.timeRange,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: timeStyle,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -330,62 +328,41 @@ class _CourseCard extends StatelessWidget {
   }
 }
 
+/// 课程布局实体不再负责横向分栏，而是记录重叠优先级深度。
 class _CourseLayout {
   const _CourseLayout({
     required this.course,
-    required this.column,
-    required this.columns,
+    required this.priorityDepth,
   });
 
   final CourseItem course;
-  final int column;
-  final int columns;
+  final int priorityDepth;
 }
 
-List<_CourseLayout> _buildLayout(List<CourseItem> courses) {
-  final layouts = <_CourseLayout>[];
-  for (var weekday = 1; weekday <= 7; weekday++) {
-    final dayCourses = courses.where((item) => item.weekday == weekday).toList()
-      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
-    final active = <_CourseLayout>[];
-    final cluster = <_CourseLayout>[];
+/// 构建单日课程列表时，直接返回绘制顺序：
+/// - 低优先级课程先画在底层
+/// - 高优先级课程后画在顶层
+/// 这样重叠区域就会优先响应顶部课程。
+List<_CourseLayout> _buildDayLayouts(List<CourseItem> courses, int weekday) {
+  final dayCourses = courses.where((item) => item.weekday == weekday).toList()
+    ..sort((a, b) => _comparePaintPriority(a, b));
 
-    void flushCluster() {
-      if (cluster.isEmpty) {
-        return;
-      }
-      var maxColumns = 1;
-      for (final item in cluster) {
-        if (item.column + 1 > maxColumns) {
-          maxColumns = item.column + 1;
-        }
-      }
-      layouts.addAll(
-        cluster.map(
-          (item) => _CourseLayout(
-            course: item.course,
-            column: item.column,
-            columns: maxColumns,
-          ),
-        ),
-      );
-      cluster.clear();
-    }
+  return List.generate(
+    dayCourses.length,
+    (index) => _CourseLayout(course: dayCourses[index], priorityDepth: index),
+  );
+}
 
-    for (final course in dayCourses) {
-      active.removeWhere((item) => item.course.endMinutes <= course.startMinutes);
-      if (active.isEmpty) {
-        flushCluster();
-      }
-      var column = 0;
-      while (active.any((item) => item.column == column)) {
-        column++;
-      }
-      final layout = _CourseLayout(course: course, column: column, columns: 1);
-      active.add(layout);
-      cluster.add(layout);
-    }
-    flushCluster();
+/// 优先级规则：更短、更局部的课程压在更大的课程上层；
+/// 若时长相同，则更晚开始的课程优先级更高。
+int _comparePaintPriority(CourseItem a, CourseItem b) {
+  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(a.endMinutes - a.startMinutes);
+  if (durationCompare != 0) {
+    return durationCompare;
   }
-  return layouts;
+  final startCompare = a.startMinutes.compareTo(b.startMinutes);
+  if (startCompare != 0) {
+    return startCompare;
+  }
+  return a.id.compareTo(b.id);
 }
