@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
@@ -72,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
                 ),
                 trailing: const Icon(Icons.calendar_month),
-                onTap: _pickStartDate,
+                onTap: () => _pickStartDate(provider, timetable.config),
               ),
               Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
               ListTile(
@@ -80,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: const Text('节次时间集'),
                 subtitle: Text(selectedSet == null ? '暂无可用节次时间' : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节'),
                 trailing: const Icon(Icons.keyboard_arrow_down),
-                onTap: () => _pickPeriodTimeSet(provider),
+                onTap: () => _pickPeriodTimeSet(provider, timetable.config),
               ),
               const SizedBox(height: 8),
               ListTile(
@@ -111,8 +112,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.open_in_new),
                 title: const Text('GitHub 仓库'),
-                subtitle: const Text('TODO: 在这里填仓库链接'),
-                onTap: () => _showMessage('请在 lib/screens/settings_page.dart 的 GitHub 仓库列表项里替换链接'),
+                subtitle: const Text('github.com/Mashiro0619/classmate'),
+                onTap: _openGithubRepo,
               ),
             ],
           ),
@@ -121,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _pickPeriodTimeSet(TimetableProvider provider) async {
+  Future<void> _pickPeriodTimeSet(TimetableProvider provider, TimetableConfig config) async {
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -150,32 +151,32 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
-    if (result != null) {
-      setState(() => _selectedPeriodTimeSetId = result);
+    if (result == null || result == _selectedPeriodTimeSetId) {
+      return;
     }
+    setState(() => _selectedPeriodTimeSetId = result);
+    await provider.updateTimetableConfig(config.copyWith(periodTimeSetId: result));
   }
 
-  Future<void> _pickStartDate() async {
+  Future<void> _pickStartDate(TimetableProvider provider, TimetableConfig config) async {
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime(2035),
       initialDate: _selectedDate,
     );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
+    if (picked == null || picked == _selectedDate) {
+      return;
     }
+    setState(() => _selectedDate = picked);
+    await provider.updateTimetableConfig(config.copyWith(startDate: picked));
   }
 
-  Future<void> _saveSettings(TimetableProvider provider, TimetableConfig config) async {
-    await provider.updateTimetableConfig(
-      config.copyWith(
-        startDate: _selectedDate,
-        periodTimeSetId: _selectedPeriodTimeSetId,
-      ),
-    );
-    if (mounted) {
-      _showMessage('已保存设置');
+  Future<void> _openGithubRepo() async {
+    final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      _showMessage('无法打开 GitHub 仓库链接');
     }
   }
 
