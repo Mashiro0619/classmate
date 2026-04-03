@@ -47,6 +47,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   late List<int> _selectedSemesterWeeks;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
+  late List<int> _selectedPeriods;
 
   @override
   void initState() {
@@ -75,6 +76,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     _selectedSemesterWeeks = normalizeSemesterWeeks(initial?.semesterWeeks ?? buildAllSemesterWeeks(widget.totalWeeks));
     _startTime = _timeOfDayFromMinutes(initial?.startMinutes ?? defaultStartMinutes);
     _endTime = _timeOfDayFromMinutes(initial?.endMinutes ?? defaultEndMinutes);
+    _selectedPeriods = initial?.periods.isNotEmpty == true
+        ? List<int>.from(initial!.periods)
+        : matchPeriodsForTimeRange(widget.periodTimes, initial?.startMinutes ?? defaultStartMinutes, initial?.endMinutes ?? defaultEndMinutes);
   }
 
   @override
@@ -90,11 +94,11 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final matchedPeriods = _matchedPeriods;
+    final linkedPeriods = _selectedPeriods;
 
     return SafeArea(
       child: FractionallySizedBox(
-        heightFactor: 0.58,
+        heightFactor: 0.66,
         child: Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -122,20 +126,28 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                         decoration: const InputDecoration(labelText: '上课地点'),
                       ),
                       const SizedBox(height: 12),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('上课日'),
-                        subtitle: Text(formatDayOfWeekLabel(_selectedDayOfWeek)),
-                        trailing: const Icon(Icons.today_outlined),
-                        onTap: _pickDayOfWeek,
-                      ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('周次'),
-                        subtitle: Text(formatSemesterWeeksLabel(_selectedSemesterWeeks, totalWeeks: widget.totalWeeks)),
-                        trailing: const Icon(Icons.edit_calendar),
-                        onTap: _pickSemesterWeeks,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('上课日'),
+                              subtitle: Text(formatDayOfWeekLabel(_selectedDayOfWeek)),
+                              trailing: const Icon(Icons.today_outlined),
+                              onTap: _pickDayOfWeek,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('周次'),
+                              subtitle: Text(formatSemesterWeeksLabel(_selectedSemesterWeeks, totalWeeks: widget.totalWeeks)),
+                              trailing: const Icon(Icons.edit_calendar),
+                              onTap: _pickSemesterWeeks,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -161,14 +173,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           ),
                         ],
                       ),
-                      if (matchedPeriods.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('关联节次'),
-                          subtitle: Text('第 ${matchedPeriods.first}-${matchedPeriods.last} 节'),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('关联节次'),
+                        subtitle: Text(
+                          linkedPeriods.isEmpty ? '当前时间未匹配到节次，点此手动选择' : '第 ${linkedPeriods.first}-${linkedPeriods.last} 节',
                         ),
-                      ],
+                        trailing: const Icon(Icons.tune),
+                        onTap: _pickPeriods,
+                      ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -412,6 +426,58 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       } else {
         _endTime = picked;
       }
+      _selectedPeriods = _matchedPeriods;
+    });
+  }
+
+  Future<void> _pickPeriods() async {
+    final result = await showDialog<List<int>>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('选择关联节次'),
+          content: SizedBox(
+            width: 360,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final period in widget.periodTimes)
+                  ChoiceChip(
+                    label: Text('第 ${period.index} 节'),
+                    selected: _selectedPeriods.contains(period.index),
+                    onSelected: (_) {
+                      final next = _togglePeriodSelection(_selectedPeriods, period.index);
+                      Navigator.of(context).pop(next);
+                    },
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(const <int>[]),
+              child: const Text('清空'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(_selectedPeriods),
+              child: const Text('关闭'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == null) {
+      return;
+    }
+    setState(() {
+      _selectedPeriods = result;
+      if (_selectedPeriods.isNotEmpty) {
+        final selectedTimes = widget.periodTimes.where((item) => _selectedPeriods.contains(item.index)).toList()
+          ..sort((a, b) => a.index.compareTo(b.index));
+        _startTime = _timeOfDayFromMinutes(selectedTimes.first.startMinutes);
+        _endTime = _timeOfDayFromMinutes(selectedTimes.last.endMinutes);
+      }
     });
   }
 
@@ -422,6 +488,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       return;
     }
 
+    final periods = _selectedPeriods.isEmpty ? _matchedPeriods : _selectedPeriods;
     final course = CourseItem(
       id: widget.initialCourse?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
@@ -429,7 +496,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       location: _locationController.text.trim(),
       dayOfWeek: _selectedDayOfWeek,
       semesterWeeks: normalizeSemesterWeeks(_selectedSemesterWeeks),
-      periods: _matchedPeriods,
+      periods: periods,
       startMinutes: startMinutes,
       endMinutes: endMinutes,
       timeRange: buildTimeRange(startMinutes, endMinutes),
@@ -438,6 +505,27 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       customFields: _parseCustomFields(_customFieldsController.text),
     );
     Navigator.of(context).pop(CourseEditorResult.save(course));
+  }
+
+  List<int> _togglePeriodSelection(List<int> current, int periodIndex) {
+    final next = <int>{...current};
+    if (next.contains(periodIndex)) {
+      next.remove(periodIndex);
+    } else {
+      next.add(periodIndex);
+    }
+    if (next.isEmpty) {
+      return const [];
+    }
+    final sorted = next.toList()..sort();
+    final contiguous = <int>[];
+    for (var i = 0; i < sorted.length; i++) {
+      if (i > 0 && sorted[i] != sorted[i - 1] + 1) {
+        return [periodIndex];
+      }
+      contiguous.add(sorted[i]);
+    }
+    return contiguous;
   }
 
   TimeOfDay _timeOfDayFromMinutes(int minutes) {

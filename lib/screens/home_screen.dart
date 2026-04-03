@@ -1,27 +1,12 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../widgets/course_details_sheet.dart';
 import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
-import 'period_times_page.dart';
-
-enum _DataAction {
-  importApp,
-  importTimetable,
-  exportAppShare,
-  exportAppSave,
-  exportTimetableShare,
-  exportTimetableSave,
-}
+import 'settings_page.dart';
 
 /// 主页面负责三件事：
 /// 1. 通过 PageView 提供左右滑动切周
@@ -98,9 +83,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 tooltip: '添加课程',
               ),
               IconButton(
-                onPressed: () => _editSettings(context, provider, config),
-                icon: const Icon(Icons.tune),
-                tooltip: '课表设置',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+                      value: provider,
+                      child: const SettingsPage(),
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: '设置',
               ),
             ],
           ),
@@ -118,14 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             leading: const Icon(Icons.calendar_view_week),
                             title: Text(item.config.name),
                             subtitle: Text('共 ${item.config.totalWeeks} 周'),
-                            trailing: IconButton(
-                              tooltip: '删除课表',
-                              onPressed: () => _confirmDeleteTimetable(context, provider, item),
-                              icon: const Icon(Icons.delete_outline),
-                            ),
+                            trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
-                              Navigator.of(context).pop();
-                              await provider.switchTimetable(item.id);
+                              await _openTimetableItemDialog(context, provider, item);
                             },
                           ),
                       ],
@@ -151,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
               final pageWeek = index + 1;
               final weekStart = startOfWeekFor(config, pageWeek);
               return Padding(
-                padding: const EdgeInsets.fromLTRB(2, 8, 12, 12),
+                padding: const EdgeInsets.fromLTRB(2, 8, 0, 12),
                 child: TimetableGrid(
                   timetable: timetable,
                   periodTimes: provider.periodTimesForTimetable(timetable),
@@ -313,403 +300,112 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// 设置弹窗切换为选择共享节次时间集并跳转管理页。
-  Future<void> _editSettings(
-    BuildContext context,
-    TimetableProvider provider,
-    TimetableConfig config,
-  ) async {
-    final nameController = TextEditingController(text: config.name);
-    final weeksController = TextEditingController(text: config.totalWeeks.toString());
-    DateTime selectedDate = config.startDate;
-    var selectedPeriodTimeSetId = config.periodTimeSetId;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final selectedSet = provider.periodTimeSetForId(selectedPeriodTimeSetId) ?? provider.activePeriodTimeSetOrNull;
-            return AlertDialog(
-              title: const Text('课表设置'),
-              content: SizedBox(
-                width: 520,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(controller: nameController, decoration: const InputDecoration(labelText: '课表名称')),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: weeksController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: '总周数'),
-                      ),
-                      const SizedBox(height: 12),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('开学日期'),
-                        subtitle: Text(
-                          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-                        ),
-                        trailing: const Icon(Icons.calendar_month),
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2035),
-                            initialDate: selectedDate,
-                          );
-                          if (picked != null) {
-                            setState(() => selectedDate = picked);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: provider.periodTimeSetForId(selectedPeriodTimeSetId) == null ? null : selectedPeriodTimeSetId,
-                        decoration: const InputDecoration(labelText: '节次时间集'),
-                        items: provider.periodTimeSets
-                            .map(
-                              (item) => DropdownMenuItem<String>(
-                                value: item.id,
-                                child: Text('${item.name} · ${item.periodTimes.length} 节'),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => selectedPeriodTimeSetId = value);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.schedule),
-                        title: const Text('编辑节次时间'),
-                        subtitle: Text(selectedSet == null ? '暂无可用节次时间' : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节'),
-                        onTap: selectedSet == null
-                            ? null
-                            : () async {
-                                final result = await Navigator.of(dialogContext).push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
-                                      value: provider,
-                                      child: PeriodTimesPage(periodTimeSetId: selectedSet.id),
-                                    ),
-                                  ),
-                                );
-                                if (result == true && context.mounted) {
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                      ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.add_circle_outline),
-                        title: const Text('新建节次时间集'),
-                        subtitle: const Text('创建后可直接进入编辑页面'),
-                        onTap: () async {
-                          final created = await provider.addPeriodTimeSet();
-                          if (!context.mounted) {
-                            return;
-                          }
-                          setState(() => selectedPeriodTimeSetId = created.id);
-                          await Navigator.of(dialogContext).push(
-                            MaterialPageRoute(
-                              builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
-                                value: provider,
-                                child: PeriodTimesPage(periodTimeSetId: created.id),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.import_export),
-                        title: const Text('导入导出数据'),
-                        subtitle: const Text('导入整包/单课表，或导出当前课表与全部课表'),
-                        onTap: () => _showDataActions(dialogContext, provider),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('取消'),
-                ),
-                FilledButton(
-                  onPressed: provider.periodTimeSets.isEmpty
-                      ? null
-                      : () async {
-                          final totalWeeks = int.tryParse(weeksController.text) ?? config.totalWeeks;
-                          await provider.updateTimetableConfig(
-                            config.copyWith(
-                              name: nameController.text.trim().isEmpty ? config.name : nameController.text.trim(),
-                              startDate: selectedDate,
-                              totalWeeks: totalWeeks < 1 ? 1 : totalWeeks,
-                              periodTimeSetId: selectedPeriodTimeSetId,
-                            ),
-                          );
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                  child: const Text('保存'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    nameController.dispose();
-    weeksController.dispose();
-  }
-
-  Future<void> _showDataActions(BuildContext context, TimetableProvider provider) async {
-    final action = await showModalBottomSheet<_DataAction>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.file_download_outlined),
-                title: const Text('导入全部课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.importApp),
-              ),
-              ListTile(
-                leading: const Icon(Icons.playlist_add_outlined),
-                title: const Text('导入单个课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.importTimetable),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.share_outlined),
-                title: const Text('分享全部课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportAppShare),
-              ),
-              ListTile(
-                leading: const Icon(Icons.save_alt_outlined),
-                title: const Text('保存全部课表到文件'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportAppSave),
-              ),
-              ListTile(
-                leading: const Icon(Icons.share_outlined),
-                title: const Text('分享当前课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableShare),
-              ),
-              ListTile(
-                leading: const Icon(Icons.save_alt_outlined),
-                title: const Text('保存当前课表到文件'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableSave),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (action == null || !context.mounted) {
-      return;
-    }
-    switch (action) {
-      case _DataAction.importApp:
-        await _importAppData(context, provider);
-        return;
-      case _DataAction.importTimetable:
-        await _importTimetableData(context, provider);
-        return;
-      case _DataAction.exportAppShare:
-        await _shareJson('classmate_app_data.json', provider.exportAppDataJson());
-        return;
-      case _DataAction.exportAppSave:
-        await _saveJsonToFile(context, 'classmate_app_data.json', provider.exportAppDataJson());
-        return;
-      case _DataAction.exportTimetableShare:
-        await _shareJson('classmate_timetable.json', provider.exportActiveTimetableJson());
-        return;
-      case _DataAction.exportTimetableSave:
-        await _saveJsonToFile(context, 'classmate_timetable.json', provider.exportActiveTimetableJson());
-        return;
-    }
-  }
-
-  Future<void> _importAppData(BuildContext context, TimetableProvider provider) async {
-    final source = await _pickJsonSource();
-    if (source == null || !context.mounted) {
-      return;
-    }
-    final mode = await showDialog<AppImportMode>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('导入全部课表'),
-          content: const Text('请选择导入方式'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(AppImportMode.addAll),
-              child: const Text('新增到现有数据'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(AppImportMode.replaceAll),
-              child: const Text('覆盖现有数据'),
-            ),
-          ],
-        );
-      },
-    );
-    if (mode == null) {
-      return;
-    }
-    try {
-      final count = await provider.importAppDataJson(source, mode: mode);
-      if (context.mounted) {
-        _showMessage(context, '已导入 $count 个课表');
-      }
-    } on FormatException catch (error) {
-      if (context.mounted) {
-        _showMessage(context, error.message);
-      }
-    } catch (_) {
-      if (context.mounted) {
-        _showMessage(context, '导入失败，请检查文件内容');
-      }
-    }
-  }
-
-  Future<void> _importTimetableData(BuildContext context, TimetableProvider provider) async {
-    final source = await _pickJsonSource();
-    if (source == null || !context.mounted) {
-      return;
-    }
-    final mode = await showDialog<TimetableImportMode>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('导入单个课表'),
-          content: const Text('请选择导入方式'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(TimetableImportMode.addAsNew),
-              child: const Text('作为新课表导入'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(TimetableImportMode.replaceActive),
-              child: const Text('覆盖当前课表'),
-            ),
-          ],
-        );
-      },
-    );
-    if (mode == null) {
-      return;
-    }
-    try {
-      final name = await provider.importTimetableJson(source, mode: mode);
-      if (context.mounted) {
-        _showMessage(context, '已导入课表：$name');
-      }
-    } on FormatException catch (error) {
-      if (context.mounted) {
-        _showMessage(context, error.message);
-      }
-    } catch (_) {
-      if (context.mounted) {
-        _showMessage(context, '导入失败，请检查文件内容');
-      }
-    }
-  }
-
-  Future<void> _confirmDeleteTimetable(
+  Future<void> _openTimetableItemDialog(
     BuildContext context,
     TimetableProvider provider,
     TimetableData timetable,
   ) async {
+    final nameController = TextEditingController(text: timetable.config.name);
+    final weeksController = TextEditingController(text: timetable.config.totalWeeks.toString());
     final navigator = Navigator.of(context);
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('删除课表'),
-          content: Text('确认删除“${timetable.config.name}”吗？'),
+          title: const Text('课表'),
+          content: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: '课表名称')),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: weeksController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: '总周数'),
+                ),
+              ],
+            ),
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop('delete'),
+              child: const Text('删除'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('取消'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('删除'),
+              onPressed: () => Navigator.of(context).pop('save'),
+              child: const Text('保存'),
             ),
           ],
         );
       },
     );
-    if (confirmed != true) {
-      return;
+    if (result == 'save') {
+      final totalWeeks = int.tryParse(weeksController.text) ?? timetable.config.totalWeeks;
+      await provider.switchTimetable(timetable.id);
+      await provider.updateTimetableConfig(
+        timetable.config.copyWith(
+          name: nameController.text.trim().isEmpty ? timetable.config.name : nameController.text.trim(),
+          totalWeeks: totalWeeks < 1 ? 1 : totalWeeks,
+        ),
+      );
+      if (mounted && navigator.canPop()) {
+        navigator.pop();
+      }
     }
-    await provider.deleteTimetable(timetable.id);
-    if (mounted && navigator.canPop()) {
-      navigator.pop();
-    }
-  }
-
-  Future<String?> _pickJsonSource() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['json'],
-      withData: true,
-    );
-    final file = result?.files.single;
-    final bytes = file?.bytes;
-    if (file == null || bytes == null) {
-      return null;
-    }
-    return utf8.decode(bytes);
-  }
-
-  Future<void> _shareJson(String fileName, String content) async {
-    await SharePlus.instance.share(
-      ShareParams(
-        text: content,
-        subject: fileName,
-      ),
-    );
-  }
-
-  Future<void> _saveJsonToFile(BuildContext context, String fileName, String content) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final location = await getSaveLocation(suggestedName: fileName);
-      if (location == null) {
-        await _shareJson(fileName, content);
-        messenger.showSnackBar(const SnackBar(content: Text('系统未返回保存位置，已改用分享导出')));
+    if (result == 'delete') {
+      if (!mounted) {
+        nameController.dispose();
+        weeksController.dispose();
         return;
       }
-      final file = XFile.fromData(
-        Uint8List.fromList(utf8.encode(content)),
-        mimeType: 'application/json',
-        name: fileName,
+      final confirmed = await showDialog<bool>(
+        context: this.context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('删除课表'),
+            content: Text('确认删除“${timetable.config.name}”吗？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('删除'),
+              ),
+            ],
+          );
+        },
       );
-      await file.saveTo(location.path);
-      messenger.showSnackBar(SnackBar(content: Text('已保存到 ${location.path}')));
-    } catch (_) {
-      await _shareJson(fileName, content);
-      messenger.showSnackBar(const SnackBar(content: Text('保存失败，已改用分享导出')));
+      if (confirmed == true) {
+        await provider.deleteTimetable(timetable.id);
+        if (mounted && navigator.canPop()) {
+          navigator.pop();
+        }
+      }
     }
+    nameController.dispose();
+    weeksController.dispose();
   }
 
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _importTimetableData(BuildContext context, TimetableProvider provider) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const SettingsPage(),
+        ),
+      ),
+    );
+    if (result == null) {
+      return;
+    }
   }
 }
 

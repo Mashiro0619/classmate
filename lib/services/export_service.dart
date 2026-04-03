@@ -1,0 +1,87 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
+
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
+import 'package:share_plus/share_plus.dart';
+
+class ExportPayload {
+  const ExportPayload({
+    required this.fileName,
+    required this.content,
+  });
+
+  final String fileName;
+  final String content;
+
+  XFile toXFile() {
+    return XFile.fromData(
+      Uint8List.fromList(utf8.encode(content)),
+      mimeType: 'application/json',
+      name: fileName,
+    );
+  }
+}
+
+enum ExportSaveStatus {
+  saved,
+  cancelled,
+  permissionDenied,
+  permissionPermanentlyDenied,
+  failed,
+  unsupported,
+}
+
+class ExportSaveResult {
+  const ExportSaveResult({
+    required this.status,
+    this.path,
+  });
+
+  final ExportSaveStatus status;
+  final String? path;
+
+  bool get isSuccess => status == ExportSaveStatus.saved;
+}
+
+class ExportService {
+  const ExportService();
+
+  Future<void> shareFile(ExportPayload payload) async {
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [payload.toXFile()],
+        fileNameOverrides: [payload.fileName],
+        subject: payload.fileName,
+      ),
+    );
+  }
+
+  Future<ExportSaveResult> saveFile(ExportPayload payload) async {
+    if (kIsWeb) {
+      try {
+        await payload.toXFile().saveTo(payload.fileName);
+        return const ExportSaveResult(status: ExportSaveStatus.saved);
+      } catch (_) {
+        return const ExportSaveResult(status: ExportSaveStatus.unsupported);
+      }
+    }
+
+    try {
+      final location = await getSaveLocation(suggestedName: payload.fileName);
+      if (location == null) {
+        return const ExportSaveResult(status: ExportSaveStatus.cancelled);
+      }
+      await payload.toXFile().saveTo(location.path);
+      return ExportSaveResult(status: ExportSaveStatus.saved, path: location.path);
+    } catch (_) {
+      return const ExportSaveResult(status: ExportSaveStatus.failed);
+    }
+  }
+
+  Future<void> openSettings() async {}
+
+  bool get isWeb => kIsWeb;
+  bool get isAndroid => !kIsWeb && Platform.isAndroid;
+  bool get isWindows => !kIsWeb && Platform.isWindows;
+}

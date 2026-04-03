@@ -1,14 +1,12 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
+import '../services/export_service.dart';
 
 enum _PeriodTimesMenuAction { importTemplate, exportTemplate, saveTemplate, deleteSet }
 
@@ -26,6 +24,8 @@ class PeriodTimesPage extends StatefulWidget {
 }
 
 class _PeriodTimesPageState extends State<PeriodTimesPage> {
+  static const _exportService = ExportService();
+
   late final TextEditingController _nameController;
   late List<CoursePeriodTime> _periodTimes;
   var _loading = true;
@@ -300,40 +300,73 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Future<void> _shareTemplate() async {
-    final content = encodePeriodTimesEnvelope(_periodTimes);
-    await SharePlus.instance.share(
-      ShareParams(
-        text: content,
-        subject: 'classmate 节次时间模板',
+    await _exportService.shareFile(
+      ExportPayload(
+        fileName: 'classmate_period_times.json',
+        content: encodePeriodTimesEnvelope(_periodTimes),
       ),
     );
   }
 
   Future<void> _saveTemplateToFile() async {
-    try {
-      final content = encodePeriodTimesEnvelope(_periodTimes);
-      final location = await getSaveLocation(suggestedName: 'classmate_period_times.json');
-      if (location == null) {
-        await _shareTemplate();
-        if (mounted) {
-          _showMessage('系统未返回保存位置，已改用分享导出');
+    final result = await _exportService.saveFile(
+      ExportPayload(
+        fileName: 'classmate_period_times.json',
+        content: encodePeriodTimesEnvelope(_periodTimes),
+      ),
+    );
+
+    switch (result.status) {
+      case ExportSaveStatus.saved:
+        _showMessage('已保存到 ${result.path ?? 'classmate_period_times.json'}');
+        return;
+      case ExportSaveStatus.cancelled:
+        _showMessage('已取消保存');
+        return;
+      case ExportSaveStatus.permissionDenied:
+        final retry = await _showPermissionDialog(
+          title: '需要文件权限',
+          message: 'Android 导出需要文件访问权限，请授权后继续保存。',
+          confirmText: '重新授权',
+        );
+        if (retry == true && mounted) {
+          await _saveTemplateToFile();
         }
         return;
-      }
-      final file = XFile.fromData(
-        Uint8List.fromList(utf8.encode(content)),
-        mimeType: 'application/json',
-        name: 'classmate_period_times.json',
-      );
-      await file.saveTo(location.path);
-      if (mounted) {
-        _showMessage('已保存到 ${location.path}');
-      }
-    } catch (_) {
-      await _shareTemplate();
-      if (mounted) {
-        _showMessage('保存失败，已改用分享导出');
-      }
+      case ExportSaveStatus.permissionPermanentlyDenied:
+        final openSettings = await _showPermissionDialog(
+          title: '权限已被永久拒绝',
+          message: '请在系统设置中打开文件访问权限，然后再回来重试导出。',
+          confirmText: '打开设置',
+        );
+        if (openSettings == true) {
+          await _exportService.openSettings();
+        }
+        return;
+      case ExportSaveStatus.unsupported:
+        final shouldShare = await _showFailureDialog(
+          title: '浏览器下载受限',
+          message: '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。',
+        );
+        if (shouldShare == true) {
+          await _shareTemplate();
+          _showMessage('已改用文件分享导出');
+        }
+        return;
+      case ExportSaveStatus.failed:
+        final shouldShare = await _showFailureDialog(
+          title: _exportService.isWindows ? '文件保存失败' : '保存失败',
+          message: _exportService.isWindows
+              ? '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。'
+              : '保存失败。若你已授权，问题可能来自目标路径或系统文件访问限制。',
+        );
+        if (shouldShare == true) {
+          await _shareTemplate();
+          _showMessage('已改用文件分享导出');
+        } else {
+          _showMessage('保存失败，请稍后重试');
+        }
+        return;
     }
   }
 
@@ -342,6 +375,57 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<bool?> _showPermissionDialog({
+    required String title,
+    required String message,
+    required String confirmText,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(confirmText),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showFailureDialog({
+    required String title,
+    required String message,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('稍后再试'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('改用分享'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   /// 单独页面里逐节调整开始与结束时间，保存后直接写回共享资源。

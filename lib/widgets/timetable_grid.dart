@@ -239,7 +239,7 @@ class _TimetableMetrics {
     final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 0.0);
     return _TimetableMetrics(
       timeLabelWidth: timeLabelWidth,
-      dayColumnWidth: math.min(availableDaysWidth / 7, 180.0),
+      dayColumnWidth: availableDaysWidth / 7,
       courseGap: safeWidth < 600 ? 2.0 : compact ? 4.0 : 6.0,
       cardPadding: safeWidth < 600 ? 3.0 : compact ? 5.0 : 8.0,
       sidePadding: safeWidth < 600 ? 1.0 : compact ? 2.0 : 4.0,
