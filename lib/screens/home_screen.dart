@@ -6,6 +6,7 @@ import '../providers/timetable_provider.dart';
 import '../widgets/course_details_sheet.dart';
 import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
+import 'period_times_page.dart';
 
 /// 主页面负责三件事：
 /// 1. 通过 PageView 提供左右滑动切周
@@ -19,23 +20,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final PageController _pageController;
-  bool _controllerInitialized = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_controllerInitialized) {
-      return;
-    }
-    final provider = context.read<TimetableProvider>();
-    _pageController = PageController(initialPage: provider.selectedWeek - 1);
-    _controllerInitialized = true;
-  }
+  PageController? _pageController;
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _pageController?.dispose();
     super.dispose();
   }
 
@@ -52,45 +41,37 @@ class _HomeScreenState extends State<HomeScreen> {
         final timetable = provider.activeTimetable;
         final config = timetable.config;
         final week = provider.selectedWeek;
+        _ensurePageController(week);
 
         return Scaffold(
           appBar: AppBar(
             titleSpacing: 12,
-            title: Row(
-              children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () => _showWeekPicker(context, provider, config.totalWeeks),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('第 $week 周', style: Theme.of(context).textTheme.titleMedium),
-                        Text('点击快捷跳转', style: Theme.of(context).textTheme.labelSmall),
-                      ],
+            title: InkWell(
+              borderRadius: BorderRadius.circular(24),
+              onTap: () => _showWeekPicker(context, provider, config.totalWeeks),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('第 $week 周', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      config.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge,
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(config.name, overflow: TextOverflow.ellipsis),
-                      Text(
-                        '开学：${config.startDate.year}-${config.startDate.month.toString().padLeft(2, '0')}-${config.startDate.day.toString().padLeft(2, '0')}',
-                        style: Theme.of(context).textTheme.labelMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
             actions: [
+              IconButton(
+                onPressed: () => _openEditor(context, provider),
+                icon: const Icon(Icons.add),
+                tooltip: '添加课程',
+              ),
               IconButton(
                 onPressed: () => _editSettings(context, provider, config),
                 icon: const Icon(Icons.tune),
@@ -132,13 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _openEditor(context, provider, weekday: week == 0 ? 1 : 1),
-            icon: const Icon(Icons.add),
-            label: const Text('添加课程'),
-          ),
           body: PageView.builder(
-            controller: _pageController,
+            controller: _pageController!,
             itemCount: config.totalWeeks,
             onPageChanged: (index) => provider.setSelectedWeek(index + 1),
             itemBuilder: (context, index) {
@@ -160,14 +136,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Provider 改成异步加载后，需要在首帧拿到真实周数时再创建或校正 PageController。
+  void _ensurePageController(int week) {
+    final targetPage = week - 1;
+    if (_pageController == null) {
+      _pageController = PageController(initialPage: targetPage);
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _pageController == null || !_pageController!.hasClients) {
+        return;
+      }
+      final currentPage = _pageController!.page?.round() ?? targetPage;
+      if (currentPage != targetPage) {
+        _pageController!.jumpToPage(targetPage);
+      }
+    });
+  }
+
   /// 统一处理带动画的周跳转，确保与滑动体验一致。
   Future<void> _animateToWeek(TimetableProvider provider, int week) async {
+    final controller = _pageController;
     final targetPage = week - 1;
-    if (!_pageController.hasClients) {
+    if (controller == null || !controller.hasClients) {
       await provider.setSelectedWeek(week);
       return;
     }
-    await _pageController.animateToPage(
+    await controller.animateToPage(
       targetPage,
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
@@ -193,21 +188,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 编辑器仍复用原有 bottom sheet，只是入口不再直接暴露给课程点击。
+  /// 课程编辑改成受限宽度对话框，更适合桌面端，也不会占满全屏。
   Future<void> _openEditor(
     BuildContext context,
     TimetableProvider provider, {
     CourseItem? course,
     int? weekday,
   }) async {
-    final result = await showModalBottomSheet<CourseEditorResult>(
+    final result = await showDialog<CourseEditorResult>(
       context: context,
-      isScrollControlled: true,
-      builder: (context) => CourseEditorSheet(
-        periodTimes: provider.activeTimetable.config.periodTimes,
-        initialCourse: course,
-        weekday: weekday ?? course?.weekday ?? 1,
-      ),
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: CourseEditorSheet(
+              periodTimes: provider.activeTimetable.config.periodTimes,
+              initialCourse: course,
+              weekday: weekday ?? (course?.weekdays.isNotEmpty == true ? course!.weekdays.first : 1),
+            ),
+          ),
+        );
+      },
     );
 
     if (result == null) {
@@ -262,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// 课表设置中加入逐节时间编辑，不再只允许修改总节数。
+  /// 设置弹窗只保留课表基础信息，节次时间改到独立页面中处理。
   Future<void> _editSettings(
     BuildContext context,
     TimetableProvider provider,
@@ -276,37 +278,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     await showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            Future<void> pickPeriodTime(int index, {required bool isStart}) async {
-              final period = editablePeriodTimes[index];
-              final initialMinutes = isStart ? period.startMinutes : period.endMinutes;
-              final picked = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay(hour: initialMinutes ~/ 60, minute: initialMinutes % 60),
-                builder: (context, child) {
-                  return MediaQuery(
-                    data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-                    child: child!,
-                  );
-                },
-              );
-              if (picked == null) {
-                return;
-              }
-              final minutes = (picked.hour * 60) + picked.minute;
-              setState(() {
-                editablePeriodTimes[index] = isStart
-                    ? period.copyWith(startMinutes: minutes)
-                    : period.copyWith(endMinutes: minutes);
-              });
-            }
-
             return AlertDialog(
               title: const Text('课表设置'),
               content: SizedBox(
-                width: 560,
+                width: 520,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -345,43 +323,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('节次时间表', style: Theme.of(context).textTheme.titleMedium),
-                      ),
-                      const SizedBox(height: 8),
-                      for (var i = 0; i < editablePeriodTimes.length; i++)
-                        Card.outlined(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                SizedBox(width: 48, child: Text('第 ${editablePeriodTimes[i].index} 节')),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ListTile(
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    title: const Text('开始'),
-                                    subtitle: Text(formatMinutes(editablePeriodTimes[i].startMinutes)),
-                                    onTap: () => pickPeriodTime(i, isStart: true),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ListTile(
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    title: const Text('结束'),
-                                    subtitle: Text(formatMinutes(editablePeriodTimes[i].endMinutes)),
-                                    onTap: () => pickPeriodTime(i, isStart: false),
-                                  ),
-                                ),
-                              ],
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.schedule),
+                        title: const Text('节次时间设置'),
+                        subtitle: Text('当前共 ${_normalizeDailyPeriods(periodsController.text, config.dailyPeriods)} 节，点击进入独立页面编辑'),
+                        onTap: () async {
+                          final nextPeriodTimes = _buildNormalizedPeriodTimes(
+                            editablePeriodTimes,
+                            _normalizeDailyPeriods(periodsController.text, config.dailyPeriods),
+                          );
+                          final result = await Navigator.of(dialogContext).push<List<CoursePeriodTime>>(
+                            MaterialPageRoute(
+                              builder: (_) => PeriodTimesPage(periodTimes: nextPeriodTimes),
                             ),
-                          ),
-                        ),
+                          );
+                          if (result != null) {
+                            setState(() => editablePeriodTimes = result);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -394,16 +355,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 FilledButton(
                   onPressed: () async {
                     final totalWeeks = int.tryParse(weeksController.text) ?? config.totalWeeks;
-                    final dailyPeriods = int.tryParse(periodsController.text) ?? config.dailyPeriods;
-                    final normalizedPeriods = dailyPeriods.clamp(1, buildDefaultPeriodTimes().length);
-                    final defaults = buildDefaultPeriodTimes();
-                    final nextPeriodTimes = List.generate(normalizedPeriods, (index) {
-                      if (index < editablePeriodTimes.length) {
-                        return editablePeriodTimes[index].copyWith(index: index + 1);
-                      }
-                      final fallback = defaults[index];
-                      return fallback.copyWith(index: index + 1);
-                    });
+                    final normalizedPeriods = _normalizeDailyPeriods(periodsController.text, config.dailyPeriods);
+                    final nextPeriodTimes = _buildNormalizedPeriodTimes(editablePeriodTimes, normalizedPeriods);
                     await provider.updateTimetableConfig(
                       config.copyWith(
                         name: nameController.text.trim().isEmpty ? config.name : nameController.text.trim(),
@@ -429,5 +382,22 @@ class _HomeScreenState extends State<HomeScreen> {
     nameController.dispose();
     weeksController.dispose();
     periodsController.dispose();
+  }
+
+  /// 节次数量变化时，统一在这里做裁切与默认补全，避免多个页面各自维护一套规则。
+  List<CoursePeriodTime> _buildNormalizedPeriodTimes(List<CoursePeriodTime> source, int dailyPeriods) {
+    final defaults = buildDefaultPeriodTimes();
+    return List.generate(dailyPeriods, (index) {
+      if (index < source.length) {
+        return source[index].copyWith(index: index + 1);
+      }
+      final fallback = defaults[index];
+      return fallback.copyWith(index: index + 1);
+    });
+  }
+
+  int _normalizeDailyPeriods(String value, int fallback) {
+    final parsed = int.tryParse(value) ?? fallback;
+    return parsed.clamp(1, buildDefaultPeriodTimes().length);
   }
 }

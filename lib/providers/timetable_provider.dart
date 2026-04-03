@@ -12,6 +12,7 @@ class TimetableProvider extends ChangeNotifier {
   AppData _appData = buildSampleAppData();
   int _selectedWeek = 1;
   bool _isLoaded = false;
+  bool _isLoading = false;
   String? _storagePath;
 
   bool get isLoaded => _isLoaded;
@@ -24,18 +25,33 @@ class TimetableProvider extends ChangeNotifier {
     orElse: () => _appData.timetables.first,
   );
 
-  /// 应用启动时加载 JSON 文件，没有文件时写入示例数据。
+  /// 应用启动后异步加载数据：即便存储失败，也至少先把界面渲染出来。
   Future<void> load() async {
-    _storagePath = await _storage.filePath();
-    final fileData = await _storage.load();
-    if (fileData != null) {
-      _appData = fileData;
-    } else {
-      await _save();
+    if (_isLoaded || _isLoading) {
+      return;
     }
-    _selectedWeek = currentWeekFor(activeTimetable.config);
-    _isLoaded = true;
-    notifyListeners();
+    _isLoading = true;
+    try {
+      final fileData = await _storage.load();
+      if (fileData != null) {
+        _appData = fileData;
+      } else {
+        await _save();
+      }
+      _storagePath = await _storage.filePath();
+    } catch (_) {
+      _appData = buildSampleAppData();
+      try {
+        _storagePath = await _storage.filePath();
+      } catch (_) {
+        _storagePath = null;
+      }
+    } finally {
+      _selectedWeek = currentWeekFor(activeTimetable.config);
+      _isLoaded = true;
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   /// 切换当前活跃课表，并重置到该课表对应的当前周。

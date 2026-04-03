@@ -38,7 +38,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   late final TextEditingController _remarksController;
   late final TextEditingController _customFieldsController;
 
-  late int _weekday;
+  late Set<int> _selectedWeekdays;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
   late Set<int> _selectedPeriods;
@@ -66,7 +66,10 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
           ? ''
           : initial.customFields.entries.map((entry) => '${entry.key}:${entry.value}').join('\n'),
     );
-    _weekday = initial?.weekday ?? widget.weekday;
+    _selectedWeekdays = {...?(initial?.weekdays), if (initial == null) ...const [1, 2, 3, 4, 5, 6, 7]};
+    if (_selectedWeekdays.isEmpty) {
+      _selectedWeekdays = {widget.weekday};
+    }
     _startTime = _timeOfDayFromMinutes(initial?.startMinutes ?? defaultStartMinutes);
     _endTime = _timeOfDayFromMinutes(initial?.endMinutes ?? defaultEndMinutes);
     _selectedPeriods = {...?initial?.periods};
@@ -130,17 +133,36 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<int>(
-                      initialValue: _weekday,
-                      decoration: const InputDecoration(labelText: '星期'),
-                      items: const [1, 2, 3, 4, 5, 6, 7]
-                          .map((day) => DropdownMenuItem(value: day, child: Text('星期$day')))
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _weekday = value);
-                        }
-                      },
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('星期', style: Theme.of(context).textTheme.labelLarge),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(7, (index) {
+                            final day = index + 1;
+                            return FilterChip(
+                              label: Text('星期$day'),
+                              selected: _selectedWeekdays.contains(day),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedWeekdays.add(day);
+                                  } else {
+                                    _selectedWeekdays.remove(day);
+                                  }
+                                  if (_selectedWeekdays.isEmpty) {
+                                    _selectedWeekdays = {day};
+                                  }
+                                });
+                              },
+                            );
+                          }),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -279,7 +301,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       name: _nameController.text.trim(),
       teacher: _teacherController.text.trim(),
       location: _locationController.text.trim(),
-      weekday: _weekday,
+      weekdays: (_selectedWeekdays.toList()..sort()).toList(),
       periods: (_selectedPeriods.toList()..sort()).toList(),
       startMinutes: startMinutes,
       endMinutes: endMinutes,

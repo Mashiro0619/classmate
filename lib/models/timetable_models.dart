@@ -44,7 +44,7 @@ class CourseItem {
     required this.name,
     required this.teacher,
     required this.location,
-    required this.weekday,
+    required this.weekdays,
     required this.periods,
     required this.startMinutes,
     required this.endMinutes,
@@ -58,7 +58,7 @@ class CourseItem {
   final String name;
   final String teacher;
   final String location;
-  final int weekday;
+  final List<int> weekdays;
   final List<int> periods;
   final int startMinutes;
   final int endMinutes;
@@ -72,7 +72,7 @@ class CourseItem {
     'name': name,
     'teacher': teacher,
     'location': location,
-    'weekday': weekday,
+    'weekdays': normalizeWeekdays(weekdays),
     'periods': periods,
     'startMinutes': startMinutes,
     'endMinutes': endMinutes,
@@ -83,12 +83,15 @@ class CourseItem {
   };
 
   factory CourseItem.fromJson(Map<String, dynamic> json) {
+    final weekdayValues = json['weekdays'] is List<dynamic>
+        ? (json['weekdays'] as List<dynamic>).cast<int>()
+        : <int>[json['weekday'] as int];
     return CourseItem(
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
       teacher: json['teacher'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      weekday: json['weekday'] as int,
+      weekdays: normalizeWeekdays(weekdayValues),
       periods: (json['periods'] as List<dynamic>).cast<int>(),
       startMinutes: json['startMinutes'] as int,
       endMinutes: json['endMinutes'] as int,
@@ -106,7 +109,7 @@ class CourseItem {
     String? name,
     String? teacher,
     String? location,
-    int? weekday,
+    List<int>? weekdays,
     List<int>? periods,
     int? startMinutes,
     int? endMinutes,
@@ -120,7 +123,7 @@ class CourseItem {
       name: name ?? this.name,
       teacher: teacher ?? this.teacher,
       location: location ?? this.location,
-      weekday: weekday ?? this.weekday,
+      weekdays: normalizeWeekdays(weekdays ?? this.weekdays),
       periods: periods ?? this.periods,
       startMinutes: startMinutes ?? this.startMinutes,
       endMinutes: endMinutes ?? this.endMinutes,
@@ -290,6 +293,17 @@ String buildTimeRange(int startMinutes, int endMinutes) {
   return '${formatMinutes(startMinutes)} - ${formatMinutes(endMinutes)}';
 }
 
+/// 统一整理星期列表，避免出现重复、越界或空列表。
+List<int> normalizeWeekdays(List<int> weekdays) {
+  final normalized = weekdays.where((day) => day >= 1 && day <= 7).toSet().toList()..sort();
+  return normalized.isEmpty ? const [1, 2, 3, 4, 5, 6, 7] : normalized;
+}
+
+String formatWeekdayLabels(List<int> weekdays) {
+  const labels = ['一', '二', '三', '四', '五', '六', '日'];
+  return normalizeWeekdays(weekdays).map((day) => '星期${labels[day - 1]}').join('、');
+}
+
 int currentWeekFor(TimetableConfig config, {DateTime? now}) {
   final today = (now ?? DateTime.now());
   final normalizedToday = DateTime(today.year, today.month, today.day);
@@ -334,7 +348,7 @@ AppData buildSampleAppData() {
         name: '高等数学',
         teacher: '陈老师',
         location: 'A-201',
-        weekday: 1,
+        weekdays: const [1],
         periods: const [1, 2],
         startMinutes: periodTimes[0].startMinutes,
         endMinutes: periodTimes[1].endMinutes,
@@ -348,7 +362,7 @@ AppData buildSampleAppData() {
         name: 'Flutter 开发',
         teacher: '林老师',
         location: '实验楼 402',
-        weekday: 2,
+        weekdays: const [2],
         periods: const [3, 4],
         startMinutes: periodTimes[2].startMinutes,
         endMinutes: periodTimes[3].endMinutes,
@@ -362,7 +376,7 @@ AppData buildSampleAppData() {
         name: '大学英语',
         teacher: 'Wang',
         location: 'B-104',
-        weekday: 3,
+        weekdays: const [3],
         periods: const [5, 6],
         startMinutes: periodTimes[4].startMinutes,
         endMinutes: periodTimes[5].endMinutes,
@@ -376,7 +390,7 @@ AppData buildSampleAppData() {
         name: '线性代数答疑',
         teacher: '赵老师',
         location: '线上会议',
-        weekday: 2,
+        weekdays: const [2],
         periods: const [3],
         startMinutes: periodTimes[2].startMinutes + 10,
         endMinutes: periodTimes[2].endMinutes + 20,
@@ -403,7 +417,7 @@ AppData buildSampleAppData() {
         name: '政治',
         teacher: '自习',
         location: '图书馆',
-        weekday: 6,
+        weekdays: const [6],
         periods: const [1, 2, 3],
         startMinutes: periodTimes[0].startMinutes,
         endMinutes: periodTimes[2].endMinutes,

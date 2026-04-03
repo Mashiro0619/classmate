@@ -36,132 +36,127 @@ class TimetableGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final metrics = _TimetableMetrics.fromWidth(constraints.maxWidth);
-        final requiredWidth = metrics.timeLabelWidth + (metrics.dayColumnWidth * 7);
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const ClampingScrollPhysics(),
-          child: SizedBox(
-              width: math.max(requiredWidth, constraints.maxWidth),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: _headerHeight,
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: Column(
+            children: [
+              SizedBox(
+                height: _headerHeight,
+                child: Row(
+                  children: [
+                    SizedBox(width: metrics.timeLabelWidth),
+                    for (var weekday = 1; weekday <= 7; weekday++)
+                      SizedBox(
+                        width: metrics.dayColumnWidth,
+                        child: _DayHeader(
+                          weekday: weekday,
+                          date: weekDateStart.add(Duration(days: weekday - 1)),
+                          compact: metrics.compact,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: SizedBox(
+                    height: totalHeight,
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(width: metrics.timeLabelWidth),
-                        for (var weekday = 1; weekday <= 7; weekday++)
-                          SizedBox(
-                            width: metrics.dayColumnWidth,
-                            child: _DayHeader(
-                              weekday: weekday,
-                              date: weekDateStart.add(Duration(days: weekday - 1)),
-                              compact: metrics.compact,
-                            ),
+                        SizedBox(
+                          width: metrics.timeLabelWidth,
+                          child: Stack(
+                            children: [
+                              for (final slot in slots)
+                                Positioned(
+                                  top: (slot.startMinutes - startMinutes) * _minuteHeight,
+                                  left: 0,
+                                  right: 0,
+                                  child: SizedBox(
+                                    height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: metrics.sidePadding),
+                                      child: FittedBox(
+                                        alignment: Alignment.topRight,
+                                        fit: BoxFit.scaleDown,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              slot.index.toString(),
+                                              style: Theme.of(context).textTheme.labelLarge,
+                                            ),
+                                            Text(
+                                              '${formatMinutes(slot.startMinutes)}\n${formatMinutes(slot.endMinutes)}',
+                                              textAlign: TextAlign.right,
+                                              style: Theme.of(context).textTheme.labelSmall,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: SizedBox(
-                        height: totalHeight,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: metrics.timeLabelWidth,
+                        ),
+                        for (var weekday = 1; weekday <= 7; weekday++)
+                          Container(
+                            width: metrics.dayColumnWidth,
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.25)),
+                              ),
+                            ),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onLongPress: () => onEmptySlotTap(weekday),
                               child: Stack(
+                                clipBehavior: Clip.none,
                                 children: [
                                   for (final slot in slots)
                                     Positioned(
                                       top: (slot.startMinutes - startMinutes) * _minuteHeight,
                                       left: 0,
                                       right: 0,
-                                      child: SizedBox(
+                                      child: Container(
                                         height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
-                                        child: Padding(
-                                          padding: EdgeInsets.only(right: metrics.sidePadding),
-                                          child: FittedBox(
-                                            alignment: Alignment.topRight,
-                                            fit: BoxFit.scaleDown,
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  slot.index.toString(),
-                                                  style: Theme.of(context).textTheme.labelLarge,
-                                                ),
-                                                Text(
-                                                  '${formatMinutes(slot.startMinutes)}\n${formatMinutes(slot.endMinutes)}',
-                                                  textAlign: TextAlign.right,
-                                                  style: Theme.of(context).textTheme.labelSmall,
-                                                ),
-                                              ],
-                                            ),
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.18)),
                                           ),
                                         ),
                                       ),
                                     ),
+                                  ..._buildDayLayouts(timetable.courses, weekday).map(
+                                    (item) => _CourseCard(
+                                      layout: item,
+                                      dayStartMinutes: startMinutes,
+                                      metrics: metrics,
+                                      onTap: () => onCourseTap(item.course),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            for (var weekday = 1; weekday <= 7; weekday++)
-                              Container(
-                                width: metrics.dayColumnWidth,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    left: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.25)),
-                                  ),
-                                ),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onLongPress: () => onEmptySlotTap(weekday),
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      for (final slot in slots)
-                                        Positioned(
-                                          top: (slot.startMinutes - startMinutes) * _minuteHeight,
-                                          left: 0,
-                                          right: 0,
-                                          child: Container(
-                                            height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.18)),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ..._buildDayLayouts(timetable.courses, weekday).map(
-                                        (item) => _CourseCard(
-                                          layout: item,
-                                          dayStartMinutes: startMinutes,
-                                          metrics: metrics,
-                                          onTap: () => onCourseTap(item.course),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
         );
       },
     );
   }
 }
 
-/// 针对不同窗口宽度生成网格布局参数，保证窄窗口下仍可读。
+/// 针对不同窗口宽度生成网格布局参数，核心目标是整周必须始终压缩进当前视口。
 class _TimetableMetrics {
   const _TimetableMetrics({
     required this.timeLabelWidth,
@@ -181,16 +176,15 @@ class _TimetableMetrics {
 
   factory _TimetableMetrics.fromWidth(double width) {
     final safeWidth = width.isFinite && width > 0 ? width : 980.0;
-    final compact = safeWidth < 840;
-    final timeLabelWidth = compact ? 56.0 : 68.0;
-    final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 7 * 92.0);
-    final computedDayWidth = availableDaysWidth / 7;
+    final compact = safeWidth < 920;
+    final timeLabelWidth = safeWidth < 600 ? 42.0 : safeWidth < 840 ? 52.0 : 64.0;
+    final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 0.0);
     return _TimetableMetrics(
       timeLabelWidth: timeLabelWidth,
-      dayColumnWidth: computedDayWidth.clamp(92.0, 180.0),
-      courseGap: compact ? 4.0 : 6.0,
-      cardPadding: compact ? 6.0 : 10.0,
-      sidePadding: compact ? 4.0 : 8.0,
+      dayColumnWidth: math.min(availableDaysWidth / 7, 180.0),
+      courseGap: safeWidth < 600 ? 2.0 : compact ? 4.0 : 6.0,
+      cardPadding: safeWidth < 600 ? 4.0 : compact ? 6.0 : 10.0,
+      sidePadding: safeWidth < 600 ? 2.0 : compact ? 4.0 : 8.0,
       compact: compact,
     );
   }
@@ -211,7 +205,7 @@ class _DayHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     const labels = ['一', '二', '三', '四', '五', '六', '日'];
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 6, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 1 : 6, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -220,10 +214,13 @@ class _DayHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.fade,
             softWrap: false,
-            style: Theme.of(context).textTheme.titleSmall,
+            style: compact ? Theme.of(context).textTheme.labelMedium : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 2),
-          Text('${date.month}/${date.day}', style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            '${date.month}/${date.day}',
+            style: compact ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.bodySmall,
+          ),
         ],
       ),
     );
@@ -256,7 +253,7 @@ class _CourseCard extends StatelessWidget {
       92.0,
       (layout.course.endMinutes - layout.course.startMinutes) * _minuteHeight - metrics.courseGap,
     ).toDouble();
-    final width = metrics.dayColumnWidth - (metrics.courseGap * 2);
+    final width = math.max(0.0, metrics.dayColumnWidth - (metrics.courseGap * 2));
     final compact = width < 110 || height < 120;
     final color = Color.lerp(
       colorScheme.secondaryContainer,
@@ -341,7 +338,7 @@ class _CourseLayout {
 /// - 高优先级课程后画在顶层
 /// 这样重叠区域就会优先响应顶部课程。
 List<_CourseLayout> _buildDayLayouts(List<CourseItem> courses, int weekday) {
-  final dayCourses = courses.where((item) => item.weekday == weekday).toList()
+  final dayCourses = courses.where((item) => item.weekdays.contains(weekday)).toList()
     ..sort((a, b) => _comparePaintPriority(a, b));
 
   return List.generate(

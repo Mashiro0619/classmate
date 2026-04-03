@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +9,7 @@ import 'screens/home_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final provider = TimetableProvider();
-  await provider.load();
+  unawaited(provider.load());
   runApp(MyApp(provider: provider));
 }
 
