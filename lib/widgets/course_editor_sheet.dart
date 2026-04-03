@@ -13,17 +13,22 @@ class CourseEditorResult {
   final bool delete;
 }
 
-/// 课程编辑弹窗支持任意时间范围，不再强依赖标准节次边界。
+/// 课程编辑底部弹窗：
+/// - 上课日使用单选
+/// - 周次通过二级弹窗选择
+/// - 时间段始终优先于节次，节次只作为自动推导出的附属信息展示
 class CourseEditorSheet extends StatefulWidget {
   const CourseEditorSheet({
     super.key,
     required this.periodTimes,
-    required this.weekday,
+    required this.totalWeeks,
+    required this.dayOfWeek,
     this.initialCourse,
   });
 
   final List<CoursePeriodTime> periodTimes;
-  final int weekday;
+  final int totalWeeks;
+  final int dayOfWeek;
   final CourseItem? initialCourse;
 
   @override
@@ -38,10 +43,10 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   late final TextEditingController _remarksController;
   late final TextEditingController _customFieldsController;
 
-  late Set<int> _selectedWeekdays;
+  late int _selectedDayOfWeek;
+  late List<int> _selectedSemesterWeeks;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
-  late Set<int> _selectedPeriods;
 
   @override
   void initState() {
@@ -66,17 +71,10 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
           ? ''
           : initial.customFields.entries.map((entry) => '${entry.key}:${entry.value}').join('\n'),
     );
-    _selectedWeekdays = {...?(initial?.weekdays), if (initial == null) ...const [1, 2, 3, 4, 5, 6, 7]};
-    if (_selectedWeekdays.isEmpty) {
-      _selectedWeekdays = {widget.weekday};
-    }
+    _selectedDayOfWeek = initial?.dayOfWeek ?? widget.dayOfWeek;
+    _selectedSemesterWeeks = normalizeSemesterWeeks(initial?.semesterWeeks ?? buildAllSemesterWeeks(widget.totalWeeks));
     _startTime = _timeOfDayFromMinutes(initial?.startMinutes ?? defaultStartMinutes);
     _endTime = _timeOfDayFromMinutes(initial?.endMinutes ?? defaultEndMinutes);
-    _selectedPeriods = {...?initial?.periods};
-    if (_selectedPeriods.isEmpty) {
-      final fallbackPeriods = widget.periodTimes.take(2).map((slot) => slot.index).toSet();
-      _selectedPeriods = fallbackPeriods.isEmpty ? {1} : fallbackPeriods;
-    }
   }
 
   @override
@@ -92,153 +90,142 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final matchedPeriods = _matchedPeriods;
+
     return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        ),
-        child: SingleChildScrollView(
+      child: FractionallySizedBox(
+        heightFactor: 0.58,
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                widget.initialCourse == null ? '添加课程' : '编辑课程',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              TextField(controller: _nameController, decoration: const InputDecoration(labelText: '课程名称')),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _teacherController,
-                      decoration: const InputDecoration(labelText: '老师姓名'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(labelText: '上课地点'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('星期', style: Theme.of(context).textTheme.labelLarge),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: List.generate(7, (index) {
-                            final day = index + 1;
-                            return FilterChip(
-                              label: Text('星期$day'),
-                              selected: _selectedWeekdays.contains(day),
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedWeekdays.add(day);
-                                  } else {
-                                    _selectedWeekdays.remove(day);
-                                  }
-                                  if (_selectedWeekdays.isEmpty) {
-                                    _selectedWeekdays = {day};
-                                  }
-                                });
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.initialCourse == null ? '添加课程' : '编辑课程',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(controller: _nameController, decoration: const InputDecoration(labelText: '课程名称')),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _teacherController,
+                              decoration: const InputDecoration(labelText: '老师姓名'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _locationController,
+                              decoration: const InputDecoration(labelText: '上课地点'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              initialValue: _selectedDayOfWeek,
+                              decoration: const InputDecoration(labelText: '上课日'),
+                              items: List.generate(7, (index) {
+                                final day = index + 1;
+                                return DropdownMenuItem<int>(
+                                  value: day,
+                                  child: Text(formatDayOfWeekLabel(day)),
+                                );
+                              }),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => _selectedDayOfWeek = value);
+                                }
                               },
-                            );
-                          }),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _creditController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: '学分'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('周次'),
+                        subtitle: Text(formatSemesterWeeksLabel(_selectedSemesterWeeks, totalWeeks: widget.totalWeeks)),
+                        trailing: const Icon(Icons.edit_calendar),
+                        onTap: _pickSemesterWeeks,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('开始时间'),
+                              subtitle: Text(_formatTimeOfDay(_startTime)),
+                              trailing: const Icon(Icons.schedule),
+                              onTap: () => _pickTime(isStart: true),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('结束时间'),
+                              subtitle: Text(_formatTimeOfDay(_endTime)),
+                              trailing: const Icon(Icons.schedule),
+                              onTap: () => _pickTime(isStart: false),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (matchedPeriods.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('关联节次'),
+                          subtitle: Text('第 ${matchedPeriods.first}-${matchedPeriods.last} 节'),
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _creditController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: '学分'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('开始时间'),
-                      subtitle: Text(_formatTimeOfDay(_startTime)),
-                      trailing: const Icon(Icons.schedule),
-                      onTap: () => _pickTime(isStart: true),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('结束时间'),
-                      subtitle: Text(_formatTimeOfDay(_endTime)),
-                      trailing: const Icon(Icons.schedule),
-                      onTap: () => _pickTime(isStart: false),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text('关联节次', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: widget.periodTimes
-                    .map(
-                      (slot) => FilterChip(
-                        label: Text(slot.index.toString()),
-                        selected: _selectedPeriods.contains(slot.index),
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedPeriods.add(slot.index);
-                            } else {
-                              _selectedPeriods.remove(slot.index);
-                            }
-                          });
-                        },
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _remarksController,
+                        decoration: const InputDecoration(labelText: '备注'),
+                        maxLines: 2,
                       ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _remarksController,
-                decoration: const InputDecoration(labelText: '备注'),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _customFieldsController,
-                decoration: const InputDecoration(
-                  labelText: '自定义字段',
-                  hintText: '每行一个，格式：键:值',
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _customFieldsController,
+                        decoration: const InputDecoration(
+                          labelText: '自定义字段',
+                          hintText: '每行一个，格式：键:值',
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
                 ),
-                maxLines: 3,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   if (widget.initialCourse != null)
@@ -263,6 +250,130 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
         ),
       ),
     );
+  }
+
+  List<int> get _matchedPeriods => matchPeriodsForTimeRange(
+        widget.periodTimes,
+        _minutesFromTimeOfDay(_startTime),
+        _minutesFromTimeOfDay(_endTime),
+      );
+
+  Future<void> _pickSemesterWeeks() async {
+    final draft = {..._selectedSemesterWeeks};
+    final result = await showDialog<List<int>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('选择周次'),
+              content: SizedBox(
+                width: 360,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          TextButton(
+                            onPressed: () => setState(() {
+                              draft
+                                ..clear()
+                                ..addAll(buildAllSemesterWeeks(widget.totalWeeks));
+                            }),
+                            child: const Text('全选'),
+                          ),
+                          TextButton(
+                            onPressed: () => setState(() => draft.clear()),
+                            child: const Text('清空'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        itemCount: widget.totalWeeks,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1.6,
+                        ),
+                        itemBuilder: (context, index) {
+                          final week = index + 1;
+                          final selected = draft.contains(week);
+                          final colorScheme = Theme.of(context).colorScheme;
+                          return Material(
+                            color: selected
+                                ? colorScheme.secondaryContainer
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                setState(() {
+                                  if (selected) {
+                                    draft.remove(week);
+                                  } else {
+                                    draft.add(week);
+                                  }
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      selected ? Icons.check : Icons.radio_button_unchecked,
+                                      size: 16,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        '$week',
+                                        overflow: TextOverflow.fade,
+                                        softWrap: false,
+                                        style: Theme.of(context).textTheme.labelLarge,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(normalizeSemesterWeeks(draft.toList())),
+                  child: const Text('确定'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (result == null) {
+      return;
+    }
+    setState(() {
+      _selectedSemesterWeeks = result.isEmpty ? buildAllSemesterWeeks(widget.totalWeeks) : result;
+    });
   }
 
   Future<void> _pickTime({required bool isStart}) async {
@@ -301,8 +412,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       name: _nameController.text.trim(),
       teacher: _teacherController.text.trim(),
       location: _locationController.text.trim(),
-      weekdays: (_selectedWeekdays.toList()..sort()).toList(),
-      periods: (_selectedPeriods.toList()..sort()).toList(),
+      dayOfWeek: _selectedDayOfWeek,
+      semesterWeeks: normalizeSemesterWeeks(_selectedSemesterWeeks),
+      periods: _matchedPeriods,
       startMinutes: startMinutes,
       endMinutes: endMinutes,
       timeRange: buildTimeRange(startMinutes, endMinutes),

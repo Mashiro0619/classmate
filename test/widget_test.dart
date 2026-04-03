@@ -72,7 +72,7 @@ void main() {
       expect(decoded.timetables.first.config.name, '2026 春季学期');
     });
 
-    test('旧 weekday 字段可以兼容解码并统一写回 weekdays', () {
+    test('旧 weekday 字段会兼容成 dayOfWeek，且周次默认为全学期语义', () {
       final legacyJson = {
         'id': 'legacy',
         'name': '旧数据课程',
@@ -89,9 +89,32 @@ void main() {
       };
       final course = CourseItem.fromJson(legacyJson);
 
-      expect(course.weekdays, [3]);
-      expect(course.toJson()['weekdays'], [3]);
+      expect(course.dayOfWeek, 3);
+      expect(course.semesterWeeks, isEmpty);
+      expect(course.toJson()['dayOfWeek'], 3);
       expect(course.toJson().containsKey('weekday'), isFalse);
+    });
+
+    test('时间段命中连续节次时能自动推导节次', () {
+      final periods = buildDefaultPeriodTimes();
+      final matched = matchPeriodsForTimeRange(
+        periods,
+        periods[0].startMinutes,
+        periods[1].endMinutes,
+      );
+
+      expect(matched, [1, 2]);
+    });
+
+    test('时间段不命中节次时返回空列表', () {
+      final periods = buildDefaultPeriodTimes();
+      final matched = matchPeriodsForTimeRange(
+        periods,
+        periods[0].startMinutes + 5,
+        periods[1].endMinutes,
+      );
+
+      expect(matched, isEmpty);
     });
 
     test('provider 会在首次加载时创建 JSON 文件并可再次读取', () async {
@@ -153,23 +176,23 @@ void main() {
       );
     });
 
-    testWidgets('新建课程时默认全选星期', (tester) async {
+    testWidgets('新建课程时显示周次入口且节次由时间自动推导', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: CourseEditorSheet(
               periodTimes: buildDefaultPeriodTimes().take(4).toList(),
-              weekday: 2,
+              totalWeeks: 18,
+              dayOfWeek: 2,
             ),
           ),
         ),
       );
 
-      final mondayChip = tester.widget<FilterChip>(find.widgetWithText(FilterChip, '星期1'));
-      final sundayChip = tester.widget<FilterChip>(find.widgetWithText(FilterChip, '星期7'));
-
-      expect(mondayChip.selected, isTrue);
-      expect(sundayChip.selected, isTrue);
+      expect(find.text('周次'), findsOneWidget);
+      expect(find.text('第 1-18 周'), findsOneWidget);
+      expect(find.text('关联节次'), findsOneWidget);
+      expect(find.text('第 1-2 节'), findsOneWidget);
     });
   });
 }

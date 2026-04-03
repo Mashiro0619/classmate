@@ -16,12 +16,14 @@ class TimetableGrid extends StatelessWidget {
     super.key,
     required this.timetable,
     required this.weekDateStart,
+    required this.selectedWeek,
     required this.onCourseTap,
     required this.onEmptySlotTap,
   });
 
   final TimetableData timetable;
   final DateTime weekDateStart;
+  final int selectedWeek;
   final ValueChanged<CourseItem> onCourseTap;
   final ValueChanged<int> onEmptySlotTap;
 
@@ -131,7 +133,7 @@ class TimetableGrid extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                  ..._buildDayLayouts(timetable.courses, weekday).map(
+                                  ..._buildDayLayouts(timetable.courses, weekday, selectedWeek).map(
                                     (item) => _CourseCard(
                                       layout: item,
                                       dayStartMinutes: startMinutes,
@@ -255,10 +257,13 @@ class _CourseCard extends StatelessWidget {
     ).toDouble();
     final width = math.max(0.0, metrics.dayColumnWidth - (metrics.courseGap * 2));
     final compact = width < 110 || height < 120;
-    final color = Color.lerp(
+    final baseColor = Color.lerp(
       colorScheme.secondaryContainer,
       colorScheme.primaryContainer,
       0.18 + (layout.priorityDepth * 0.18),
+    );
+    final color = (baseColor ?? colorScheme.secondaryContainer).withValues(
+      alpha: layout.priorityDepth == 0 ? 0.92 : math.max(0.48, 0.82 - (layout.priorityDepth * 0.10)),
     );
 
     return Positioned(
@@ -276,12 +281,19 @@ class _CourseCard extends StatelessWidget {
             padding: EdgeInsets.all(metrics.cardPadding),
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final textColor = colorScheme.onSecondaryContainer.withValues(
+                  alpha: layout.priorityDepth == 0 ? 0.96 : 0.92,
+                );
                 final titleStyle = (compact ? textTheme.titleSmall : textTheme.titleMedium)?.copyWith(
                   fontWeight: FontWeight.w700,
                   height: 1.15,
+                  color: textColor,
                 );
-                final bodyStyle = (compact ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(height: 1.15);
-                final timeStyle = textTheme.labelMedium?.copyWith(height: 1.15);
+                final bodyStyle = (compact ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(
+                  height: 1.15,
+                  color: textColor,
+                );
+                final timeStyle = textTheme.labelMedium?.copyWith(height: 1.15, color: textColor);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,8 +349,10 @@ class _CourseLayout {
 /// - 低优先级课程先画在底层
 /// - 高优先级课程后画在顶层
 /// 这样重叠区域就会优先响应顶部课程。
-List<_CourseLayout> _buildDayLayouts(List<CourseItem> courses, int weekday) {
-  final dayCourses = courses.where((item) => item.weekdays.contains(weekday)).toList()
+List<_CourseLayout> _buildDayLayouts(List<CourseItem> courses, int weekday, int selectedWeek) {
+  final dayCourses = courses
+      .where((item) => item.dayOfWeek == weekday && matchesSemesterWeek(item, selectedWeek))
+      .toList()
     ..sort((a, b) => _comparePaintPriority(a, b));
 
   return List.generate(

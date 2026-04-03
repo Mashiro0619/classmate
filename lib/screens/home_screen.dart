@@ -125,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: TimetableGrid(
                   timetable: timetable,
                   weekDateStart: weekStart,
+                  selectedWeek: pageWeek,
                   onCourseTap: (course) => _openDetails(context, provider, course),
                   onEmptySlotTap: (weekday) => _openEditor(context, provider, weekday: weekday),
                 ),
@@ -188,28 +189,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 课程编辑改成受限宽度对话框，更适合桌面端，也不会占满全屏。
+  /// 课程编辑恢复为底部弹窗；上课日和周次都在这里维护，但周次通过二级弹窗选择。
   Future<void> _openEditor(
     BuildContext context,
     TimetableProvider provider, {
     CourseItem? course,
     int? weekday,
   }) async {
-    final result = await showDialog<CourseEditorResult>(
+    final result = await showModalBottomSheet<CourseEditorResult>(
       context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: CourseEditorSheet(
-              periodTimes: provider.activeTimetable.config.periodTimes,
-              initialCourse: course,
-              weekday: weekday ?? (course?.weekdays.isNotEmpty == true ? course!.weekdays.first : 1),
-            ),
-          ),
-        );
-      },
+      isScrollControlled: true,
+      builder: (context) => CourseEditorSheet(
+        periodTimes: provider.activeTimetable.config.periodTimes,
+        totalWeeks: provider.activeTimetable.config.totalWeeks,
+        initialCourse: course,
+        dayOfWeek: weekday ?? course?.dayOfWeek ?? 1,
+      ),
     );
 
     if (result == null) {

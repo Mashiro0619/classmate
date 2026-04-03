@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/timetable_models.dart' show CourseItem, formatWeekdayLabels;
+import '../models/timetable_models.dart' show CourseItem, formatDayOfWeekLabel, formatSemesterWeeksLabel;
 
 /// 课程详情弹窗默认只读，编辑作为二级操作，避免误触直接进入编辑。
 class CourseDetailsSheet extends StatelessWidget {
@@ -41,8 +41,9 @@ class CourseDetailsSheet extends StatelessWidget {
             _DetailRow(label: '老师', value: course.teacher.isEmpty ? '未填写' : course.teacher),
             _DetailRow(label: '地点', value: course.location.isEmpty ? '未填写' : course.location),
             _DetailRow(label: '时间', value: course.timeRange),
-            _DetailRow(label: '星期', value: formatWeekdayLabels(course.weekdays)),
-            _DetailRow(label: '节次', value: course.periods.join(', ')),
+            _DetailRow(label: '上课日', value: formatDayOfWeekLabel(course.dayOfWeek)),
+            _DetailRow(label: '周次', value: formatSemesterWeeksLabel(course.semesterWeeks)),
+            if (course.periods.isNotEmpty) _DetailRow(label: '节次', value: course.periods.join(', ')),
             _DetailRow(label: '学分', value: course.credit == 0 ? '未填写' : course.credit.toString()),
             _DetailRow(label: '备注', value: course.remarks.isEmpty ? '无' : course.remarks),
             if (course.customFields.isNotEmpty) ...[

@@ -44,7 +44,8 @@ class CourseItem {
     required this.name,
     required this.teacher,
     required this.location,
-    required this.weekdays,
+    required this.dayOfWeek,
+    required this.semesterWeeks,
     required this.periods,
     required this.startMinutes,
     required this.endMinutes,
@@ -58,7 +59,8 @@ class CourseItem {
   final String name;
   final String teacher;
   final String location;
-  final List<int> weekdays;
+  final int dayOfWeek;
+  final List<int> semesterWeeks;
   final List<int> periods;
   final int startMinutes;
   final int endMinutes;
@@ -72,7 +74,8 @@ class CourseItem {
     'name': name,
     'teacher': teacher,
     'location': location,
-    'weekdays': normalizeWeekdays(weekdays),
+    'dayOfWeek': normalizeDayOfWeek(dayOfWeek),
+    'semesterWeeks': normalizeSemesterWeeks(semesterWeeks),
     'periods': periods,
     'startMinutes': startMinutes,
     'endMinutes': endMinutes,
@@ -82,17 +85,20 @@ class CourseItem {
     'customFields': customFields,
   };
 
+  /// 旧数据里的 weekday/weekdays 只视为“星期几”来源；周次范围缺失时默认留空，表示全学期有效。
   factory CourseItem.fromJson(Map<String, dynamic> json) {
-    final weekdayValues = json['weekdays'] is List<dynamic>
-        ? (json['weekdays'] as List<dynamic>).cast<int>()
-        : <int>[json['weekday'] as int];
+    final legacyDayOfWeek = json['dayOfWeek'] as int? ?? _decodeLegacyDayOfWeek(json);
+    final semesterWeeks = json['semesterWeeks'] is List<dynamic>
+        ? (json['semesterWeeks'] as List<dynamic>).cast<int>()
+        : const <int>[];
     return CourseItem(
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
       teacher: json['teacher'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      weekdays: normalizeWeekdays(weekdayValues),
-      periods: (json['periods'] as List<dynamic>).cast<int>(),
+      dayOfWeek: normalizeDayOfWeek(legacyDayOfWeek),
+      semesterWeeks: normalizeSemesterWeeks(semesterWeeks),
+      periods: (json['periods'] as List<dynamic>? ?? const <dynamic>[]).cast<int>(),
       startMinutes: json['startMinutes'] as int,
       endMinutes: json['endMinutes'] as int,
       timeRange: json['timeRange'] as String? ?? '',
@@ -109,7 +115,8 @@ class CourseItem {
     String? name,
     String? teacher,
     String? location,
-    List<int>? weekdays,
+    int? dayOfWeek,
+    List<int>? semesterWeeks,
     List<int>? periods,
     int? startMinutes,
     int? endMinutes,
@@ -123,7 +130,8 @@ class CourseItem {
       name: name ?? this.name,
       teacher: teacher ?? this.teacher,
       location: location ?? this.location,
-      weekdays: normalizeWeekdays(weekdays ?? this.weekdays),
+      dayOfWeek: normalizeDayOfWeek(dayOfWeek ?? this.dayOfWeek),
+      semesterWeeks: normalizeSemesterWeeks(semesterWeeks ?? this.semesterWeeks),
       periods: periods ?? this.periods,
       startMinutes: startMinutes ?? this.startMinutes,
       endMinutes: endMinutes ?? this.endMinutes,
@@ -293,15 +301,88 @@ String buildTimeRange(int startMinutes, int endMinutes) {
   return '${formatMinutes(startMinutes)} - ${formatMinutes(endMinutes)}';
 }
 
-/// 统一整理星期列表，避免出现重复、越界或空列表。
-List<int> normalizeWeekdays(List<int> weekdays) {
-  final normalized = weekdays.where((day) => day >= 1 && day <= 7).toSet().toList()..sort();
-  return normalized.isEmpty ? const [1, 2, 3, 4, 5, 6, 7] : normalized;
+int normalizeDayOfWeek(int? dayOfWeek) {
+  final value = dayOfWeek ?? 1;
+  return value.clamp(1, 7);
 }
 
-String formatWeekdayLabels(List<int> weekdays) {
+/// 周次范围留空表示“全学期有效”，这样旧数据不需要反推具体周次也能继续显示。
+List<int> normalizeSemesterWeeks(List<int> semesterWeeks) {
+  final normalized = semesterWeeks.where((week) => week > 0).toSet().toList()..sort();
+  return normalized;
+}
+
+List<int> buildAllSemesterWeeks(int totalWeeks) {
+  final safeTotalWeeks = totalWeeks < 1 ? 1 : totalWeeks;
+  return List.generate(safeTotalWeeks, (index) => index + 1);
+}
+
+bool matchesSemesterWeek(CourseItem course, int selectedWeek) {
+  return course.semesterWeeks.isEmpty || course.semesterWeeks.contains(selectedWeek);
+}
+
+String formatDayOfWeekLabel(int dayOfWeek) {
   const labels = ['一', '二', '三', '四', '五', '六', '日'];
-  return normalizeWeekdays(weekdays).map((day) => '星期${labels[day - 1]}').join('、');
+  return '星期${labels[normalizeDayOfWeek(dayOfWeek) - 1]}';
+}
+
+String formatSemesterWeeksLabel(List<int> semesterWeeks, {int? totalWeeks}) {
+  final normalized = normalizeSemesterWeeks(semesterWeeks);
+  if (normalized.isEmpty) {
+    return totalWeeks == null ? '全学期' : '第 1-$totalWeeks 周';
+  }
+  final ranges = <String>[];
+  var start = normalized.first;
+  var previous = normalized.first;
+  for (final week in normalized.skip(1)) {
+    if (week == previous + 1) {
+      previous = week;
+      continue;
+    }
+    ranges.add(start == previous ? '$start' : '$start-$previous');
+    start = previous = week;
+  }
+  ranges.add(start == previous ? '$start' : '$start-$previous');
+  return '第 ${ranges.join('、')} 周';
+}
+
+/// 当课程时间恰好覆盖若干连续节次时，自动返回这些节次；否则返回空列表，表示应隐藏节次。
+List<int> matchPeriodsForTimeRange(
+  List<CoursePeriodTime> periodTimes,
+  int startMinutes,
+  int endMinutes,
+) {
+  if (periodTimes.isEmpty || startMinutes >= endMinutes) {
+    return const [];
+  }
+  for (var startIndex = 0; startIndex < periodTimes.length; startIndex++) {
+    if (periodTimes[startIndex].startMinutes != startMinutes) {
+      continue;
+    }
+    var currentEnd = periodTimes[startIndex].endMinutes;
+    final periods = <int>[periodTimes[startIndex].index];
+    if (currentEnd == endMinutes) {
+      return periods;
+    }
+    for (var endIndex = startIndex + 1; endIndex < periodTimes.length; endIndex++) {
+      currentEnd = periodTimes[endIndex].endMinutes;
+      periods.add(periodTimes[endIndex].index);
+      if (currentEnd == endMinutes) {
+        return periods;
+      }
+    }
+  }
+  return const [];
+}
+
+int _decodeLegacyDayOfWeek(Map<String, dynamic> json) {
+  if (json['weekday'] is int) {
+    return json['weekday'] as int;
+  }
+  if (json['weekdays'] is List<dynamic> && (json['weekdays'] as List<dynamic>).isNotEmpty) {
+    return ((json['weekdays'] as List<dynamic>).first as num).toInt();
+  }
+  return 1;
 }
 
 int currentWeekFor(TimetableConfig config, {DateTime? now}) {
@@ -348,7 +429,8 @@ AppData buildSampleAppData() {
         name: '高等数学',
         teacher: '陈老师',
         location: 'A-201',
-        weekdays: const [1],
+        dayOfWeek: 1,
+        semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [1, 2],
         startMinutes: periodTimes[0].startMinutes,
         endMinutes: periodTimes[1].endMinutes,
@@ -362,7 +444,8 @@ AppData buildSampleAppData() {
         name: 'Flutter 开发',
         teacher: '林老师',
         location: '实验楼 402',
-        weekdays: const [2],
+        dayOfWeek: 2,
+        semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [3, 4],
         startMinutes: periodTimes[2].startMinutes,
         endMinutes: periodTimes[3].endMinutes,
@@ -376,7 +459,8 @@ AppData buildSampleAppData() {
         name: '大学英语',
         teacher: 'Wang',
         location: 'B-104',
-        weekdays: const [3],
+        dayOfWeek: 3,
+        semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [5, 6],
         startMinutes: periodTimes[4].startMinutes,
         endMinutes: periodTimes[5].endMinutes,
@@ -390,8 +474,9 @@ AppData buildSampleAppData() {
         name: '线性代数答疑',
         teacher: '赵老师',
         location: '线上会议',
-        weekdays: const [2],
-        periods: const [3],
+        dayOfWeek: 2,
+        semesterWeeks: buildAllSemesterWeeks(20),
+        periods: const [],
         startMinutes: periodTimes[2].startMinutes + 10,
         endMinutes: periodTimes[2].endMinutes + 20,
         timeRange: buildTimeRange(periodTimes[2].startMinutes + 10, periodTimes[2].endMinutes + 20),
@@ -417,7 +502,8 @@ AppData buildSampleAppData() {
         name: '政治',
         teacher: '自习',
         location: '图书馆',
-        weekdays: const [6],
+        dayOfWeek: 6,
+        semesterWeeks: buildAllSemesterWeeks(16),
         periods: const [1, 2, 3],
         startMinutes: periodTimes[0].startMinutes,
         endMinutes: periodTimes[2].endMinutes,
