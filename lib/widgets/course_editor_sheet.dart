@@ -335,8 +335,8 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           final colorScheme = Theme.of(context).colorScheme;
                           return Material(
                             color: selected
-                                ? colorScheme.secondaryContainer
-                                : colorScheme.surfaceContainerHighest,
+                                ? colorScheme.primaryContainer
+                                : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(12),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
@@ -349,26 +349,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                                   }
                                 });
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      selected ? Icons.check : Icons.radio_button_unchecked,
-                                      size: 16,
-                                      color: colorScheme.onSecondaryContainer,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        '$week',
-                                        overflow: TextOverflow.fade,
-                                        softWrap: false,
-                                        style: Theme.of(context).textTheme.labelLarge,
-                                      ),
-                                    ),
-                                  ],
+                              child: Center(
+                                child: Text(
+                                  '$week',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: selected
+                                        ? colorScheme.onSecondaryContainer
+                                        : colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ),

@@ -1,4 +1,7 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/timetable_models.dart';
@@ -143,26 +146,46 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          body: PageView.builder(
-            controller: _pageController!,
-            itemCount: config.totalWeeks,
-            onPageChanged: (index) => provider.setSelectedWeek(index + 1),
-            itemBuilder: (context, index) {
-              final pageWeek = index + 1;
-              final weekStart = startOfWeekFor(config, pageWeek);
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(2, 8, 0, 12),
-                child: TimetableGrid(
-                  timetable: timetable,
-                  periodTimes: provider.periodTimesForTimetable(timetable),
-                  weekDateStart: weekStart,
-                  selectedWeek: pageWeek,
-                  displayedCourseIdForConflict: provider.displayedCourseIdForConflict,
-                  onCourseTap: (info) => _openDetails(context, provider, info),
-                  onEmptySlotTap: (weekday) => _openEditor(context, provider, weekday: weekday),
-                ),
-              );
+          body: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _jumpWeekBy(provider, -1),
+              const SingleActivator(LogicalKeyboardKey.arrowRight): () => _jumpWeekBy(provider, 1),
             },
+            child: Focus(
+              autofocus: true,
+              child: ScrollConfiguration(
+                behavior: const MaterialScrollBehavior().copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                    PointerDeviceKind.trackpad,
+                    PointerDeviceKind.stylus,
+                    PointerDeviceKind.invertedStylus,
+                  },
+                ),
+                child: PageView.builder(
+                  controller: _pageController!,
+                  itemCount: config.totalWeeks,
+                  onPageChanged: (index) => provider.setSelectedWeek(index + 1),
+                  itemBuilder: (context, index) {
+                    final pageWeek = index + 1;
+                    final weekStart = startOfWeekFor(config, pageWeek);
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(2, 8, 0, 12),
+                      child: TimetableGrid(
+                        timetable: timetable,
+                        periodTimes: provider.periodTimesForTimetable(timetable),
+                        weekDateStart: weekStart,
+                        selectedWeek: pageWeek,
+                        displayedCourseIdForConflict: provider.displayedCourseIdForConflict,
+                        onCourseTap: (info) => _openDetails(context, provider, info),
+                        onEmptySlotTap: (weekday) => _openEditor(context, provider, weekday: weekday),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -185,6 +208,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _pageController!.jumpToPage(targetPage);
       }
     });
+  }
+
+  Future<void> _jumpWeekBy(TimetableProvider provider, int offset) async {
+    final timetable = provider.activeTimetableOrNull;
+    if (timetable == null || offset == 0) {
+      return;
+    }
+    final targetWeek = (provider.selectedWeek + offset).clamp(1, timetable.config.totalWeeks);
+    if (targetWeek == provider.selectedWeek) {
+      return;
+    }
+    await _animateToWeek(provider, targetWeek);
   }
 
   /// 统一处理带动画的周跳转，确保与滑动体验一致。
