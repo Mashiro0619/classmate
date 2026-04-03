@@ -117,55 +117,19 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                       const SizedBox(height: 16),
                       TextField(controller: _nameController, decoration: const InputDecoration(labelText: '课程名称')),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _teacherController,
-                              decoration: const InputDecoration(labelText: '老师姓名'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: _locationController,
-                              decoration: const InputDecoration(labelText: '上课地点'),
-                            ),
-                          ),
-                        ],
+                      TextField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(labelText: '上课地点'),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<int>(
-                              initialValue: _selectedDayOfWeek,
-                              decoration: const InputDecoration(labelText: '上课日'),
-                              items: List.generate(7, (index) {
-                                final day = index + 1;
-                                return DropdownMenuItem<int>(
-                                  value: day,
-                                  child: Text(formatDayOfWeekLabel(day)),
-                                );
-                              }),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _selectedDayOfWeek = value);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: _creditController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: '学分'),
-                            ),
-                          ),
-                        ],
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('上课日'),
+                        subtitle: Text(formatDayOfWeekLabel(_selectedDayOfWeek)),
+                        trailing: const Icon(Icons.today_outlined),
+                        onTap: _pickDayOfWeek,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('周次'),
@@ -205,6 +169,25 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           subtitle: Text('第 ${matchedPeriods.first}-${matchedPeriods.last} 节'),
                         ),
                       ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _teacherController,
+                              decoration: const InputDecoration(labelText: '老师姓名'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _creditController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: '学分'),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _remarksController,
@@ -257,6 +240,38 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
         _minutesFromTimeOfDay(_startTime),
         _minutesFromTimeOfDay(_endTime),
       );
+
+  Future<void> _pickDayOfWeek() async {
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('选择上课日'),
+          content: SizedBox(
+            width: 320,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: 7,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final day = index + 1;
+                return ListTile(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  tileColor: day == _selectedDayOfWeek ? Theme.of(context).colorScheme.secondaryContainer : null,
+                  title: Text(formatDayOfWeekLabel(day)),
+                  trailing: day == _selectedDayOfWeek ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(context).pop(day),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+    if (result != null) {
+      setState(() => _selectedDayOfWeek = result);
+    }
+  }
 
   Future<void> _pickSemesterWeeks() async {
     final draft = {..._selectedSemesterWeeks};

@@ -19,9 +19,9 @@ class CoursePeriodTime {
 
   factory CoursePeriodTime.fromJson(Map<String, dynamic> json) {
     return CoursePeriodTime(
-      index: json['index'] as int,
-      startMinutes: json['startMinutes'] as int,
-      endMinutes: json['endMinutes'] as int,
+      index: (json['index'] as num?)?.toInt() ?? 1,
+      startMinutes: (json['startMinutes'] as num?)?.toInt() ?? 8 * 60,
+      endMinutes: (json['endMinutes'] as num?)?.toInt() ?? (8 * 60) + 45,
     );
   }
 
@@ -34,6 +34,46 @@ class CoursePeriodTime {
       index: index ?? this.index,
       startMinutes: startMinutes ?? this.startMinutes,
       endMinutes: endMinutes ?? this.endMinutes,
+    );
+  }
+}
+
+class PeriodTimeSet {
+  const PeriodTimeSet({
+    required this.id,
+    required this.name,
+    required this.periodTimes,
+  });
+
+  final String id;
+  final String name;
+  final List<CoursePeriodTime> periodTimes;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'periodTimes': periodTimes.map((item) => item.toJson()).toList(),
+  };
+
+  factory PeriodTimeSet.fromJson(Map<String, dynamic> json) {
+    return PeriodTimeSet(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '节次时间',
+      periodTimes: (json['periodTimes'] as List<dynamic>? ?? const <dynamic>[])
+          .map((item) => CoursePeriodTime.fromJson(Map<String, dynamic>.from(item as Map)))
+          .toList(),
+    );
+  }
+
+  PeriodTimeSet copyWith({
+    String? id,
+    String? name,
+    List<CoursePeriodTime>? periodTimes,
+  }) {
+    return PeriodTimeSet(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      periodTimes: periodTimes ?? this.periodTimes,
     );
   }
 }
@@ -87,20 +127,20 @@ class CourseItem {
 
   /// 旧数据里的 weekday/weekdays 只视为“星期几”来源；周次范围缺失时默认留空，表示全学期有效。
   factory CourseItem.fromJson(Map<String, dynamic> json) {
-    final legacyDayOfWeek = json['dayOfWeek'] as int? ?? _decodeLegacyDayOfWeek(json);
+    final legacyDayOfWeek = (json['dayOfWeek'] as num?)?.toInt() ?? _decodeLegacyDayOfWeek(json);
     final semesterWeeks = json['semesterWeeks'] is List<dynamic>
-        ? (json['semesterWeeks'] as List<dynamic>).cast<int>()
+        ? (json['semesterWeeks'] as List<dynamic>).map((item) => (item as num).toInt()).toList()
         : const <int>[];
     return CourseItem(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       teacher: json['teacher'] as String? ?? '',
       location: json['location'] as String? ?? '',
       dayOfWeek: normalizeDayOfWeek(legacyDayOfWeek),
       semesterWeeks: normalizeSemesterWeeks(semesterWeeks),
-      periods: (json['periods'] as List<dynamic>? ?? const <dynamic>[]).cast<int>(),
-      startMinutes: json['startMinutes'] as int,
-      endMinutes: json['endMinutes'] as int,
+      periods: (json['periods'] as List<dynamic>? ?? const <dynamic>[]).map((item) => (item as num).toInt()).toList(),
+      startMinutes: (json['startMinutes'] as num?)?.toInt() ?? 8 * 60,
+      endMinutes: (json['endMinutes'] as num?)?.toInt() ?? (8 * 60) + 45,
       timeRange: json['timeRange'] as String? ?? '',
       credit: (json['credit'] as num?)?.toDouble() ?? 0,
       remarks: json['remarks'] as String? ?? '',
@@ -148,33 +188,28 @@ class TimetableConfig {
     required this.name,
     required this.startDate,
     required this.totalWeeks,
-    required this.dailyPeriods,
-    required this.periodTimes,
+    required this.periodTimeSetId,
   });
 
   final String name;
   final DateTime startDate;
   final int totalWeeks;
-  final int dailyPeriods;
-  final List<CoursePeriodTime> periodTimes;
+  final String periodTimeSetId;
 
   Map<String, dynamic> toJson() => {
     'name': name,
     'startDate': startDate.toIso8601String(),
     'totalWeeks': totalWeeks,
-    'dailyPeriods': dailyPeriods,
-    'periodTimes': periodTimes.map((item) => item.toJson()).toList(),
+    'periodTimeSetId': periodTimeSetId,
   };
 
   factory TimetableConfig.fromJson(Map<String, dynamic> json) {
+    final startDateValue = json['startDate'] as String?;
     return TimetableConfig(
-      name: json['name'] as String,
-      startDate: DateTime.parse(json['startDate'] as String),
-      totalWeeks: json['totalWeeks'] as int,
-      dailyPeriods: json['dailyPeriods'] as int,
-      periodTimes: (json['periodTimes'] as List<dynamic>)
-          .map((item) => CoursePeriodTime.fromJson(Map<String, dynamic>.from(item as Map)))
-          .toList(),
+      name: json['name'] as String? ?? '未命名课表',
+      startDate: DateTime.tryParse(startDateValue ?? '') ?? DateTime.now(),
+      totalWeeks: ((json['totalWeeks'] as num?)?.toInt() ?? 18).clamp(1, 999),
+      periodTimeSetId: json['periodTimeSetId'] as String? ?? '',
     );
   }
 
@@ -182,15 +217,13 @@ class TimetableConfig {
     String? name,
     DateTime? startDate,
     int? totalWeeks,
-    int? dailyPeriods,
-    List<CoursePeriodTime>? periodTimes,
+    String? periodTimeSetId,
   }) {
     return TimetableConfig(
       name: name ?? this.name,
       startDate: startDate ?? this.startDate,
       totalWeeks: totalWeeks ?? this.totalWeeks,
-      dailyPeriods: dailyPeriods ?? this.dailyPeriods,
-      periodTimes: periodTimes ?? this.periodTimes,
+      periodTimeSetId: periodTimeSetId ?? this.periodTimeSetId,
     );
   }
 }
@@ -214,9 +247,9 @@ class TimetableData {
 
   factory TimetableData.fromJson(Map<String, dynamic> json) {
     return TimetableData(
-      id: json['id'] as String,
-      config: TimetableConfig.fromJson(Map<String, dynamic>.from(json['config'] as Map)),
-      courses: (json['courses'] as List<dynamic>)
+      id: json['id'] as String? ?? '',
+      config: TimetableConfig.fromJson(Map<String, dynamic>.from(json['config'] as Map? ?? const {})),
+      courses: (json['courses'] as List<dynamic>? ?? const <dynamic>[])
           .map((item) => CourseItem.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList(),
     );
@@ -241,26 +274,123 @@ class TimetableData {
   }
 }
 
+class TimetableExportData {
+  const TimetableExportData({
+    required this.timetable,
+    required this.periodTimeSets,
+  });
+
+  final TimetableData timetable;
+  final List<PeriodTimeSet> periodTimeSets;
+
+  Map<String, dynamic> toJson() => {
+    'timetable': timetable.toJson(),
+    'periodTimeSets': periodTimeSets.map((item) => item.toJson()).toList(),
+  };
+
+  factory TimetableExportData.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('config') && json.containsKey('courses')) {
+      final rawTimetable = Map<String, dynamic>.from(json);
+      final rawConfig = Map<String, dynamic>.from(rawTimetable['config'] as Map? ?? const {});
+      final timetable = TimetableData.fromJson(rawTimetable);
+      final setId = timetable.config.periodTimeSetId.trim().isEmpty ? 'imported_period_times' : timetable.config.periodTimeSetId;
+      final legacyPeriodTimes = _decodeLegacyPeriodTimes(rawConfig);
+      final fallbackCount = _decodeLegacyDailyPeriods(rawConfig, legacyPeriodTimes);
+      final periodTimeSet = PeriodTimeSet(
+        id: setId,
+        name: '${timetable.config.name} 节次',
+        periodTimes: buildPeriodTimesForCount(
+          legacyPeriodTimes.isEmpty ? fallbackCount : legacyPeriodTimes.length,
+          source: legacyPeriodTimes,
+        ),
+      );
+      return TimetableExportData(
+        timetable: timetable.copyWith(config: timetable.config.copyWith(periodTimeSetId: setId)),
+        periodTimeSets: [periodTimeSet],
+      );
+    }
+
+    final timetable = TimetableData.fromJson(
+      Map<String, dynamic>.from(json['timetable'] as Map? ?? const {}),
+    );
+    final periodTimeSets = (json['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
+        .map((item) => PeriodTimeSet.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
+    return TimetableExportData(timetable: timetable, periodTimeSets: periodTimeSets);
+  }
+}
+
 class AppData {
   const AppData({
     required this.activeTimetableId,
     required this.timetables,
+    required this.periodTimeSets,
+    this.conflictDisplayCourseIds = const {},
   });
 
   final String activeTimetableId;
   final List<TimetableData> timetables;
+  final List<PeriodTimeSet> periodTimeSets;
+  final Map<String, String> conflictDisplayCourseIds;
 
   Map<String, dynamic> toJson() => {
     'activeTimetableId': activeTimetableId,
     'timetables': timetables.map((item) => item.toJson()).toList(),
+    'periodTimeSets': periodTimeSets.map((item) => item.toJson()).toList(),
+    'conflictDisplayCourseIds': conflictDisplayCourseIds,
   };
 
   factory AppData.fromJson(Map<String, dynamic> json) {
+    final rawTimetables = (json['timetables'] as List<dynamic>? ?? const <dynamic>[])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+    final periodTimeSets = (json['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
+        .map((item) => PeriodTimeSet.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
+    final normalizedSets = <PeriodTimeSet>[
+      for (final item in periodTimeSets) _normalizePeriodTimeSet(item),
+    ];
+    final setIds = normalizedSets.map((item) => item.id).where((item) => item.trim().isNotEmpty).toSet();
+    final timetables = <TimetableData>[];
+
+    for (final rawTimetable in rawTimetables) {
+      final rawConfig = Map<String, dynamic>.from(rawTimetable['config'] as Map? ?? const {});
+      var timetable = TimetableData.fromJson(rawTimetable);
+      var periodTimeSetId = timetable.config.periodTimeSetId.trim();
+      if (periodTimeSetId.isEmpty || !setIds.contains(periodTimeSetId)) {
+        periodTimeSetId = _nextGeneratedPeriodTimeSetId(setIds);
+        final legacyPeriodTimes = _decodeLegacyPeriodTimes(rawConfig);
+        final fallbackCount = _decodeLegacyDailyPeriods(rawConfig, legacyPeriodTimes);
+        normalizedSets.add(
+          PeriodTimeSet(
+            id: periodTimeSetId,
+            name: '${timetable.config.name} 节次',
+            periodTimes: buildPeriodTimesForCount(
+              legacyPeriodTimes.isEmpty ? fallbackCount : legacyPeriodTimes.length,
+              source: legacyPeriodTimes,
+            ),
+          ),
+        );
+        setIds.add(periodTimeSetId);
+      }
+      timetable = timetable.copyWith(
+        config: timetable.config.copyWith(periodTimeSetId: periodTimeSetId),
+      );
+      timetables.add(timetable);
+    }
+
+    final activeTimetableId = timetables.any((item) => item.id == json['activeTimetableId'])
+        ? json['activeTimetableId'] as String
+        : timetables.isEmpty
+        ? ''
+        : timetables.first.id;
     return AppData(
-      activeTimetableId: json['activeTimetableId'] as String,
-      timetables: (json['timetables'] as List<dynamic>)
-          .map((item) => TimetableData.fromJson(Map<String, dynamic>.from(item as Map)))
-          .toList(),
+      activeTimetableId: activeTimetableId,
+      timetables: timetables,
+      periodTimeSets: normalizedSets,
+      conflictDisplayCourseIds: Map<String, String>.from(
+        json['conflictDisplayCourseIds'] as Map? ?? const {},
+      ),
     );
   }
 
@@ -291,7 +421,7 @@ class ImportExportEnvelope {
   factory ImportExportEnvelope.fromJson(Map<String, dynamic> json) {
     return ImportExportEnvelope(
       schema: json['schema'] as String? ?? '',
-      version: json['version'] as int? ?? 1,
+      version: (json['version'] as num?)?.toInt() ?? 1,
       data: Map<String, dynamic>.from(json['data'] as Map? ?? const {}),
     );
   }
@@ -303,7 +433,7 @@ class ImportExportEnvelope {
   }
 }
 
-const importExportVersion = 1;
+const importExportVersion = 2;
 const appDataSchema = 'classmate-app-data';
 const timetableDataSchema = 'classmate-timetable-data';
 const periodTimesSchema = 'classmate-period-times';
@@ -316,7 +446,7 @@ String encodeAppDataEnvelope(AppData data) {
   ).encode();
 }
 
-String encodeTimetableDataEnvelope(TimetableData data) {
+String encodeTimetableDataEnvelope(TimetableExportData data) {
   return ImportExportEnvelope(
     schema: timetableDataSchema,
     version: importExportVersion,
@@ -348,17 +478,17 @@ AppData decodeAppDataEnvelope(String source) {
   return AppData.fromJson(envelope.data);
 }
 
-TimetableData decodeTimetableDataEnvelope(String source) {
+TimetableExportData decodeTimetableDataEnvelope(String source) {
   final envelope = ImportExportEnvelope.decode(source);
   _ensureSupportedEnvelope(envelope, expectedSchema: timetableDataSchema);
-  return TimetableData.fromJson(envelope.data);
+  return TimetableExportData.fromJson(envelope.data);
 }
 
 void _ensureSupportedEnvelope(ImportExportEnvelope envelope, {required String expectedSchema}) {
   if (envelope.schema != expectedSchema) {
     throw const FormatException('导入文件类型不匹配');
   }
-  if (envelope.version != importExportVersion) {
+  if (envelope.version > importExportVersion) {
     throw const FormatException('导入文件版本暂不支持');
   }
 }
@@ -387,6 +517,45 @@ List<CoursePeriodTime> buildDefaultPeriodTimes() {
       endMinutes: slot[2] * 60 + slot[3],
     );
   });
+}
+
+List<CoursePeriodTime> buildPeriodTimesForCount(int count, {List<CoursePeriodTime>? source}) {
+  final safeCount = count < 1 ? 1 : count;
+  final defaults = buildDefaultPeriodTimes();
+  final seed = (source == null || source.isEmpty)
+      ? <CoursePeriodTime>[]
+      : List.generate(source.length, (index) => source[index].copyWith(index: index + 1));
+  final result = <CoursePeriodTime>[];
+
+  for (var index = 0; index < safeCount; index++) {
+    if (index < seed.length) {
+      result.add(seed[index].copyWith(index: index + 1));
+      continue;
+    }
+    if (index < defaults.length) {
+      result.add(defaults[index].copyWith(index: index + 1));
+      continue;
+    }
+    result.add(_buildNextPeriodTime(result, index + 1));
+  }
+
+  return result;
+}
+
+CoursePeriodTime _buildNextPeriodTime(List<CoursePeriodTime> existing, int index) {
+  if (existing.isEmpty) {
+    return const CoursePeriodTime(index: 1, startMinutes: 8 * 60, endMinutes: (8 * 60) + 45);
+  }
+  final last = existing.last;
+  final previous = existing.length > 1 ? existing[existing.length - 2] : null;
+  final duration = last.endMinutes > last.startMinutes ? last.endMinutes - last.startMinutes : 45;
+  final gap = previous == null ? 10 : (last.startMinutes - previous.endMinutes).clamp(0, 120);
+  final startMinutes = last.endMinutes + gap;
+  return CoursePeriodTime(
+    index: index,
+    startMinutes: startMinutes,
+    endMinutes: startMinutes + duration,
+  );
 }
 
 String formatMinutes(int minutes) {
@@ -483,6 +652,37 @@ int _decodeLegacyDayOfWeek(Map<String, dynamic> json) {
   return 1;
 }
 
+List<CoursePeriodTime> _decodeLegacyPeriodTimes(Map<String, dynamic> json) {
+  return (json['periodTimes'] as List<dynamic>? ?? const <dynamic>[])
+      .map((item) => CoursePeriodTime.fromJson(Map<String, dynamic>.from(item as Map)))
+      .toList();
+}
+
+int _decodeLegacyDailyPeriods(Map<String, dynamic> json, List<CoursePeriodTime> legacyPeriodTimes) {
+  return ((json['dailyPeriods'] as num?)?.toInt() ?? (legacyPeriodTimes.isEmpty ? 10 : legacyPeriodTimes.length)).clamp(1, 999);
+}
+
+PeriodTimeSet _normalizePeriodTimeSet(PeriodTimeSet periodTimeSet) {
+  final normalizedTimes = buildPeriodTimesForCount(
+    periodTimeSet.periodTimes.isEmpty ? 1 : periodTimeSet.periodTimes.length,
+    source: periodTimeSet.periodTimes,
+  );
+  return periodTimeSet.copyWith(
+    name: periodTimeSet.name.trim().isEmpty ? '节次时间' : periodTimeSet.name.trim(),
+    periodTimes: normalizedTimes,
+  );
+}
+
+String _nextGeneratedPeriodTimeSetId(Set<String> existingIds) {
+  var stamp = DateTime.now().microsecondsSinceEpoch;
+  var candidate = 'period_set_$stamp';
+  while (existingIds.contains(candidate)) {
+    stamp += 1;
+    candidate = 'period_set_$stamp';
+  }
+  return candidate;
+}
+
 int currentWeekFor(TimetableConfig config, {DateTime? now}) {
   final today = (now ?? DateTime.now());
   final normalizedToday = DateTime(today.year, today.month, today.day);
@@ -511,15 +711,25 @@ DateTime startOfWeekFor(TimetableConfig config, int week) {
 }
 
 AppData buildSampleAppData() {
-  final periodTimes = buildDefaultPeriodTimes();
+  final fullPeriodTimes = buildDefaultPeriodTimes();
+  final reviewPeriodTimes = fullPeriodTimes.take(8).toList();
+  final fullSet = PeriodTimeSet(
+    id: 'period_set_default',
+    name: '春季默认节次',
+    periodTimes: fullPeriodTimes,
+  );
+  final reviewSet = PeriodTimeSet(
+    id: 'period_set_review',
+    name: '考研作息',
+    periodTimes: reviewPeriodTimes,
+  );
   final timetableA = TimetableData(
     id: 'default',
     config: TimetableConfig(
       name: '2026 春季学期',
       startDate: DateTime(2026, 2, 23),
       totalWeeks: 20,
-      dailyPeriods: 12,
-      periodTimes: periodTimes,
+      periodTimeSetId: fullSet.id,
     ),
     courses: [
       CourseItem(
@@ -530,9 +740,9 @@ AppData buildSampleAppData() {
         dayOfWeek: 1,
         semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [1, 2],
-        startMinutes: periodTimes[0].startMinutes,
-        endMinutes: periodTimes[1].endMinutes,
-        timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+        startMinutes: fullPeriodTimes[0].startMinutes,
+        endMinutes: fullPeriodTimes[1].endMinutes,
+        timeRange: buildTimeRange(fullPeriodTimes[0].startMinutes, fullPeriodTimes[1].endMinutes),
         credit: 4,
         remarks: '记得带作业',
         customFields: const {'QQ群': '123456'},
@@ -545,9 +755,9 @@ AppData buildSampleAppData() {
         dayOfWeek: 2,
         semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [3, 4],
-        startMinutes: periodTimes[2].startMinutes,
-        endMinutes: periodTimes[3].endMinutes,
-        timeRange: buildTimeRange(periodTimes[2].startMinutes, periodTimes[3].endMinutes),
+        startMinutes: fullPeriodTimes[2].startMinutes,
+        endMinutes: fullPeriodTimes[3].endMinutes,
+        timeRange: buildTimeRange(fullPeriodTimes[2].startMinutes, fullPeriodTimes[3].endMinutes),
         credit: 3,
         remarks: '分组项目课',
         customFields: const {'作业平台': '雨课堂'},
@@ -560,9 +770,9 @@ AppData buildSampleAppData() {
         dayOfWeek: 3,
         semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [5, 6],
-        startMinutes: periodTimes[4].startMinutes,
-        endMinutes: periodTimes[5].endMinutes,
-        timeRange: buildTimeRange(periodTimes[4].startMinutes, periodTimes[5].endMinutes),
+        startMinutes: fullPeriodTimes[4].startMinutes,
+        endMinutes: fullPeriodTimes[5].endMinutes,
+        timeRange: buildTimeRange(fullPeriodTimes[4].startMinutes, fullPeriodTimes[5].endMinutes),
         credit: 2,
         remarks: '',
         customFields: const {},
@@ -575,9 +785,9 @@ AppData buildSampleAppData() {
         dayOfWeek: 2,
         semesterWeeks: buildAllSemesterWeeks(20),
         periods: const [],
-        startMinutes: periodTimes[2].startMinutes + 10,
-        endMinutes: periodTimes[2].endMinutes + 20,
-        timeRange: buildTimeRange(periodTimes[2].startMinutes + 10, periodTimes[2].endMinutes + 20),
+        startMinutes: fullPeriodTimes[2].startMinutes + 10,
+        endMinutes: fullPeriodTimes[2].endMinutes + 20,
+        timeRange: buildTimeRange(fullPeriodTimes[2].startMinutes + 10, fullPeriodTimes[2].endMinutes + 20),
         credit: 0,
         remarks: '与 Flutter 课时间重叠，用于演示重叠布局',
         customFields: const {'会议号': '8866'},
@@ -591,8 +801,7 @@ AppData buildSampleAppData() {
       name: '考研复习计划',
       startDate: DateTime(2026, 3, 2),
       totalWeeks: 16,
-      dailyPeriods: 8,
-      periodTimes: periodTimes.take(8).toList(),
+      periodTimeSetId: reviewSet.id,
     ),
     courses: [
       CourseItem(
@@ -603,9 +812,9 @@ AppData buildSampleAppData() {
         dayOfWeek: 6,
         semesterWeeks: buildAllSemesterWeeks(16),
         periods: const [1, 2, 3],
-        startMinutes: periodTimes[0].startMinutes,
-        endMinutes: periodTimes[2].endMinutes,
-        timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[2].endMinutes),
+        startMinutes: reviewPeriodTimes[0].startMinutes,
+        endMinutes: reviewPeriodTimes[2].endMinutes,
+        timeRange: buildTimeRange(reviewPeriodTimes[0].startMinutes, reviewPeriodTimes[2].endMinutes),
         credit: 0,
         remarks: '周末专项',
         customFields: const {'目标': '1000题'},
@@ -616,5 +825,6 @@ AppData buildSampleAppData() {
   return AppData(
     activeTimetableId: timetableA.id,
     timetables: [timetableA, timetableB],
+    periodTimeSets: [fullSet, reviewSet],
   );
 }

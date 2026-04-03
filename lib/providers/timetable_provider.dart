@@ -7,7 +7,7 @@ enum AppImportMode { replaceAll, addAll }
 
 enum TimetableImportMode { addAsNew, replaceActive }
 
-/// 负责承载当前激活课表、当前周数，以及所有持久化写回操作。
+/// 负责承载当前活跃课表、当前周数，以及所有持久化写回操作。
 class TimetableProvider extends ChangeNotifier {
   TimetableProvider({TimetableStorage? storage}) : _storage = storage ?? TimetableStorage();
 
@@ -20,14 +20,36 @@ class TimetableProvider extends ChangeNotifier {
   String? _storagePath;
 
   bool get isLoaded => _isLoaded;
+  bool get hasTimetables => _appData.timetables.isNotEmpty;
+  bool get hasPeriodTimeSets => _appData.periodTimeSets.isNotEmpty;
   List<TimetableData> get timetables => _appData.timetables;
+  List<PeriodTimeSet> get periodTimeSets => _appData.periodTimeSets;
   int get selectedWeek => _selectedWeek;
   String? get storagePath => _storagePath;
 
-  TimetableData get activeTimetable => _appData.timetables.firstWhere(
-    (item) => item.id == _appData.activeTimetableId,
-    orElse: () => _appData.timetables.first,
-  );
+  TimetableData? get activeTimetableOrNull {
+    if (_appData.timetables.isEmpty) {
+      return null;
+    }
+    for (final item in _appData.timetables) {
+      if (item.id == _appData.activeTimetableId) {
+        return item;
+      }
+    }
+    return _appData.timetables.first;
+  }
+
+  TimetableData get activeTimetable => activeTimetableOrNull ?? _createFallbackTimetable();
+
+  PeriodTimeSet? get activePeriodTimeSetOrNull {
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      return _appData.periodTimeSets.isEmpty ? null : _appData.periodTimeSets.first;
+    }
+    return periodTimeSetForId(timetable.config.periodTimeSetId);
+  }
+
+  PeriodTimeSet get activePeriodTimeSet => activePeriodTimeSetOrNull ?? _createFallbackPeriodTimeSet();
 
   /// 应用启动后异步加载数据：即便存储失败，也至少先把界面渲染出来。
   Future<void> load() async {
@@ -38,24 +60,46 @@ class TimetableProvider extends ChangeNotifier {
     try {
       final fileData = await _storage.load();
       if (fileData != null) {
-        _appData = fileData;
+        _appData = _normalizeImportedAppData(fileData);
       } else {
+        _appData = _normalizeImportedAppData(_appData);
         await _save();
       }
       _storagePath = await _storage.filePath();
     } catch (_) {
-      _appData = buildSampleAppData();
+      _appData = _normalizeImportedAppData(buildSampleAppData());
       try {
         _storagePath = await _storage.filePath();
       } catch (_) {
         _storagePath = null;
       }
     } finally {
-      _selectedWeek = currentWeekFor(activeTimetable.config);
+      _selectedWeek = activeTimetableOrNull == null ? 1 : currentWeekFor(activeTimetable.config);
       _isLoaded = true;
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  PeriodTimeSet? periodTimeSetForId(String id) {
+    for (final item in _appData.periodTimeSets) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  List<TimetableData> timetablesUsingPeriodTimeSet(String periodTimeSetId) {
+    return _appData.timetables.where((item) => item.config.periodTimeSetId == periodTimeSetId).toList();
+  }
+
+  int dailyPeriodsForTimetable(TimetableData timetable) {
+    return periodTimeSetForId(timetable.config.periodTimeSetId)?.periodTimes.length ?? 1;
+  }
+
+  List<CoursePeriodTime> periodTimesForTimetable(TimetableData timetable) {
+    return periodTimeSetForId(timetable.config.periodTimeSetId)?.periodTimes ?? const [];
   }
 
   /// 切换当前活跃课表，并重置到该课表对应的当前周。
@@ -63,9 +107,14 @@ class TimetableProvider extends ChangeNotifier {
     if (_appData.activeTimetableId == timetableId) {
       return;
     }
+    if (!_appData.timetables.any((item) => item.id == timetableId)) {
+      return;
+    }
     _appData = AppData(
       activeTimetableId: timetableId,
       timetables: _appData.timetables,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     _selectedWeek = currentWeekFor(activeTimetable.config);
     await _saveAndNotify();
@@ -73,7 +122,13 @@ class TimetableProvider extends ChangeNotifier {
 
   /// 只更新当前周，不触发文件写入，避免滑动切周时频繁落盘。
   Future<void> setSelectedWeek(int week) async {
-    final maxWeek = activeTimetable.config.totalWeeks;
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      _selectedWeek = 1;
+      notifyListeners();
+      return;
+    }
+    final maxWeek = timetable.config.totalWeeks;
     final nextWeek = week.clamp(1, maxWeek);
     if (_selectedWeek == nextWeek) {
       return;
@@ -82,14 +137,21 @@ class TimetableProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 保存课表设置，包括可编辑的节次时间段。
+  /// 保存课表设置。
   Future<void> updateTimetableConfig(TimetableConfig config) async {
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      return;
+    }
+    final periodTimeSetId = periodTimeSetForId(config.periodTimeSetId)?.id ?? activePeriodTimeSet.id;
     final updated = _appData.timetables
-        .map((item) => item.id == activeTimetable.id ? item.copyWith(config: config) : item)
+        .map((item) => item.id == timetable.id ? item.copyWith(config: config.copyWith(periodTimeSetId: periodTimeSetId)) : item)
         .toList();
     _appData = AppData(
       activeTimetableId: _appData.activeTimetableId,
       timetables: updated,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     _selectedWeek = _selectedWeek.clamp(1, config.totalWeeks);
     await _saveAndNotify();
@@ -97,34 +159,51 @@ class TimetableProvider extends ChangeNotifier {
 
   /// 新增或覆盖一门课程。
   Future<void> saveCourse(CourseItem course) async {
-    final courses = [...activeTimetable.courses];
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      return;
+    }
+    final courses = [...timetable.courses];
     final index = courses.indexWhere((item) => item.id == course.id);
     if (index >= 0) {
       courses[index] = course;
     } else {
       courses.add(course);
     }
-    await _replaceActiveTimetable(activeTimetable.copyWith(courses: courses));
+    await _replaceActiveTimetable(timetable.copyWith(courses: courses));
   }
 
   /// 删除指定课程。
   Future<void> deleteCourse(String courseId) async {
-    final courses = activeTimetable.courses.where((item) => item.id != courseId).toList();
-    await _replaceActiveTimetable(activeTimetable.copyWith(courses: courses));
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      return;
+    }
+    final courses = timetable.courses.where((item) => item.id != courseId).toList();
+    final filteredPrefs = Map<String, String>.from(_appData.conflictDisplayCourseIds)
+      ..removeWhere((_, value) => value == courseId);
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: _appData.timetables
+          .map((item) => item.id == timetable.id ? item.copyWith(courses: courses) : item)
+          .toList(),
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: filteredPrefs,
+    );
+    await _saveAndNotify();
   }
 
-  /// 新建课表时沿用 JSON 存储结构，保证多课表数据格式一致。
+  /// 新建课表时沿用共享节次时间集结构。
   Future<void> addTimetable() async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final defaults = buildDefaultPeriodTimes();
+    final fallbackSet = activePeriodTimeSetOrNull ?? _createFallbackPeriodTimeSet();
     final timetable = TimetableData(
       id: 'table_$now',
       config: TimetableConfig(
         name: '新课表',
         startDate: DateTime.now(),
         totalWeeks: 18,
-        dailyPeriods: 10,
-        periodTimes: defaults.take(10).toList(),
+        periodTimeSetId: fallbackSet.id,
       ),
       courses: const [],
     );
@@ -132,64 +211,232 @@ class TimetableProvider extends ChangeNotifier {
     _appData = AppData(
       activeTimetableId: timetable.id,
       timetables: [..._appData.timetables, timetable],
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     _selectedWeek = 1;
     await _saveAndNotify();
   }
 
-  /// 导出完整应用数据，包含全部课表与各自节次时间。
+  Future<void> deleteTimetable(String timetableId) async {
+    if (!_appData.timetables.any((item) => item.id == timetableId)) {
+      return;
+    }
+    final remaining = _appData.timetables.where((item) => item.id != timetableId).toList();
+    final nextActiveId = remaining.any((item) => item.id == _appData.activeTimetableId)
+        ? _appData.activeTimetableId
+        : remaining.isEmpty
+        ? ''
+        : remaining.first.id;
+    final remainingCourseIds = remaining.expand((item) => item.courses).map((item) => item.id).toSet();
+    final filteredPrefs = Map<String, String>.from(_appData.conflictDisplayCourseIds)
+      ..removeWhere((_, value) => !remainingCourseIds.contains(value));
+    _appData = AppData(
+      activeTimetableId: nextActiveId,
+      timetables: remaining,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: filteredPrefs,
+    );
+    _selectedWeek = activeTimetableOrNull == null ? 1 : currentWeekFor(activeTimetable.config);
+    await _saveAndNotify();
+  }
+
+  Future<PeriodTimeSet> addPeriodTimeSet({String? name, List<CoursePeriodTime>? periodTimes}) async {
+    final existingIds = _appData.periodTimeSets.map((item) => item.id).toSet();
+    final nextId = _nextPeriodTimeSetId(existingIds);
+    final normalizedTimes = buildPeriodTimesForCount(
+      periodTimes == null || periodTimes.isEmpty ? 10 : periodTimes.length,
+      source: periodTimes,
+    );
+    final nextSet = PeriodTimeSet(
+      id: nextId,
+      name: (name == null || name.trim().isEmpty) ? '新节次时间' : name.trim(),
+      periodTimes: normalizedTimes,
+    );
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: _appData.timetables,
+      periodTimeSets: [..._appData.periodTimeSets, nextSet],
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
+    );
+    await _saveAndNotify();
+    return nextSet;
+  }
+
+  Future<void> updatePeriodTimeSet(PeriodTimeSet periodTimeSet) async {
+    final normalized = _normalizePeriodTimeSet(periodTimeSet);
+    final index = _appData.periodTimeSets.indexWhere((item) => item.id == normalized.id);
+    if (index < 0) {
+      return;
+    }
+    final updated = [..._appData.periodTimeSets];
+    updated[index] = normalized;
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: _appData.timetables,
+      periodTimeSets: updated,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> deletePeriodTimeSet(String periodTimeSetId) async {
+    final usingTimetables = timetablesUsingPeriodTimeSet(periodTimeSetId);
+    if (usingTimetables.isNotEmpty) {
+      throw FormatException('该节次时间仍被 ${usingTimetables.length} 个课表使用，请先改关联再删除');
+    }
+    final remaining = _appData.periodTimeSets.where((item) => item.id != periodTimeSetId).toList();
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: _appData.timetables,
+      periodTimeSets: remaining,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> assignPeriodTimeSetToTimetable(String timetableId, String periodTimeSetId) async {
+    if (periodTimeSetForId(periodTimeSetId) == null) {
+      return;
+    }
+    final updated = _appData.timetables
+        .map(
+          (item) => item.id == timetableId
+              ? item.copyWith(
+                  config: item.config.copyWith(periodTimeSetId: periodTimeSetId),
+                )
+              : item,
+        )
+        .toList();
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: updated,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
+    );
+    await _saveAndNotify();
+  }
+
+  String? displayedCourseIdForConflict(String conflictKey) => _appData.conflictDisplayCourseIds[conflictKey];
+
+  Future<void> setDisplayedCourseForConflict(String conflictKey, String courseId) async {
+    final updated = Map<String, String>.from(_appData.conflictDisplayCourseIds)..[conflictKey] = courseId;
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: _appData.timetables,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: updated,
+    );
+    await _saveAndNotify();
+  }
+
+  /// 导出完整应用数据，包含全部课表与全部节次时间集。
   String exportAppDataJson() => encodeAppDataEnvelope(_appData);
 
-  /// 导出当前课表，节次时间会跟随课表配置一并导出。
-  String exportActiveTimetableJson() => encodeTimetableDataEnvelope(activeTimetable);
+  /// 导出当前课表，以及它依赖的节次时间集。
+  String exportActiveTimetableJson() {
+    final timetable = activeTimetableOrNull;
+    if (timetable == null) {
+      throw const FormatException('当前没有可导出的课表');
+    }
+    final linkedSet = periodTimeSetForId(timetable.config.periodTimeSetId);
+    return encodeTimetableDataEnvelope(
+      TimetableExportData(
+        timetable: timetable,
+        periodTimeSets: linkedSet == null ? const [] : [linkedSet],
+      ),
+    );
+  }
 
   /// 导出当前课表的节次时间模板。
-  String exportActivePeriodTimesJson() => encodePeriodTimesEnvelope(activeTimetable.config.periodTimes);
+  String exportActivePeriodTimesJson() => encodePeriodTimesEnvelope(activePeriodTimeSet.periodTimes);
 
-  /// 导入完整应用数据；覆盖模式会直接替换当前数据，新增模式则把导入课表附加到现有列表末尾。
+  /// 导入完整应用数据；覆盖模式会直接替换当前数据，新增模式则把导入课表与节次时间集合并进现有数据。
   Future<int> importAppDataJson(String source, {required AppImportMode mode}) async {
     final imported = _normalizeImportedAppData(decodeAppDataEnvelope(source));
     if (mode == AppImportMode.replaceAll) {
       _appData = imported;
-      _selectedWeek = currentWeekFor(activeTimetable.config);
+      _selectedWeek = activeTimetableOrNull == null ? 1 : currentWeekFor(activeTimetable.config);
       await _saveAndNotify();
       return imported.timetables.length;
     }
 
-    final existingIds = _appData.timetables.map((item) => item.id).toSet();
-    final appended = imported.timetables
-        .map((item) => _copyImportedTimetableWithUniqueId(item, existingIds))
+    final existingSetIds = _appData.periodTimeSets.map((item) => item.id).toSet();
+    final importedSetIdMap = <String, String>{};
+    final appendedSets = imported.periodTimeSets.map((item) {
+      final copied = _copyImportedPeriodTimeSetWithUniqueId(item, existingSetIds);
+      importedSetIdMap[item.id] = copied.id;
+      return copied;
+    }).toList();
+
+    final existingTimetableIds = _appData.timetables.map((item) => item.id).toSet();
+    final appendedTimetables = imported.timetables
+        .map((item) {
+          final mappedSetId = importedSetIdMap[item.config.periodTimeSetId] ?? item.config.periodTimeSetId;
+          return _copyImportedTimetableWithUniqueId(
+            item.copyWith(config: item.config.copyWith(periodTimeSetId: mappedSetId)),
+            existingTimetableIds,
+          );
+        })
         .toList();
+
     _appData = AppData(
       activeTimetableId: _appData.activeTimetableId,
-      timetables: [..._appData.timetables, ...appended],
+      timetables: [..._appData.timetables, ...appendedTimetables],
+      periodTimeSets: [..._appData.periodTimeSets, ...appendedSets],
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     await _saveAndNotify();
-    return appended.length;
+    return appendedTimetables.length;
   }
 
   /// 导入单个课表；可作为新课表加入，也可直接覆盖当前激活课表。
   Future<String> importTimetableJson(String source, {required TimetableImportMode mode}) async {
-    final imported = _normalizeTimetable(decodeTimetableDataEnvelope(source));
+    final imported = _normalizeImportedTimetableExport(decodeTimetableDataEnvelope(source));
+    final importedSet = imported.periodTimeSets.firstWhere(
+      (item) => item.id == imported.timetable.config.periodTimeSetId,
+      orElse: () => _createFallbackPeriodTimeSet(),
+    );
+
     if (mode == TimetableImportMode.replaceActive) {
-      final replaced = imported.copyWith(id: activeTimetable.id);
-      final updated = _appData.timetables
-          .map((item) => item.id == activeTimetable.id ? replaced : item)
+      final current = activeTimetableOrNull;
+      if (current == null) {
+        throw const FormatException('当前没有可覆盖的课表');
+      }
+      final existingSetIds = _appData.periodTimeSets.map((item) => item.id).toSet();
+      final copiedSet = _copyImportedPeriodTimeSetWithUniqueId(importedSet, existingSetIds);
+      final replaced = imported.timetable.copyWith(
+        id: current.id,
+        config: imported.timetable.config.copyWith(periodTimeSetId: copiedSet.id),
+      );
+      final updatedTimetables = _appData.timetables
+          .map((item) => item.id == current.id ? replaced : item)
           .toList();
       _appData = AppData(
-        activeTimetableId: activeTimetable.id,
-        timetables: updated,
+        activeTimetableId: current.id,
+        timetables: updatedTimetables,
+        periodTimeSets: [..._appData.periodTimeSets, copiedSet],
+        conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
       );
       _selectedWeek = currentWeekFor(replaced.config);
       await _saveAndNotify();
       return replaced.config.name;
     }
 
-    final existingIds = _appData.timetables.map((item) => item.id).toSet();
-    final appended = _copyImportedTimetableWithUniqueId(imported, existingIds);
+    final existingSetIds = _appData.periodTimeSets.map((item) => item.id).toSet();
+    final copiedSet = _copyImportedPeriodTimeSetWithUniqueId(importedSet, existingSetIds);
+    final existingTimetableIds = _appData.timetables.map((item) => item.id).toSet();
+    final appended = _copyImportedTimetableWithUniqueId(
+      imported.timetable.copyWith(
+        config: imported.timetable.config.copyWith(periodTimeSetId: copiedSet.id),
+      ),
+      existingTimetableIds,
+    );
     _appData = AppData(
       activeTimetableId: appended.id,
       timetables: [..._appData.timetables, appended],
+      periodTimeSets: [..._appData.periodTimeSets, copiedSet],
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     _selectedWeek = currentWeekFor(appended.config);
     await _saveAndNotify();
@@ -215,36 +462,101 @@ class TimetableProvider extends ChangeNotifier {
     _appData = AppData(
       activeTimetableId: _appData.activeTimetableId,
       timetables: updated,
+      periodTimeSets: _appData.periodTimeSets,
+      conflictDisplayCourseIds: _appData.conflictDisplayCourseIds,
     );
     await _saveAndNotify();
   }
 
-  TimetableData _normalizeTimetable(TimetableData timetable) {
-    final defaults = buildDefaultPeriodTimes();
-    final fallbackCount = timetable.config.dailyPeriods.clamp(1, defaults.length);
-    final normalizedPeriodTimes = timetable.config.periodTimes.isEmpty
-        ? defaults.take(fallbackCount).toList()
-        : List.generate(
-            timetable.config.periodTimes.length,
-            (index) => timetable.config.periodTimes[index].copyWith(index: index + 1),
-          );
-    return timetable.copyWith(
-      config: timetable.config.copyWith(
-        dailyPeriods: normalizedPeriodTimes.length,
-        periodTimes: normalizedPeriodTimes,
-      ),
+  AppData _normalizeImportedAppData(AppData data) {
+    final normalizedSets = <PeriodTimeSet>[];
+    final normalizedSetIds = <String>{};
+    for (final item in data.periodTimeSets) {
+      final normalized = _normalizePeriodTimeSet(item);
+      final nextId = normalized.id.trim().isEmpty || normalizedSetIds.contains(normalized.id)
+          ? _nextPeriodTimeSetId(normalizedSetIds)
+          : normalized.id;
+      normalizedSetIds.add(nextId);
+      normalizedSets.add(normalized.copyWith(id: nextId));
+    }
+
+    final normalizedTimetables = <TimetableData>[];
+    for (final item in data.timetables) {
+      var periodTimeSetId = item.config.periodTimeSetId.trim();
+      if (periodTimeSetId.isEmpty || !normalizedSetIds.contains(periodTimeSetId)) {
+        final fallbackSet = _createImportedFallbackPeriodTimeSet(item, normalizedSetIds);
+        normalizedSets.add(fallbackSet);
+        normalizedSetIds.add(fallbackSet.id);
+        periodTimeSetId = fallbackSet.id;
+      }
+      normalizedTimetables.add(
+        item.copyWith(
+          config: item.config.copyWith(
+            totalWeeks: item.config.totalWeeks < 1 ? 1 : item.config.totalWeeks,
+            periodTimeSetId: periodTimeSetId,
+          ),
+        ),
+      );
+    }
+
+    final activeId = normalizedTimetables.any((item) => item.id == data.activeTimetableId)
+        ? data.activeTimetableId
+        : normalizedTimetables.isEmpty
+        ? ''
+        : normalizedTimetables.first.id;
+    final remainingCourseIds = normalizedTimetables.expand((item) => item.courses).map((item) => item.id).toSet();
+    final filteredPrefs = Map<String, String>.from(data.conflictDisplayCourseIds)
+      ..removeWhere((_, value) => !remainingCourseIds.contains(value));
+    return AppData(
+      activeTimetableId: activeId,
+      timetables: normalizedTimetables,
+      periodTimeSets: normalizedSets,
+      conflictDisplayCourseIds: filteredPrefs,
     );
   }
 
-  AppData _normalizeImportedAppData(AppData data) {
-    if (data.timetables.isEmpty) {
-      throw const FormatException('导入文件中没有课表数据');
+  TimetableExportData _normalizeImportedTimetableExport(TimetableExportData data) {
+    final normalizedSets = <PeriodTimeSet>[];
+    final setIds = <String>{};
+    for (final item in data.periodTimeSets) {
+      final normalized = _normalizePeriodTimeSet(item);
+      final nextId = normalized.id.trim().isEmpty || setIds.contains(normalized.id)
+          ? _nextPeriodTimeSetId(setIds)
+          : normalized.id;
+      setIds.add(nextId);
+      normalizedSets.add(normalized.copyWith(id: nextId));
     }
-    final normalizedTimetables = data.timetables.map(_normalizeTimetable).toList();
-    final activeId = normalizedTimetables.any((item) => item.id == data.activeTimetableId)
-        ? data.activeTimetableId
-        : normalizedTimetables.first.id;
-    return AppData(activeTimetableId: activeId, timetables: normalizedTimetables);
+    var timetable = data.timetable.copyWith(
+      config: data.timetable.config.copyWith(
+        totalWeeks: data.timetable.config.totalWeeks < 1 ? 1 : data.timetable.config.totalWeeks,
+      ),
+    );
+    if (normalizedSets.isEmpty || !setIds.contains(timetable.config.periodTimeSetId)) {
+      final fallbackSet = _createImportedFallbackPeriodTimeSet(timetable, setIds);
+      normalizedSets.add(fallbackSet);
+      timetable = timetable.copyWith(
+        config: timetable.config.copyWith(periodTimeSetId: fallbackSet.id),
+      );
+    }
+    return TimetableExportData(timetable: timetable, periodTimeSets: normalizedSets);
+  }
+
+  PeriodTimeSet _createImportedFallbackPeriodTimeSet(TimetableData timetable, Set<String> existingIds) {
+    final fallbackId = _nextPeriodTimeSetId(existingIds);
+    return PeriodTimeSet(
+      id: fallbackId,
+      name: '${timetable.config.name} 节次',
+      periodTimes: buildPeriodTimesForCount(10),
+    );
+  }
+
+  PeriodTimeSet _copyImportedPeriodTimeSetWithUniqueId(PeriodTimeSet periodTimeSet, Set<String> existingIds) {
+    var nextId = periodTimeSet.id.trim();
+    if (nextId.isEmpty || existingIds.contains(nextId)) {
+      nextId = _nextPeriodTimeSetId(existingIds);
+    }
+    existingIds.add(nextId);
+    return _normalizePeriodTimeSet(periodTimeSet.copyWith(id: nextId));
   }
 
   TimetableData _copyImportedTimetableWithUniqueId(TimetableData timetable, Set<String> existingIds) {
@@ -266,12 +578,55 @@ class TimetableProvider extends ChangeNotifier {
     return candidate;
   }
 
+  String _nextPeriodTimeSetId(Set<String> existingIds) {
+    var stamp = DateTime.now().microsecondsSinceEpoch;
+    var candidate = 'period_set_$stamp';
+    while (existingIds.contains(candidate)) {
+      stamp += 1;
+      candidate = 'period_set_$stamp';
+    }
+    return candidate;
+  }
+
+  PeriodTimeSet _normalizePeriodTimeSet(PeriodTimeSet periodTimeSet) {
+    final normalizedTimes = buildPeriodTimesForCount(
+      periodTimeSet.periodTimes.isEmpty ? 1 : periodTimeSet.periodTimes.length,
+      source: periodTimeSet.periodTimes,
+    );
+    return periodTimeSet.copyWith(
+      name: periodTimeSet.name.trim().isEmpty ? '节次时间' : periodTimeSet.name.trim(),
+      periodTimes: normalizedTimes,
+    );
+  }
+
   Future<void> _saveAndNotify() async {
     await _save();
     notifyListeners();
   }
 
   Future<void> _save() async {
+    _appData = _normalizeImportedAppData(_appData);
     await _storage.save(_appData);
+  }
+
+  TimetableData _createFallbackTimetable() {
+    return TimetableData(
+      id: '',
+      config: TimetableConfig(
+        name: '空课表',
+        startDate: DateTime.now(),
+        totalWeeks: 1,
+        periodTimeSetId: '',
+      ),
+      courses: const [],
+    );
+  }
+
+  PeriodTimeSet _createFallbackPeriodTimeSet() {
+    return const PeriodTimeSet(
+      id: '',
+      name: '默认节次',
+      periodTimes: [CoursePeriodTime(index: 1, startMinutes: 8 * 60, endMinutes: (8 * 60) + 45)],
+    );
   }
 }

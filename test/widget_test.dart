@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:classmate/data/timetable_storage.dart';
@@ -7,6 +8,7 @@ import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
+import 'package:classmate/widgets/timetable_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -163,8 +165,94 @@ void main() {
 
       final exportedPeriodTimes = provider.exportActivePeriodTimesJson();
       final importedPeriodTimes = provider.importPeriodTimesJson(exportedPeriodTimes);
-      expect(importedPeriodTimes.length, provider.activeTimetable.config.periodTimes.length);
+      expect(importedPeriodTimes.length, provider.activePeriodTimeSet.periodTimes.length);
       expect(importedPeriodTimes.first.index, 1);
+    });
+
+    test('旧数据会迁移出独立节次时间集', () {
+      final legacy = AppData.decode(jsonEncode({
+        'activeTimetableId': 'legacy_table',
+        'timetables': [
+          {
+            'id': 'legacy_table',
+            'config': {
+              'name': '旧课表',
+              'startDate': '2026-02-23T00:00:00.000',
+              'totalWeeks': 18,
+              'dailyPeriods': 4,
+              'periodTimes': buildDefaultPeriodTimes().take(4).map((item) => item.toJson()).toList(),
+            },
+            'courses': [],
+          },
+        ],
+      }));
+
+      expect(legacy.periodTimeSets.length, 1);
+      expect(legacy.timetables.first.config.periodTimeSetId, isNotEmpty);
+      expect(legacy.periodTimeSets.first.periodTimes.length, 4);
+    });
+
+    test('共享节次时间集编辑会直接全局生效', () async {
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      await provider.load();
+
+      final currentSet = provider.activePeriodTimeSet;
+      await provider.assignPeriodTimeSetToTimetable('backup', currentSet.id);
+      await provider.updatePeriodTimeSet(
+        currentSet.copyWith(name: '全局新节次', periodTimes: buildPeriodTimesForCount(14, source: currentSet.periodTimes)),
+      );
+
+      expect(provider.periodTimeSetForId(currentSet.id)?.name, '全局新节次');
+      expect(provider.periodTimesForTimetable(provider.timetables.first).length, 14);
+      expect(provider.periodTimesForTimetable(provider.timetables.last).length, 14);
+    });
+
+    test('仍被引用的节次时间集不能删除', () async {
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      await provider.load();
+
+      expect(
+        () => provider.deletePeriodTimeSet(provider.activePeriodTimeSet.id),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('删除最后一个课表后进入空状态数据', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: AppData(
+            activeTimetableId: 'only',
+            timetables: [
+              TimetableData(
+                id: 'only',
+                config: TimetableConfig(
+                  name: '唯一课表',
+                  startDate: DateTime(2026, 2, 23),
+                  totalWeeks: 18,
+                  periodTimeSetId: 'set1',
+                ),
+                courses: const [],
+              ),
+            ],
+            periodTimeSets: [
+              PeriodTimeSet(id: 'set1', name: '默认节次', periodTimes: buildPeriodTimesForCount(10)),
+            ],
+          ),
+        ),
+      );
+      await provider.load();
+      await provider.deleteTimetable('only');
+
+      expect(provider.activeTimetableOrNull, isNull);
+      expect(provider.timetables, isEmpty);
+    });
+
+    test('节次数量可以超过默认模板长度并自动补齐', () {
+      final periodTimes = buildPeriodTimesForCount(16);
+
+      expect(periodTimes.length, 16);
+      expect(periodTimes.last.index, 16);
+      expect(periodTimes.last.endMinutes, greaterThan(periodTimes[11].endMinutes));
     });
   });
 
@@ -238,6 +326,166 @@ void main() {
       expect(find.text('时间'), findsOneWidget);
       expect(find.text(course.location), findsOneWidget);
       expect(find.textContaining(course.timeRange), findsOneWidget);
+    });
+
+    testWidgets('没有课表时显示新建和导入引导', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: AppData(
+            activeTimetableId: '',
+            timetables: const [],
+            periodTimeSets: [
+              PeriodTimeSet(id: 'set1', name: '默认节次', periodTimes: [CoursePeriodTime(index: 1, startMinutes: 480, endMinutes: 525)]),
+            ],
+          ),
+        ),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(MyApp(provider: provider));
+      await tester.pumpAndSettle();
+
+      expect(find.text('当前没有课表'), findsOneWidget);
+      expect(find.text('新建课表'), findsOneWidget);
+      expect(find.text('导入课表'), findsOneWidget);
+    });
+
+    testWidgets('完全冲突时默认显示更长课程并显示冲突标记', (tester) async {
+      final periodTimes = buildDefaultPeriodTimes().take(4).toList();
+      final timetable = TimetableData(
+        id: 'table1',
+        config: TimetableConfig(
+          name: '测试课表',
+          startDate: DateTime(2026, 2, 23),
+          totalWeeks: 18,
+          periodTimeSetId: 'set1',
+        ),
+        courses: [
+          CourseItem(
+            id: 'long',
+            name: '长课',
+            teacher: '',
+            location: 'A101',
+            dayOfWeek: 1,
+            semesterWeeks: const [1],
+            periods: const [1, 2],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[1].endMinutes,
+            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+          CourseItem(
+            id: 'short',
+            name: '短课',
+            teacher: '',
+            location: 'B202',
+            dayOfWeek: 1,
+            semesterWeeks: const [1],
+            periods: const [1],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[0].endMinutes,
+            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[0].endMinutes),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 900,
+              height: 700,
+              child: TimetableGrid(
+                timetable: timetable,
+                periodTimes: periodTimes,
+                weekDateStart: DateTime(2026, 2, 23),
+                selectedWeek: 1,
+                onCourseTap: (_) {},
+                onEmptySlotTap: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('长课'), findsOneWidget);
+      expect(find.text('短课'), findsNothing);
+      expect(find.byIcon(Icons.layers_outlined), findsOneWidget);
+    });
+
+    testWidgets('完全冲突时会读取已保存的外部显示课程偏好', (tester) async {
+      final periodTimes = buildDefaultPeriodTimes().take(4).toList();
+      final timetable = TimetableData(
+        id: 'table1',
+        config: TimetableConfig(
+          name: '测试课表',
+          startDate: DateTime(2026, 2, 23),
+          totalWeeks: 18,
+          periodTimeSetId: 'set1',
+        ),
+        courses: [
+          CourseItem(
+            id: 'a_long',
+            name: '长课',
+            teacher: '',
+            location: 'A101',
+            dayOfWeek: 1,
+            semesterWeeks: const [1],
+            periods: const [1, 2],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[1].endMinutes,
+            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+          CourseItem(
+            id: 'b_short',
+            name: '短课',
+            teacher: '',
+            location: 'B202',
+            dayOfWeek: 1,
+            semesterWeeks: const [1],
+            periods: const [1],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[0].endMinutes,
+            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[0].endMinutes),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 900,
+              height: 700,
+              child: TimetableGrid(
+                timetable: timetable,
+                periodTimes: periodTimes,
+                weekDateStart: DateTime(2026, 2, 23),
+                selectedWeek: 1,
+                displayedCourseIdForConflict: (_) => 'b_short',
+                onCourseTap: (_) {},
+                onEmptySlotTap: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('短课'), findsOneWidget);
+      expect(find.text('长课'), findsNothing);
     });
   });
 }

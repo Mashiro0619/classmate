@@ -8,14 +8,21 @@ class CourseDetailsSheet extends StatelessWidget {
     super.key,
     required this.course,
     required this.onEdit,
+    this.conflictCourses = const [],
+    this.onSelectDisplayedCourse,
+    this.onEditConflictCourse,
   });
 
   final CourseItem course;
   final VoidCallback onEdit;
+  final List<CourseItem> conflictCourses;
+  final ValueChanged<CourseItem>? onSelectDisplayedCourse;
+  final ValueChanged<CourseItem>? onEditConflictCourse;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final otherConflictCourses = conflictCourses.where((item) => item.id != course.id).toList();
 
     return SafeArea(
       child: Padding(
@@ -57,6 +64,36 @@ class CourseDetailsSheet extends StatelessWidget {
             _DetailRow(label: '周次', value: formatSemesterWeeksLabel(course.semesterWeeks)),
             _DetailRow(label: '学分', value: course.credit == 0 ? '未填写' : course.credit.toString()),
             _DetailRow(label: '备注', value: course.remarks.isEmpty ? '无' : course.remarks),
+            if (otherConflictCourses.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text('冲突课程', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              for (final item in otherConflictCourses)
+                Card.outlined(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    title: Text(item.name),
+                    subtitle: Text('${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}'),
+                    trailing: Wrap(
+                      spacing: 4,
+                      children: [
+                        if (onSelectDisplayedCourse != null)
+                          IconButton(
+                            tooltip: '设为外部显示',
+                            onPressed: () => onSelectDisplayedCourse!(item),
+                            icon: const Icon(Icons.visibility_outlined),
+                          ),
+                        if (onEditConflictCourse != null)
+                          IconButton(
+                            tooltip: '编辑这门课',
+                            onPressed: () => onEditConflictCourse!(item),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
             if (course.customFields.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text('自定义字段', style: theme.textTheme.titleMedium),
@@ -129,12 +166,15 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 52,
+          Flexible(
+            flex: 3,
             child: Text(label, style: Theme.of(context).textTheme.labelLarge),
           ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value)),
+          const SizedBox(width: 12),
+          Flexible(
+            flex: 7,
+            child: Text(value, softWrap: true),
+          ),
         ],
       ),
     );
