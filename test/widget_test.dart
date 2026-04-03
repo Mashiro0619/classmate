@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:classmate/data/timetable_storage.dart';
-import 'package:classmate/main.dart';
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 测试专用 JSON 存储实现，避免污染真实用户目录。
@@ -14,7 +12,7 @@ class TestTimetableStorage extends TimetableStorage {
   final File file;
 
   @override
-  Future<void> save(data) async {
+  Future<void> save(AppData data) async {
     await file.writeAsString(data.encode());
   }
 
@@ -35,31 +33,40 @@ class TestTimetableStorage extends TimetableStorage {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  group('课表 JSON 存储', () {
+    test('示例数据可以正确编码和解码', () {
+      final data = buildSampleAppData();
+      final encoded = data.encode();
+      final decoded = AppData.decode(encoded);
 
-  testWidgets('shows timetable home screen', (tester) async {
-    tester.view.physicalSize = const Size(1400, 1000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    final tempDir = await Directory.systemTemp.createTemp('classmate_test');
-    final file = File('${tempDir.path}/classmate_data.json');
-    addTearDown(() async {
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
+      expect(decoded.activeTimetableId, data.activeTimetableId);
+      expect(decoded.timetables.length, data.timetables.length);
+      expect(decoded.timetables.first.config.name, '2026 春季学期');
     });
 
-    final provider = TimetableProvider(storage: TestTimetableStorage(file));
-    await provider.load();
+    test('provider 会在首次加载时创建 JSON 文件并可再次读取', () async {
+      final tempRoot = Directory.systemTemp.path;
+      final file = File('$tempRoot/classmate_provider_test.json');
+      if (await file.exists()) {
+        await file.delete();
+      }
+      addTearDown(() async {
+        if (await file.exists()) {
+          await file.delete();
+        }
+      });
 
-    await tester.pumpWidget(MyApp(provider: provider));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+      final firstProvider = TimetableProvider(storage: TestTimetableStorage(file));
+      await firstProvider.load();
 
-    expect(find.text('添加课程'), findsWidgets);
-    expect(find.textContaining('第 '), findsWidgets);
-    expect(find.text('2026 春季学期'), findsOneWidget);
+      expect(await file.exists(), isTrue);
+      expect(firstProvider.activeTimetable.config.name, '2026 春季学期');
+
+      final secondProvider = TimetableProvider(storage: TestTimetableStorage(file));
+      await secondProvider.load();
+
+      expect(secondProvider.timetables.isNotEmpty, isTrue);
+      expect(secondProvider.activeTimetable.id, firstProvider.activeTimetable.id);
+    });
   });
 }

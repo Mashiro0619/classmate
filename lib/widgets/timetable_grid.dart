@@ -38,12 +38,10 @@ class TimetableGrid extends StatelessWidget {
         final metrics = _TimetableMetrics.fromWidth(constraints.maxWidth);
         final requiredWidth = metrics.timeLabelWidth + (metrics.dayColumnWidth * 7);
 
-        return Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const ClampingScrollPhysics(),
-            child: SizedBox(
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const ClampingScrollPhysics(),
+          child: SizedBox(
               width: math.max(requiredWidth, constraints.maxWidth),
               child: Column(
                 children: [
@@ -157,7 +155,6 @@ class TimetableGrid extends StatelessWidget {
                 ],
               ),
             ),
-          ),
         );
       },
     );

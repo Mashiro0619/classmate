@@ -52,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
         final timetable = provider.activeTimetable;
         final config = timetable.config;
         final week = provider.selectedWeek;
-        _syncPageWithWeek(week);
 
         return Scaffold(
           appBar: AppBar(
@@ -159,23 +158,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  /// 当 provider 中的周数被其他操作修改时，同步 PageView 的页码。
-  void _syncPageWithWeek(int week) {
-    if (!_controllerInitialized) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_pageController.hasClients) {
-        return;
-      }
-      final currentPage = (_pageController.page ?? _pageController.initialPage.toDouble()).round();
-      final targetPage = week - 1;
-      if (currentPage != targetPage) {
-        _pageController.jumpToPage(targetPage);
-      }
-    });
   }
 
   /// 统一处理带动画的周跳转，确保与滑动体验一致。
