@@ -43,6 +43,7 @@ dependencies:
   share_plus: ^12.0.2
   url_launcher: ^6.3.2
   permission_handler: ^12.0.1
+  font_awesome_flutter: ^10.7.0
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/default_period_times.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

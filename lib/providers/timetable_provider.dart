@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../data/timetable_storage.dart';
 import '../models/timetable_models.dart';
@@ -13,7 +14,7 @@ class TimetableProvider extends ChangeNotifier {
 
   final TimetableStorage _storage;
 
-  AppData _appData = buildSampleAppData();
+  AppData _appData = buildInitialAppData(buildDefaultPeriodTimes());
   int _selectedWeek = 1;
   bool _isLoaded = false;
   bool _isLoading = false;
@@ -62,12 +63,12 @@ class TimetableProvider extends ChangeNotifier {
       if (fileData != null) {
         _appData = _normalizeImportedAppData(fileData);
       } else {
-        _appData = _normalizeImportedAppData(_appData);
+        _appData = await _buildDefaultAppData();
         await _save();
       }
       _storagePath = await _storage.filePath();
     } catch (_) {
-      _appData = _normalizeImportedAppData(buildSampleAppData());
+      _appData = await _buildDefaultAppData();
       try {
         _storagePath = await _storage.filePath();
       } catch (_) {
@@ -482,6 +483,16 @@ class TimetableProvider extends ChangeNotifier {
       periodTimes.length,
       (index) => periodTimes[index].copyWith(index: index + 1),
     );
+  }
+
+  Future<AppData> _buildDefaultAppData() async {
+    try {
+      final source = await rootBundle.loadString(defaultPeriodTimesAssetPath);
+      final periodTimes = importPeriodTimesJson(source);
+      return _normalizeImportedAppData(buildInitialAppData(periodTimes));
+    } catch (_) {
+      return _normalizeImportedAppData(buildInitialAppData(buildDefaultPeriodTimes()));
+    }
   }
 
   Future<void> _replaceActiveTimetable(TimetableData timetable) async {

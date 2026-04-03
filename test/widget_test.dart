@@ -63,16 +63,71 @@ class MemoryTimetableStorage implements TimetableStorage {
   Future<String?> filePath() async => 'memory://classmate-test';
 }
 
+AppData _buildTestAppData() {
+  final periodTimes = buildDefaultPeriodTimes();
+  final defaultSet = PeriodTimeSet(
+    id: 'set1',
+    name: '测试默认节次',
+    periodTimes: periodTimes,
+  );
+  final shortSet = PeriodTimeSet(
+    id: 'set2',
+    name: '测试短节次',
+    periodTimes: periodTimes.take(8).toList(),
+  );
+  final primaryTimetable = TimetableData(
+    id: 'default',
+    config: TimetableConfig(
+      name: '测试课表A',
+      startDate: DateTime(2026, 2, 23),
+      totalWeeks: 18,
+      periodTimeSetId: defaultSet.id,
+    ),
+    courses: [
+      CourseItem(
+        id: 'course1',
+        name: '高等数学',
+        teacher: '陈老师',
+        location: 'A-201',
+        dayOfWeek: 1,
+        semesterWeeks: buildAllSemesterWeeks(18),
+        periods: const [1, 2],
+        startMinutes: periodTimes[0].startMinutes,
+        endMinutes: periodTimes[1].endMinutes,
+        timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+        credit: 4,
+        remarks: '记得带作业',
+        customFields: const {'QQ群': '123456'},
+      ),
+    ],
+  );
+  final backupTimetable = TimetableData(
+    id: 'backup',
+    config: TimetableConfig(
+      name: '测试课表B',
+      startDate: DateTime(2026, 3, 2),
+      totalWeeks: 16,
+      periodTimeSetId: shortSet.id,
+    ),
+    courses: const [],
+  );
+  return AppData(
+    activeTimetableId: primaryTimetable.id,
+    timetables: [primaryTimetable, backupTimetable],
+    periodTimeSets: [defaultSet, shortSet],
+  );
+}
+
 void main() {
   group('课表 JSON 存储', () {
     test('示例数据可以正确编码和解码', () {
-      final data = buildSampleAppData();
+      final data = _buildTestAppData();
       final encoded = data.encode();
       final decoded = AppData.decode(encoded);
 
       expect(decoded.activeTimetableId, data.activeTimetableId);
       expect(decoded.timetables.length, data.timetables.length);
-      expect(decoded.timetables.first.config.name, '2026 春季学期');
+      expect(decoded.timetables.first.config.name, '测试课表A');
     });
 
     test('旧 weekday 字段会兼容成 dayOfWeek，且周次默认为全学期语义', () {
@@ -136,7 +191,7 @@ void main() {
       await firstProvider.load();
 
       expect(await file.exists(), isTrue);
-      expect(firstProvider.activeTimetable.config.name, '2026 春季学期');
+      expect(firstProvider.activeTimetable.config.name, '空白课表');
 
       final secondProvider = TimetableProvider(storage: TestTimetableStorage(file));
       await secondProvider.load();
@@ -146,7 +201,7 @@ void main() {
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
-      final data = buildSampleAppData();
+      final data = _buildTestAppData();
       final encoded = encodeAppDataEnvelope(data);
       final decoded = decodeAppDataEnvelope(encoded);
 
@@ -155,7 +210,7 @@ void main() {
     });
 
     test('provider 支持导入单课表和节次模板', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
       await provider.load();
 
       final exportedTimetable = provider.exportActiveTimetableJson();
@@ -193,7 +248,7 @@ void main() {
     });
 
     test('共享节次时间集编辑会直接全局生效', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
       await provider.load();
 
       final currentSet = provider.activePeriodTimeSet;
@@ -208,7 +263,7 @@ void main() {
     });
 
     test('仍被引用的节次时间集不能删除', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
       await provider.load();
 
       expect(
@@ -258,7 +313,7 @@ void main() {
 
   group('主页与编辑器', () {
     testWidgets('未加载时先显示加载态', (tester) async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
 
       await tester.pumpWidget(MyApp(provider: provider));
 
@@ -266,7 +321,7 @@ void main() {
     });
 
     testWidgets('主页显示精简标题、右上角添加课程且无 FAB', (tester) async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
       await provider.load();
 
       await tester.pumpWidget(
@@ -309,7 +364,7 @@ void main() {
     });
 
     testWidgets('课程详情优先展示地点和时间卡片', (tester) async {
-      final course = buildSampleAppData().timetables.first.courses.first;
+      final course = _buildTestAppData().timetables.first.courses.first;
 
       await tester.pumpWidget(
         MaterialApp(

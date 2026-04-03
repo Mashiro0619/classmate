@@ -24,86 +24,92 @@ class CourseDetailsSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final otherConflictCourses = conflictCourses.where((item) => item.id != course.id).toList();
 
+    final maxHeight = MediaQuery.of(context).size.height * 0.8;
+
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    course.name,
-                    style: theme.textTheme.headlineSmall,
+      top: false,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      course.name,
+                      style: theme.textTheme.headlineSmall,
+                    ),
                   ),
-                ),
-                IconButton(
-                  tooltip: '编辑课程',
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _PrimaryInfoCard(
-              icon: Icons.place_outlined,
-              label: '地点',
-              value: course.location.isEmpty ? '未填写' : course.location,
-            ),
-            const SizedBox(height: 10),
-            _PrimaryInfoCard(
-              icon: Icons.schedule,
-              label: '时间',
-              value: course.periods.isEmpty ? course.timeRange : '${course.timeRange} · ${_formatPeriodsLabel(course.periods)}',
-            ),
-            const SizedBox(height: 12),
-            _DetailRow(label: '老师', value: course.teacher.isEmpty ? '未填写' : course.teacher),
-            _DetailRow(label: '上课日', value: formatDayOfWeekLabel(course.dayOfWeek)),
-            _DetailRow(label: '周次', value: formatSemesterWeeksLabel(course.semesterWeeks)),
-            _DetailRow(label: '学分', value: course.credit == 0 ? '未填写' : course.credit.toString()),
-            _DetailRow(label: '备注', value: course.remarks.isEmpty ? '无' : course.remarks),
-            if (otherConflictCourses.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text('冲突课程', style: theme.textTheme.titleMedium),
+                  IconButton(
+                    tooltip: '编辑课程',
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
-              for (final item in otherConflictCourses)
-                Card.outlined(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    title: Text(item.name),
-                    subtitle: Text(
-                      '${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}${item.periods.isEmpty ? '' : ' · ${_formatPeriodsLabel(item.periods)}'}',
-                    ),
-                    trailing: Wrap(
-                      spacing: 4,
-                      children: [
-                        if (onSelectDisplayedCourse != null)
-                          IconButton(
-                            tooltip: '设为外部显示',
-                            onPressed: () => onSelectDisplayedCourse!(item),
-                            icon: const Icon(Icons.visibility_outlined),
-                          ),
-                        if (onEditConflictCourse != null)
-                          IconButton(
-                            tooltip: '编辑这门课',
-                            onPressed: () => onEditConflictCourse!(item),
-                            icon: const Icon(Icons.edit_outlined),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-            if (course.customFields.isNotEmpty) ...[
+              _PrimaryInfoCard(
+                icon: Icons.place_outlined,
+                label: '地点',
+                value: course.location.isEmpty ? '未填写' : course.location,
+              ),
+              const SizedBox(height: 10),
+              _PrimaryInfoCard(
+                icon: Icons.schedule,
+                label: '时间',
+                value: course.periods.isEmpty ? course.timeRange : '${course.timeRange} · ${_formatPeriodsLabel(course.periods)}',
+              ),
               const SizedBox(height: 12),
-              Text('自定义字段', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              for (final entry in course.customFields.entries)
-                _DetailRow(label: entry.key, value: entry.value.toString()),
+              _DetailRow(label: '老师', value: course.teacher.isEmpty ? '未填写' : course.teacher),
+              _DetailRow(label: '上课日', value: formatDayOfWeekLabel(course.dayOfWeek)),
+              _DetailRow(label: '周次', value: formatSemesterWeeksLabel(course.semesterWeeks)),
+              _DetailRow(label: '学分', value: course.credit == 0 ? '未填写' : course.credit.toString()),
+              _DetailRow(label: '备注', value: course.remarks.isEmpty ? '无' : course.remarks),
+              if (otherConflictCourses.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text('冲突课程', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                for (final item in otherConflictCourses)
+                  Card.outlined(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(item.name),
+                      subtitle: Text(
+                        '${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}${item.periods.isEmpty ? '' : ' · ${_formatPeriodsLabel(item.periods)}'}',
+                      ),
+                      trailing: Wrap(
+                        spacing: 4,
+                        children: [
+                          if (onSelectDisplayedCourse != null)
+                            IconButton(
+                              tooltip: '设为外部显示',
+                              onPressed: () => onSelectDisplayedCourse!(item),
+                              icon: const Icon(Icons.visibility_outlined),
+                            ),
+                          if (onEditConflictCourse != null)
+                            IconButton(
+                              tooltip: '编辑这门课',
+                              onPressed: () => onEditConflictCourse!(item),
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+              if (course.customFields.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text('自定义字段', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                for (final entry in course.customFields.entries)
+                  _DetailRow(label: entry.key, value: entry.value.toString()),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

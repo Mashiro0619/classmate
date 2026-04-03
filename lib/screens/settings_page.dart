@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -80,23 +81,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickPeriodTimeSet(provider, timetable.config),
               ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.schedule),
-                title: const Text('编辑节次时间'),
-                subtitle: Text(selectedSet == null ? '暂无可用节次时间' : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节'),
-                onTap: selectedSet == null ? null : () => _openPeriodTimePage(provider, selectedSet.id),
-              ),
-              const SizedBox(height: 8),
-              Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.add_circle_outline),
-                title: const Text('新建节次时间集'),
-                subtitle: const Text('创建后可直接进入编辑页面'),
-                onTap: () => _createPeriodTimeSet(provider),
-              ),
               Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -107,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.open_in_new),
+                leading: const FaIcon(FontAwesomeIcons.github),
                 title: const Text('GitHub 仓库'),
                 subtitle: const Text('github.com/Mashiro0619/classmate'),
                 onTap: _openGithubRepo,
@@ -122,29 +106,82 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _pickPeriodTimeSet(TimetableProvider provider, TimetableConfig config) async {
     final result = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('选择节次时间集'),
-          content: SizedBox(
-            width: 360,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: provider.periodTimeSets.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final item = provider.periodTimeSets[index];
-                final selected = item.id == _selectedPeriodTimeSetId;
-                return ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  tileColor: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
-                  title: Text(item.name),
-                  subtitle: Text('${item.periodTimes.length} 节'),
-                  trailing: selected ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(context).pop(item.id),
-                );
-              },
-            ),
-          ),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, refreshDialog) {
+            final currentSelectedId = _selectedPeriodTimeSetId;
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Expanded(child: Text('选择节次时间集')),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final created = await provider.addPeriodTimeSet();
+                      if (!mounted) {
+                        return;
+                      }
+                      setState(() => _selectedPeriodTimeSetId = created.id);
+                      await _openPeriodTimePage(provider, created.id);
+                      if (!mounted) {
+                        return;
+                      }
+                      refreshDialog(() {});
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('新建'),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 420,
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: provider.periodTimeSets.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = provider.periodTimeSets[index];
+                    final selected = item.id == currentSelectedId;
+                    return ListTile(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      tileColor: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
+                      title: Text(item.name),
+                      subtitle: Text('${item.periodTimes.length} 节'),
+                      trailing: Wrap(
+                        spacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (selected) const Icon(Icons.check),
+                          IconButton(
+                            tooltip: '编辑节次时间集',
+                            onPressed: () async {
+                              await _openPeriodTimePage(provider, item.id);
+                              if (!mounted) {
+                                return;
+                              }
+                              final stillExists = provider.periodTimeSetForId(item.id) != null;
+                              if (!stillExists && _selectedPeriodTimeSetId == item.id) {
+                                final fallbackId = provider.activePeriodTimeSetOrNull?.id ?? '';
+                                setState(() => _selectedPeriodTimeSetId = fallbackId);
+                              }
+                              refreshDialog(() {});
+                            },
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                        ],
+                      ),
+                      onTap: () => Navigator.of(dialogContext).pop(item.id),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('取消'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -188,43 +225,40 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _createPeriodTimeSet(TimetableProvider provider) async {
-    final created = await provider.addPeriodTimeSet();
-    if (!mounted) {
-      return;
-    }
-    setState(() => _selectedPeriodTimeSetId = created.id);
-    await _openPeriodTimePage(provider, created.id);
-  }
-
   Future<void> _showDataActions(TimetableProvider provider) async {
     final action = await showModalBottomSheet<_DataAction>(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.file_download_outlined),
-                title: const Text('导入课表'),
-                subtitle: const Text('支持单个或多个课表文件'),
-                onTap: () => Navigator.of(context).pop(_DataAction.importTimetables),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.share_outlined),
-                title: const Text('分享课表文件'),
-                subtitle: const Text('先选择一个或多个课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetablesShare),
-              ),
-              ListTile(
-                leading: const Icon(Icons.save_alt_outlined),
-                title: const Text('保存课表文件'),
-                subtitle: const Text('先选择一个或多个课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetablesSave),
-              ),
-            ],
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return _buildAdaptiveBottomSheet(
+          sheetContext,
+          maxWidth: 680,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.file_download_outlined),
+                  title: const Text('导入课表'),
+                  subtitle: const Text('支持单个或多个课表文件'),
+                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.importTimetables),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.share_outlined),
+                  title: const Text('分享课表文件'),
+                  subtitle: const Text('先选择一个或多个课表'),
+                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.exportTimetablesShare),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.save_alt_outlined),
+                  title: const Text('保存课表文件'),
+                  subtitle: const Text('先选择一个或多个课表'),
+                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.exportTimetablesSave),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -593,5 +627,32 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _buildAdaptiveBottomSheet(
+    BuildContext context, {
+    required Widget child,
+    required double maxWidth,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    final isDesktopLike = width >= 900;
+
+    return SafeArea(
+      top: false,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isDesktopLike ? maxWidth : width,
+          ),
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            clipBehavior: Clip.antiAlias,
+            child: child,
+          ),
+        ),
+      ),
+    );
   }
 }

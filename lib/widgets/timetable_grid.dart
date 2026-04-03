@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../models/timetable_models.dart';
 
 const _minuteHeight = 1.4;
-const _headerHeight = 56.0;
+const _compactHeaderHeight = 56.0;
+const _regularHeaderHeight = 64.0;
 
 class TimetableCourseTapInfo {
   const TimetableCourseTapInfo({
@@ -71,13 +72,14 @@ class TimetableGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final metrics = _TimetableMetrics.fromWidth(constraints.maxWidth);
+        final headerHeight = metrics.compact ? _compactHeaderHeight : _regularHeaderHeight;
 
         return SizedBox(
           width: constraints.maxWidth,
           child: Column(
             children: [
               SizedBox(
-                height: _headerHeight,
+                height: headerHeight,
                 child: Row(
                   children: [
                     SizedBox(

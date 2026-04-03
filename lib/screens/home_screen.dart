@@ -211,27 +211,32 @@ class _HomeScreenState extends State<HomeScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => CourseDetailsSheet(
-        course: info.course,
-        conflictCourses: info.isFullConflict ? info.courses : const [],
-        onEdit: () {
-          Navigator.of(sheetContext).pop();
-          _openEditor(context, provider, course: info.course);
-        },
-        onSelectDisplayedCourse: !info.isFullConflict || info.conflictKey == null
-            ? null
-            : (course) async {
-                await provider.setDisplayedCourseForConflict(info.conflictKey!, course.id);
-                if (sheetContext.mounted) {
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _buildAdaptiveBottomSheet(
+        sheetContext,
+        maxWidth: 860,
+        child: CourseDetailsSheet(
+          course: info.course,
+          conflictCourses: info.isFullConflict ? info.courses : const [],
+          onEdit: () {
+            Navigator.of(sheetContext).pop();
+            _openEditor(context, provider, course: info.course);
+          },
+          onSelectDisplayedCourse: !info.isFullConflict || info.conflictKey == null
+              ? null
+              : (course) async {
+                  await provider.setDisplayedCourseForConflict(info.conflictKey!, course.id);
+                  if (sheetContext.mounted) {
+                    Navigator.of(sheetContext).pop();
+                  }
+                },
+          onEditConflictCourse: !info.isFullConflict
+              ? null
+              : (course) {
                   Navigator.of(sheetContext).pop();
-                }
-              },
-        onEditConflictCourse: !info.isFullConflict
-            ? null
-            : (course) {
-                Navigator.of(sheetContext).pop();
-                _openEditor(context, provider, course: course);
-              },
+                  _openEditor(context, provider, course: course);
+                },
+        ),
       ),
     );
   }
@@ -250,11 +255,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showModalBottomSheet<CourseEditorResult>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => CourseEditorSheet(
-        periodTimes: periodTimes,
-        totalWeeks: totalWeeks,
-        initialCourse: course,
-        dayOfWeek: weekday ?? course?.dayOfWeek ?? 1,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _buildAdaptiveBottomSheet(
+        sheetContext,
+        maxWidth: 920,
+        child: CourseEditorSheet(
+          periodTimes: periodTimes,
+          totalWeeks: totalWeeks,
+          initialCourse: course,
+          dayOfWeek: weekday ?? course?.dayOfWeek ?? 1,
+        ),
       ),
     );
 
@@ -419,6 +429,33 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null) {
       return;
     }
+  }
+
+  Widget _buildAdaptiveBottomSheet(
+    BuildContext context, {
+    required Widget child,
+    required double maxWidth,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    final isDesktopLike = width >= 900;
+
+    return SafeArea(
+      top: false,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isDesktopLike ? maxWidth : width,
+          ),
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            clipBehavior: Clip.antiAlias,
+            child: child,
+          ),
+        ),
+      ),
+    );
   }
 }
 

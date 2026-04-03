@@ -1,5 +1,11 @@
 import 'dart:convert';
 
+const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
+const defaultPeriodTimeSetId = 'period_set_default';
+const defaultPeriodTimeSetName = '默认节次';
+const defaultInitialTimetableId = 'default';
+const defaultInitialTimetableName = '空白课表';
+
 class CoursePeriodTime {
   const CoursePeriodTime({
     required this.index,
@@ -718,121 +724,27 @@ DateTime startOfWeekFor(TimetableConfig config, int week) {
   ).add(Duration(days: (week - 1) * 7));
 }
 
-AppData buildSampleAppData() {
-  final fullPeriodTimes = buildDefaultPeriodTimes();
-  final reviewPeriodTimes = fullPeriodTimes.take(8).toList();
-  final fullSet = PeriodTimeSet(
-    id: 'period_set_default',
-    name: '春季默认节次',
-    periodTimes: fullPeriodTimes,
+AppData buildInitialAppData(List<CoursePeriodTime> periodTimes) {
+  final now = DateTime.now();
+  final defaultSet = PeriodTimeSet(
+    id: defaultPeriodTimeSetId,
+    name: defaultPeriodTimeSetName,
+    periodTimes: buildPeriodTimesForCount(periodTimes.isEmpty ? 1 : periodTimes.length, source: periodTimes),
   );
-  final reviewSet = PeriodTimeSet(
-    id: 'period_set_review',
-    name: '考研作息',
-    periodTimes: reviewPeriodTimes,
-  );
-  final timetableA = TimetableData(
-    id: 'default',
+  final timetable = TimetableData(
+    id: defaultInitialTimetableId,
     config: TimetableConfig(
-      name: '2026 春季学期',
-      startDate: DateTime(2026, 2, 23),
-      totalWeeks: 20,
-      periodTimeSetId: fullSet.id,
+      name: defaultInitialTimetableName,
+      startDate: DateTime(now.year, 3, 1),
+      totalWeeks: 18,
+      periodTimeSetId: defaultSet.id,
     ),
-    courses: [
-      CourseItem(
-        id: 'c1',
-        name: '高等数学',
-        teacher: '陈老师',
-        location: 'A-201',
-        dayOfWeek: 1,
-        semesterWeeks: buildAllSemesterWeeks(20),
-        periods: const [1, 2],
-        startMinutes: fullPeriodTimes[0].startMinutes,
-        endMinutes: fullPeriodTimes[1].endMinutes,
-        timeRange: buildTimeRange(fullPeriodTimes[0].startMinutes, fullPeriodTimes[1].endMinutes),
-        credit: 4,
-        remarks: '记得带作业',
-        customFields: const {'QQ群': '123456'},
-      ),
-      CourseItem(
-        id: 'c2',
-        name: 'Flutter 开发',
-        teacher: '林老师',
-        location: '实验楼 402',
-        dayOfWeek: 2,
-        semesterWeeks: buildAllSemesterWeeks(20),
-        periods: const [3, 4],
-        startMinutes: fullPeriodTimes[2].startMinutes,
-        endMinutes: fullPeriodTimes[3].endMinutes,
-        timeRange: buildTimeRange(fullPeriodTimes[2].startMinutes, fullPeriodTimes[3].endMinutes),
-        credit: 3,
-        remarks: '分组项目课',
-        customFields: const {'作业平台': '雨课堂'},
-      ),
-      CourseItem(
-        id: 'c3',
-        name: '大学英语',
-        teacher: 'Wang',
-        location: 'B-104',
-        dayOfWeek: 3,
-        semesterWeeks: buildAllSemesterWeeks(20),
-        periods: const [5, 6],
-        startMinutes: fullPeriodTimes[4].startMinutes,
-        endMinutes: fullPeriodTimes[5].endMinutes,
-        timeRange: buildTimeRange(fullPeriodTimes[4].startMinutes, fullPeriodTimes[5].endMinutes),
-        credit: 2,
-        remarks: '',
-        customFields: const {},
-      ),
-      CourseItem(
-        id: 'c4',
-        name: '线性代数答疑',
-        teacher: '赵老师',
-        location: '线上会议',
-        dayOfWeek: 2,
-        semesterWeeks: buildAllSemesterWeeks(20),
-        periods: const [],
-        startMinutes: fullPeriodTimes[2].startMinutes + 10,
-        endMinutes: fullPeriodTimes[2].endMinutes + 20,
-        timeRange: buildTimeRange(fullPeriodTimes[2].startMinutes + 10, fullPeriodTimes[2].endMinutes + 20),
-        credit: 0,
-        remarks: '与 Flutter 课时间重叠，用于演示重叠布局',
-        customFields: const {'会议号': '8866'},
-      ),
-    ],
-  );
-
-  final timetableB = TimetableData(
-    id: 'backup',
-    config: TimetableConfig(
-      name: '考研复习计划',
-      startDate: DateTime(2026, 3, 2),
-      totalWeeks: 16,
-      periodTimeSetId: reviewSet.id,
-    ),
-    courses: [
-      CourseItem(
-        id: 'b1',
-        name: '政治',
-        teacher: '自习',
-        location: '图书馆',
-        dayOfWeek: 6,
-        semesterWeeks: buildAllSemesterWeeks(16),
-        periods: const [1, 2, 3],
-        startMinutes: reviewPeriodTimes[0].startMinutes,
-        endMinutes: reviewPeriodTimes[2].endMinutes,
-        timeRange: buildTimeRange(reviewPeriodTimes[0].startMinutes, reviewPeriodTimes[2].endMinutes),
-        credit: 0,
-        remarks: '周末专项',
-        customFields: const {'目标': '1000题'},
-      ),
-    ],
+    courses: const [],
   );
 
   return AppData(
-    activeTimetableId: timetableA.id,
-    timetables: [timetableA, timetableB],
-    periodTimeSets: [fullSet, reviewSet],
+    activeTimetableId: timetable.id,
+    timetables: [timetable],
+    periodTimeSets: [defaultSet],
   );
 }
