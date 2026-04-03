@@ -6,7 +6,11 @@
       "Bash(flutter run:*)",
       "Bash(flutter clean:*)",
       "WebSearch",
-      "Bash(flutter pub:*)"
+      "Bash(flutter pub:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(./android/gradlew -p android --stop)",
+      "Bash(flutter build:*)",
+      "Read(//d/Pub/Cache/hosted/pub.dev/**)"
     ]
   }
 }

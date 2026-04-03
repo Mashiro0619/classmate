@@ -276,15 +276,17 @@ class TimetableData {
 
 class TimetableExportData {
   const TimetableExportData({
-    required this.timetable,
+    required this.timetables,
     required this.periodTimeSets,
   });
 
-  final TimetableData timetable;
+  final List<TimetableData> timetables;
   final List<PeriodTimeSet> periodTimeSets;
 
+  TimetableData get timetable => timetables.first;
+
   Map<String, dynamic> toJson() => {
-    'timetable': timetable.toJson(),
+    'timetables': timetables.map((item) => item.toJson()).toList(),
     'periodTimeSets': periodTimeSets.map((item) => item.toJson()).toList(),
   };
 
@@ -305,18 +307,24 @@ class TimetableExportData {
         ),
       );
       return TimetableExportData(
-        timetable: timetable.copyWith(config: timetable.config.copyWith(periodTimeSetId: setId)),
+        timetables: [timetable.copyWith(config: timetable.config.copyWith(periodTimeSetId: setId))],
         periodTimeSets: [periodTimeSet],
       );
     }
 
-    final timetable = TimetableData.fromJson(
-      Map<String, dynamic>.from(json['timetable'] as Map? ?? const {}),
-    );
+    final timetables = json['timetables'] is List<dynamic>
+        ? (json['timetables'] as List<dynamic>)
+              .map((item) => TimetableData.fromJson(Map<String, dynamic>.from(item as Map)))
+              .toList()
+        : [
+            TimetableData.fromJson(
+              Map<String, dynamic>.from(json['timetable'] as Map? ?? const {}),
+            ),
+          ];
     final periodTimeSets = (json['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
         .map((item) => PeriodTimeSet.fromJson(Map<String, dynamic>.from(item as Map)))
         .toList();
-    return TimetableExportData(timetable: timetable, periodTimeSets: periodTimeSets);
+    return TimetableExportData(timetables: timetables, periodTimeSets: periodTimeSets);
   }
 }
 

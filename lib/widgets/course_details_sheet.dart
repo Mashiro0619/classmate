@@ -56,7 +56,7 @@ class CourseDetailsSheet extends StatelessWidget {
             _PrimaryInfoCard(
               icon: Icons.schedule,
               label: '时间',
-              value: course.periods.isEmpty ? course.timeRange : '${course.timeRange} · 第 ${course.periods.join('-')} 节',
+              value: course.periods.isEmpty ? course.timeRange : '${course.timeRange} · ${_formatPeriodsLabel(course.periods)}',
             ),
             const SizedBox(height: 12),
             _DetailRow(label: '老师', value: course.teacher.isEmpty ? '未填写' : course.teacher),
@@ -73,7 +73,9 @@ class CourseDetailsSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     title: Text(item.name),
-                    subtitle: Text('${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}'),
+                    subtitle: Text(
+                      '${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}${item.periods.isEmpty ? '' : ' · ${_formatPeriodsLabel(item.periods)}'}',
+                    ),
                     trailing: Wrap(
                       spacing: 4,
                       children: [
@@ -106,6 +108,14 @@ class CourseDetailsSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatPeriodsLabel(List<int> periods) {
+  if (periods.isEmpty) {
+    return '';
+  }
+  final sorted = [...periods]..sort();
+  return '第 ${sorted.first}-${sorted.last} 节';
 }
 
 class _PrimaryInfoCard extends StatelessWidget {

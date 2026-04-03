@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -64,6 +65,23 @@ class ExportService {
         return const ExportSaveResult(status: ExportSaveStatus.saved);
       } catch (_) {
         return const ExportSaveResult(status: ExportSaveStatus.unsupported);
+      }
+    }
+
+    if (isAndroid) {
+      try {
+        final path = await FilePicker.platform.saveFile(
+          fileName: payload.fileName,
+          type: FileType.custom,
+          allowedExtensions: const ['json'],
+          bytes: Uint8List.fromList(utf8.encode(payload.content)),
+        );
+        if (path == null) {
+          return const ExportSaveResult(status: ExportSaveStatus.cancelled);
+        }
+        return ExportSaveResult(status: ExportSaveStatus.saved, path: path);
+      } catch (_) {
+        return const ExportSaveResult(status: ExportSaveStatus.failed);
       }
     }
 

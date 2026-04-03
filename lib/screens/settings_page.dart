@@ -11,12 +11,9 @@ import '../services/export_service.dart';
 import 'period_times_page.dart';
 
 enum _DataAction {
-  importApp,
-  importTimetable,
-  exportAppShare,
-  exportAppSave,
-  exportTimetableShare,
-  exportTimetableSave,
+  importTimetables,
+  exportTimetablesShare,
+  exportTimetablesSave,
 }
 
 class SettingsPage extends StatefulWidget {
@@ -210,34 +207,22 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.file_download_outlined),
-                title: const Text('导入全部课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.importApp),
-              ),
-              ListTile(
-                leading: const Icon(Icons.playlist_add_outlined),
-                title: const Text('导入单个课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.importTimetable),
+                title: const Text('导入课表'),
+                subtitle: const Text('支持单个或多个课表文件'),
+                onTap: () => Navigator.of(context).pop(_DataAction.importTimetables),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.share_outlined),
-                title: const Text('分享全部课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportAppShare),
+                title: const Text('分享课表文件'),
+                subtitle: const Text('先选择一个或多个课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetablesShare),
               ),
               ListTile(
                 leading: const Icon(Icons.save_alt_outlined),
-                title: const Text('保存全部课表到文件'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportAppSave),
-              ),
-              ListTile(
-                leading: const Icon(Icons.share_outlined),
-                title: const Text('分享当前课表'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableShare),
-              ),
-              ListTile(
-                leading: const Icon(Icons.save_alt_outlined),
-                title: const Text('保存当前课表到文件'),
-                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableSave),
+                title: const Text('保存课表文件'),
+                subtitle: const Text('先选择一个或多个课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetablesSave),
               ),
             ],
           ),
@@ -248,56 +233,118 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     switch (action) {
-      case _DataAction.importApp:
-        await _importAppData(provider);
+      case _DataAction.importTimetables:
+        await _importTimetables(provider);
         return;
-      case _DataAction.importTimetable:
-        await _importTimetableData(provider);
+      case _DataAction.exportTimetablesShare:
+        await _exportTimetables(provider, share: true);
         return;
-      case _DataAction.exportAppShare:
-        await _shareJson('classmate_app_data.json', provider.exportAppDataJson());
-        return;
-      case _DataAction.exportAppSave:
-        await _saveJsonToFile('classmate_app_data.json', provider.exportAppDataJson());
-        return;
-      case _DataAction.exportTimetableShare:
-        await _shareJson('classmate_timetable.json', provider.exportActiveTimetableJson());
-        return;
-      case _DataAction.exportTimetableSave:
-        await _saveJsonToFile('classmate_timetable.json', provider.exportActiveTimetableJson());
+      case _DataAction.exportTimetablesSave:
+        await _exportTimetables(provider, share: false);
         return;
     }
   }
 
-  Future<void> _importAppData(TimetableProvider provider) async {
+  Future<void> _exportTimetables(TimetableProvider provider, {required bool share}) async {
+    final activeId = provider.activeTimetableOrNull?.id;
+    final selectedIds = await _pickTimetableIds(
+      timetables: provider.timetables,
+      title: '选择要导出的课表',
+      confirmText: share ? '分享' : '保存',
+      initialSelectedIds: activeId == null ? const [] : [activeId],
+    );
+    if (selectedIds == null || selectedIds.isEmpty) {
+      return;
+    }
+    try {
+      final content = provider.exportSelectedTimetablesJson(selectedIds);
+      const fileName = 'classmate_timetables.json';
+      if (share) {
+        await _shareJson(fileName, content);
+      } else {
+        await _saveJsonToFile(fileName, content);
+      }
+    } on FormatException catch (error) {
+      if (mounted) {
+        _showMessage(error.message);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showMessage('导出失败，请稍后重试');
+      }
+    }
+  }
+
+  Future<void> _importTimetables(TimetableProvider provider) async {
     final source = await _pickJsonSource();
     if (source == null || !mounted) {
       return;
     }
-    final mode = await showDialog<AppImportMode>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('导入全部课表'),
-          content: const Text('请选择导入方式'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(AppImportMode.addAll),
-              child: const Text('新增到现有数据'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(AppImportMode.replaceAll),
-              child: const Text('覆盖现有数据'),
-            ),
-          ],
-        );
-      },
-    );
-    if (mode == null) {
+
+    List<TimetableData> candidates;
+    try {
+      candidates = provider.previewImportTimetables(source);
+    } on FormatException catch (error) {
+      _showMessage(error.message);
+      return;
+    } catch (_) {
+      _showMessage('导入失败，请检查文件内容');
       return;
     }
+
+    if (candidates.isEmpty) {
+      _showMessage('导入文件中没有可用课表');
+      return;
+    }
+
+    final selectedIds = candidates.length == 1
+        ? [candidates.first.id]
+        : await _pickTimetableIds(
+            timetables: candidates,
+            title: '选择要导入的课表',
+            confirmText: '导入',
+            initialSelectedIds: candidates.map((item) => item.id).toList(),
+          );
+    if (selectedIds == null || selectedIds.isEmpty) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+
+    var mode = TimetableImportMode.addAsNew;
+    if (selectedIds.length == 1 && provider.activeTimetableOrNull != null) {
+      final pickedMode = await showDialog<TimetableImportMode>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('导入课表'),
+            content: const Text('请选择导入方式'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(TimetableImportMode.addAsNew),
+                child: const Text('作为新课表导入'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(TimetableImportMode.replaceActive),
+                child: const Text('覆盖当前课表'),
+              ),
+            ],
+          );
+        },
+      );
+      if (pickedMode == null) {
+        return;
+      }
+      mode = pickedMode;
+    }
+
     try {
-      final count = await provider.importAppDataJson(source, mode: mode);
+      final count = await provider.importSelectedTimetablesJson(
+        source,
+        timetableIds: selectedIds,
+        mode: mode,
+      );
       if (mounted) {
         _showMessage('已导入 $count 个课表');
       }
@@ -312,47 +359,100 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _importTimetableData(TimetableProvider provider) async {
-    final source = await _pickJsonSource();
-    if (source == null || !mounted) {
-      return;
+  Future<List<String>?> _pickTimetableIds({
+    required List<TimetableData> timetables,
+    required String title,
+    required String confirmText,
+    List<String> initialSelectedIds = const [],
+  }) {
+    final draft = <String>{
+      ...initialSelectedIds.where((id) => timetables.any((item) => item.id == id)),
+    };
+    if (draft.isEmpty && timetables.isNotEmpty) {
+      draft.add(timetables.first.id);
     }
-    final mode = await showDialog<TimetableImportMode>(
+    return showDialog<List<String>>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('导入单个课表'),
-          content: const Text('请选择导入方式'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(TimetableImportMode.addAsNew),
-              child: const Text('作为新课表导入'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(TimetableImportMode.replaceActive),
-              child: const Text('覆盖当前课表'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(title),
+              content: SizedBox(
+                width: 360,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          TextButton(
+                            onPressed: () => setState(() {
+                              draft
+                                ..clear()
+                                ..addAll(timetables.map((item) => item.id));
+                            }),
+                            child: const Text('全选'),
+                          ),
+                          TextButton(
+                            onPressed: () => setState(draft.clear),
+                            child: const Text('清空'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: timetables.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final timetable = timetables[index];
+                          final selected = draft.contains(timetable.id);
+                          return ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            tileColor: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
+                            title: Text(timetable.config.name),
+                            subtitle: Text('${timetable.courses.length} 门课程'),
+                            trailing: selected ? const Icon(Icons.check) : null,
+                            onTap: () {
+                              setState(() {
+                                if (selected) {
+                                  draft.remove(timetable.id);
+                                } else {
+                                  draft.add(timetable.id);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: draft.isEmpty
+                      ? null
+                      : () => Navigator.of(context).pop(
+                            timetables.where((item) => draft.contains(item.id)).map((item) => item.id).toList(),
+                          ),
+                  child: Text(confirmText),
+                ),
+              ],
+            );
+          },
         );
       },
     );
-    if (mode == null) {
-      return;
-    }
-    try {
-      final name = await provider.importTimetableJson(source, mode: mode);
-      if (mounted) {
-        _showMessage('已导入课表：$name');
-      }
-    } on FormatException catch (error) {
-      if (mounted) {
-        _showMessage(error.message);
-      }
-    } catch (_) {
-      if (mounted) {
-        _showMessage('导入失败，请检查文件内容');
-      }
-    }
   }
 
   Future<String?> _pickJsonSource() async {
@@ -399,11 +499,11 @@ class _SettingsPageState extends State<SettingsPage> {
       case ExportSaveStatus.permissionPermanentlyDenied:
         final openSettings = await _showPermissionDialog(
           title: '文件保存受限',
-          message: '请检查系统设置中的文件访问限制，然后返回重试导出。',
+          message: '请在系统设置中打开文件访问权限，然后返回重试导出。',
           confirmText: '打开设置',
         );
-        if (openSettings == true && mounted) {
-          _showMessage('请在系统设置中检查文件访问限制后重试');
+        if (openSettings == true) {
+          await _exportService.openSettings();
         }
         return;
       case ExportSaveStatus.unsupported:

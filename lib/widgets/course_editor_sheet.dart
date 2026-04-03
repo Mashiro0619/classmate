@@ -263,20 +263,17 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
           title: const Text('选择上课日'),
           content: SizedBox(
             width: 320,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: 7,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(7, (index) {
                 final day = index + 1;
-                return ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  tileColor: day == _selectedDayOfWeek ? Theme.of(context).colorScheme.secondaryContainer : null,
-                  title: Text(formatDayOfWeekLabel(day)),
-                  trailing: day == _selectedDayOfWeek ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(context).pop(day),
+                return ChoiceChip(
+                  label: Text(formatDayOfWeekLabel(day)),
+                  selected: day == _selectedDayOfWeek,
+                  onSelected: (_) => Navigator.of(context).pop(day),
                 );
-              },
+              }),
             ),
           ),
         );
@@ -431,39 +428,52 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   }
 
   Future<void> _pickPeriods() async {
+    final draft = List<int>.from(_selectedPeriods);
     final result = await showDialog<List<int>>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('选择关联节次'),
-          content: SizedBox(
-            width: 360,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final period in widget.periodTimes)
-                  ChoiceChip(
-                    label: Text('第 ${period.index} 节'),
-                    selected: _selectedPeriods.contains(period.index),
-                    onSelected: (_) {
-                      final next = _togglePeriodSelection(_selectedPeriods, period.index);
-                      Navigator.of(context).pop(next);
-                    },
-                  ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('选择关联节次'),
+              content: SizedBox(
+                width: 360,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final period in widget.periodTimes)
+                      ChoiceChip(
+                        label: Text('第 ${period.index} 节'),
+                        selected: draft.contains(period.index),
+                        onSelected: (_) {
+                          setState(() {
+                            final next = _togglePeriodSelection(draft, period.index);
+                            draft
+                              ..clear()
+                              ..addAll(next);
+                          });
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => setState(draft.clear),
+                  child: const Text('清空'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(List<int>.from(draft)),
+                  child: const Text('确定'),
+                ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(const <int>[]),
-              child: const Text('清空'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(_selectedPeriods),
-              child: const Text('关闭'),
-            ),
-          ],
+            );
+          },
         );
       },
     );

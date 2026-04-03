@@ -107,12 +107,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         for (final item in provider.timetables)
                           ListTile(
                             selected: item.id == timetable.id,
-                            leading: const Icon(Icons.calendar_view_week),
+                            leading: Icon(item.id == timetable.id ? Icons.check_circle : Icons.calendar_view_week),
                             title: Text(item.config.name),
-                            subtitle: Text('共 ${item.config.totalWeeks} 周'),
-                            trailing: const Icon(Icons.chevron_right),
+                            subtitle: Text(item.id == timetable.id ? '当前课表 · 共 ${item.config.totalWeeks} 周' : '点击切换 · 共 ${item.config.totalWeeks} 周'),
+                            trailing: IconButton(
+                              tooltip: '编辑课表',
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () async {
+                                await _openTimetableItemDialog(context, provider, item);
+                              },
+                            ),
                             onTap: () async {
-                              await _openTimetableItemDialog(context, provider, item);
+                              if (item.id == timetable.id) {
+                                Navigator.of(context).pop();
+                                return;
+                              }
+                              await provider.switchTimetable(item.id);
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
                             },
                           ),
                       ],

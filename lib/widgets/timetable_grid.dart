@@ -288,6 +288,8 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const labels = ['一', '二', '三', '四', '五', '六', '日'];
+    final colorScheme = Theme.of(context).colorScheme;
+    final isToday = _isSameDate(date, DateTime.now());
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: compact ? 1 : 4, vertical: 8),
       child: Column(
@@ -301,9 +303,24 @@ class _DayHeader extends StatelessWidget {
             style: compact ? Theme.of(context).textTheme.labelMedium : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 2),
-          Text(
-            '${date.day}',
-            style: compact ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.bodySmall,
+          Container(
+            constraints: BoxConstraints(minWidth: compact ? 24 : 28),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6, vertical: compact ? 2 : 3),
+            decoration: isToday
+                ? BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    border: Border.all(color: colorScheme.primary.withValues(alpha: 0.65)),
+                    borderRadius: BorderRadius.circular(6),
+                  )
+                : null,
+            child: Text(
+              '${date.day}',
+              textAlign: TextAlign.center,
+              style: (compact ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.bodySmall)?.copyWith(
+                color: isToday ? colorScheme.onPrimaryContainer : null,
+                fontWeight: isToday ? FontWeight.w700 : null,
+              ),
+            ),
           ),
         ],
       ),
@@ -331,10 +348,10 @@ class _CourseCard extends StatelessWidget {
     final top = (layout.course.startMinutes - dayStartMinutes) * _minuteHeight;
     final height = math.max(
       92.0,
-      (layout.course.endMinutes - layout.course.startMinutes) * _minuteHeight - metrics.courseGap,
+      (layout.course.endMinutes - layout.course.startMinutes) * _minuteHeight,
     ).toDouble();
     final width = math.max(0.0, metrics.dayColumnWidth - (metrics.courseGap * 2));
-    final compact = width < 110 || height < 120;
+    final compact = width < 96 || height < 112;
     final baseColor = Color.lerp(
       colorScheme.secondaryContainer,
       colorScheme.primaryContainer,
@@ -357,6 +374,7 @@ class _CourseCard extends StatelessWidget {
         color: color,
         clipBehavior: Clip.antiAlias,
         elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(compact ? 8 : 10)),
         child: InkWell(
           onTap: onTap,
           child: Padding(
@@ -380,9 +398,11 @@ class _CourseCard extends StatelessWidget {
                   color: textColor,
                   fontWeight: FontWeight.w600,
                 );
-                final titleLines = height < 118 ? 2 : compact ? 3 : 4;
-                final locationLines = height < 118 ? 1 : compact ? 2 : 3;
-                final teacherLines = height < 118 ? 1 : 2;
+                final dense = height < 110;
+                final medium = height < 150;
+                final titleLines = dense ? 3 : medium ? (compact ? 3 : 4) : (compact ? 4 : 5);
+                final locationLines = dense ? 2 : medium ? 2 : (compact ? 2 : 3);
+                final teacherLines = dense ? 0 : medium ? 1 : 2;
 
                 return Stack(
                   children: [
@@ -396,16 +416,18 @@ class _CourseCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: titleStyle,
                         ),
-                        SizedBox(height: compact ? 3 : 6),
+                        SizedBox(height: compact ? 2 : 4),
                         if (layout.course.location.isNotEmpty)
-                          Text(
-                            layout.course.location,
-                            maxLines: locationLines,
-                            overflow: TextOverflow.ellipsis,
-                            style: bodyStyle,
+                          Padding(
+                            padding: EdgeInsets.only(bottom: teacherLines > 0 && layout.course.teacher.isNotEmpty ? (compact ? 2 : 3) : 0),
+                            child: Text(
+                              layout.course.location,
+                              maxLines: locationLines,
+                              overflow: TextOverflow.ellipsis,
+                              style: bodyStyle,
+                            ),
                           ),
-                        if (layout.course.location.isNotEmpty) SizedBox(height: compact ? 2 : 4),
-                        if (layout.course.teacher.isNotEmpty)
+                        if (teacherLines > 0 && layout.course.teacher.isNotEmpty)
                           Text(
                             layout.course.teacher,
                             maxLines: teacherLines,
@@ -420,7 +442,7 @@ class _CourseCard extends StatelessWidget {
                         right: 0,
                         bottom: 0,
                         child: Container(
-                          padding: EdgeInsets.all(compact ? 3 : 4),
+                          padding: EdgeInsets.all(compact ? 2 : 3),
                           decoration: BoxDecoration(
                             color: colorScheme.primary.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(999),
@@ -612,4 +634,8 @@ int _comparePaintPriority(CourseItem a, CourseItem b) {
     return durationCompare;
   }
   return a.id.compareTo(b.id);
+}
+
+bool _isSameDate(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
 }
