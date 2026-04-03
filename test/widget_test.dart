@@ -5,6 +5,7 @@ import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
+import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -141,6 +142,30 @@ void main() {
       expect(secondProvider.timetables.isNotEmpty, isTrue);
       expect(secondProvider.activeTimetable.id, firstProvider.activeTimetable.id);
     });
+
+    test('导入导出包装结构可以正确编码与解码', () {
+      final data = buildSampleAppData();
+      final encoded = encodeAppDataEnvelope(data);
+      final decoded = decodeAppDataEnvelope(encoded);
+
+      expect(decoded.timetables.length, data.timetables.length);
+      expect(decoded.activeTimetableId, data.activeTimetableId);
+    });
+
+    test('provider 支持导入单课表和节次模板', () async {
+      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: buildSampleAppData()));
+      await provider.load();
+
+      final exportedTimetable = provider.exportActiveTimetableJson();
+      final originalCount = provider.timetables.length;
+      await provider.importTimetableJson(exportedTimetable, mode: TimetableImportMode.addAsNew);
+      expect(provider.timetables.length, originalCount + 1);
+
+      final exportedPeriodTimes = provider.exportActivePeriodTimesJson();
+      final importedPeriodTimes = provider.importPeriodTimesJson(exportedPeriodTimes);
+      expect(importedPeriodTimes.length, provider.activeTimetable.config.periodTimes.length);
+      expect(importedPeriodTimes.first.index, 1);
+    });
   });
 
   group('主页与编辑器', () {
@@ -193,6 +218,26 @@ void main() {
       expect(find.text('第 1-18 周'), findsOneWidget);
       expect(find.text('关联节次'), findsOneWidget);
       expect(find.text('第 1-2 节'), findsOneWidget);
+    });
+
+    testWidgets('课程详情优先展示地点和时间卡片', (tester) async {
+      final course = buildSampleAppData().timetables.first.courses.first;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CourseDetailsSheet(
+              course: course,
+              onEdit: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('地点'), findsOneWidget);
+      expect(find.text('时间'), findsOneWidget);
+      expect(find.text(course.location), findsOneWidget);
+      expect(find.textContaining(course.timeRange), findsOneWidget);
     });
   });
 }

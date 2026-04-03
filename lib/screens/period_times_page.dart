@@ -1,6 +1,14 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/timetable_models.dart';
+
+enum _PeriodTimesMenuAction { importTemplate, exportTemplate, saveTemplate }
 
 /// 节次时间编辑独立成页面，避免把大量时间设置塞进主设置弹窗。
 class PeriodTimesPage extends StatefulWidget {
@@ -30,6 +38,24 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       appBar: AppBar(
         title: const Text('节次时间'),
         actions: [
+          PopupMenuButton<_PeriodTimesMenuAction>(
+            tooltip: '导入导出',
+            onSelected: _handleMenuAction,
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _PeriodTimesMenuAction.importTemplate,
+                child: Text('导入节次模板'),
+              ),
+              PopupMenuItem(
+                value: _PeriodTimesMenuAction.exportTemplate,
+                child: Text('分享节次模板'),
+              ),
+              PopupMenuItem(
+                value: _PeriodTimesMenuAction.saveTemplate,
+                child: Text('保存模板到文件'),
+              ),
+            ],
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(_periodTimes),
             child: const Text('保存'),
@@ -75,6 +101,85 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
         },
       ),
     );
+  }
+
+  Future<void> _handleMenuAction(_PeriodTimesMenuAction action) async {
+    switch (action) {
+      case _PeriodTimesMenuAction.importTemplate:
+        await _importTemplate();
+        return;
+      case _PeriodTimesMenuAction.exportTemplate:
+        await _shareTemplate();
+        return;
+      case _PeriodTimesMenuAction.saveTemplate:
+        await _saveTemplateToFile();
+        return;
+    }
+  }
+
+  Future<void> _importTemplate() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['json'],
+      withData: true,
+    );
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) {
+      return;
+    }
+    try {
+      final decoded = utf8.decode(bytes);
+      final imported = decodePeriodTimesEnvelope(decoded);
+      if (imported.isEmpty) {
+        throw const FormatException('导入文件中没有节次时间');
+      }
+      setState(() {
+        _periodTimes = List.generate(
+          imported.length,
+          (index) => imported[index].copyWith(index: index + 1),
+        );
+      });
+      _showMessage('已导入 ${_periodTimes.length} 条节次时间');
+    } on FormatException catch (error) {
+      _showMessage(error.message);
+    } catch (_) {
+      _showMessage('导入失败，请检查文件内容');
+    }
+  }
+
+  Future<void> _shareTemplate() async {
+    final content = encodePeriodTimesEnvelope(_periodTimes);
+    await SharePlus.instance.share(
+      ShareParams(
+        text: content,
+        subject: 'classmate 节次时间模板',
+      ),
+    );
+  }
+
+  Future<void> _saveTemplateToFile() async {
+    final location = await getSaveLocation(suggestedName: 'classmate_period_times.json');
+    if (location == null) {
+      return;
+    }
+    final content = encodePeriodTimesEnvelope(_periodTimes);
+    final file = XFile.fromData(
+      Uint8List.fromList(utf8.encode(content)),
+      mimeType: 'application/json',
+      name: 'classmate_period_times.json',
+    );
+    await file.saveTo(location.path);
+    if (mounted) {
+      _showMessage('已保存到 ${location.path}');
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// 单独页面里逐节调整开始与结束时间，保存后再整体回传给设置入口。

@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
@@ -7,6 +13,15 @@ import '../widgets/course_details_sheet.dart';
 import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
 import 'period_times_page.dart';
+
+enum _DataAction {
+  importApp,
+  importTimetable,
+  exportAppShare,
+  exportAppSave,
+  exportTimetableShare,
+  exportTimetableSave,
+}
 
 /// 主页面负责三件事：
 /// 1. 通过 PageView 提供左右滑动切周
@@ -338,6 +353,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         },
                       ),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.import_export),
+                        title: const Text('导入导出数据'),
+                        subtitle: const Text('导入整包/单课表，或导出当前课表与全部课表'),
+                        onTap: () => _showDataActions(dialogContext, provider),
+                      ),
                     ],
                   ),
                 ),
@@ -377,6 +400,204 @@ class _HomeScreenState extends State<HomeScreen> {
     nameController.dispose();
     weeksController.dispose();
     periodsController.dispose();
+  }
+
+  Future<void> _showDataActions(BuildContext context, TimetableProvider provider) async {
+    final action = await showModalBottomSheet<_DataAction>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.file_download_outlined),
+                title: const Text('导入全部课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.importApp),
+              ),
+              ListTile(
+                leading: const Icon(Icons.playlist_add_outlined),
+                title: const Text('导入单个课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.importTimetable),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.share_outlined),
+                title: const Text('分享全部课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportAppShare),
+              ),
+              ListTile(
+                leading: const Icon(Icons.save_alt_outlined),
+                title: const Text('保存全部课表到文件'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportAppSave),
+              ),
+              ListTile(
+                leading: const Icon(Icons.share_outlined),
+                title: const Text('分享当前课表'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableShare),
+              ),
+              ListTile(
+                leading: const Icon(Icons.save_alt_outlined),
+                title: const Text('保存当前课表到文件'),
+                onTap: () => Navigator.of(context).pop(_DataAction.exportTimetableSave),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    switch (action) {
+      case _DataAction.importApp:
+        await _importAppData(context, provider);
+        return;
+      case _DataAction.importTimetable:
+        await _importTimetableData(context, provider);
+        return;
+      case _DataAction.exportAppShare:
+        await _shareJson('classmate_app_data.json', provider.exportAppDataJson());
+        return;
+      case _DataAction.exportAppSave:
+        await _saveJsonToFile(context, 'classmate_app_data.json', provider.exportAppDataJson());
+        return;
+      case _DataAction.exportTimetableShare:
+        await _shareJson('classmate_timetable.json', provider.exportActiveTimetableJson());
+        return;
+      case _DataAction.exportTimetableSave:
+        await _saveJsonToFile(context, 'classmate_timetable.json', provider.exportActiveTimetableJson());
+        return;
+    }
+  }
+
+  Future<void> _importAppData(BuildContext context, TimetableProvider provider) async {
+    final source = await _pickJsonSource();
+    if (source == null || !context.mounted) {
+      return;
+    }
+    final mode = await showDialog<AppImportMode>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('导入全部课表'),
+          content: const Text('请选择导入方式'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(AppImportMode.addAll),
+              child: const Text('新增到现有数据'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(AppImportMode.replaceAll),
+              child: const Text('覆盖现有数据'),
+            ),
+          ],
+        );
+      },
+    );
+    if (mode == null) {
+      return;
+    }
+    try {
+      final count = await provider.importAppDataJson(source, mode: mode);
+      if (context.mounted) {
+        _showMessage(context, '已导入 $count 个课表');
+      }
+    } on FormatException catch (error) {
+      if (context.mounted) {
+        _showMessage(context, error.message);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _showMessage(context, '导入失败，请检查文件内容');
+      }
+    }
+  }
+
+  Future<void> _importTimetableData(BuildContext context, TimetableProvider provider) async {
+    final source = await _pickJsonSource();
+    if (source == null || !context.mounted) {
+      return;
+    }
+    final mode = await showDialog<TimetableImportMode>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('导入单个课表'),
+          content: const Text('请选择导入方式'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(TimetableImportMode.addAsNew),
+              child: const Text('作为新课表导入'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(TimetableImportMode.replaceActive),
+              child: const Text('覆盖当前课表'),
+            ),
+          ],
+        );
+      },
+    );
+    if (mode == null) {
+      return;
+    }
+    try {
+      final name = await provider.importTimetableJson(source, mode: mode);
+      if (context.mounted) {
+        _showMessage(context, '已导入课表：$name');
+      }
+    } on FormatException catch (error) {
+      if (context.mounted) {
+        _showMessage(context, error.message);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _showMessage(context, '导入失败，请检查文件内容');
+      }
+    }
+  }
+
+  Future<String?> _pickJsonSource() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['json'],
+      withData: true,
+    );
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) {
+      return null;
+    }
+    return utf8.decode(bytes);
+  }
+
+  Future<void> _shareJson(String fileName, String content) async {
+    await SharePlus.instance.share(
+      ShareParams(
+        text: content,
+        subject: fileName,
+      ),
+    );
+  }
+
+  Future<void> _saveJsonToFile(BuildContext context, String fileName, String content) async {
+    final location = await getSaveLocation(suggestedName: fileName);
+    if (location == null) {
+      return;
+    }
+    final file = XFile.fromData(
+      Uint8List.fromList(utf8.encode(content)),
+      mimeType: 'application/json',
+      name: fileName,
+    );
+    await file.saveTo(location.path);
+    if (context.mounted) {
+      _showMessage(context, '已保存到 ${location.path}');
+    }
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// 节次数量变化时，统一在这里做裁切与默认补全，避免多个页面各自维护一套规则。

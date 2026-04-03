@@ -222,6 +222,12 @@ class TimetableData {
     );
   }
 
+  String encode() => jsonEncode(toJson());
+
+  factory TimetableData.decode(String source) {
+    return TimetableData.fromJson(Map<String, dynamic>.from(jsonDecode(source) as Map));
+  }
+
   TimetableData copyWith({
     String? id,
     TimetableConfig? config,
@@ -262,6 +268,98 @@ class AppData {
 
   factory AppData.decode(String source) {
     return AppData.fromJson(Map<String, dynamic>.from(jsonDecode(source) as Map));
+  }
+}
+
+class ImportExportEnvelope {
+  const ImportExportEnvelope({
+    required this.schema,
+    required this.version,
+    required this.data,
+  });
+
+  final String schema;
+  final int version;
+  final Map<String, dynamic> data;
+
+  Map<String, dynamic> toJson() => {
+    'schema': schema,
+    'version': version,
+    'data': data,
+  };
+
+  factory ImportExportEnvelope.fromJson(Map<String, dynamic> json) {
+    return ImportExportEnvelope(
+      schema: json['schema'] as String? ?? '',
+      version: json['version'] as int? ?? 1,
+      data: Map<String, dynamic>.from(json['data'] as Map? ?? const {}),
+    );
+  }
+
+  String encode() => jsonEncode(toJson());
+
+  factory ImportExportEnvelope.decode(String source) {
+    return ImportExportEnvelope.fromJson(Map<String, dynamic>.from(jsonDecode(source) as Map));
+  }
+}
+
+const importExportVersion = 1;
+const appDataSchema = 'classmate-app-data';
+const timetableDataSchema = 'classmate-timetable-data';
+const periodTimesSchema = 'classmate-period-times';
+
+String encodeAppDataEnvelope(AppData data) {
+  return ImportExportEnvelope(
+    schema: appDataSchema,
+    version: importExportVersion,
+    data: data.toJson(),
+  ).encode();
+}
+
+String encodeTimetableDataEnvelope(TimetableData data) {
+  return ImportExportEnvelope(
+    schema: timetableDataSchema,
+    version: importExportVersion,
+    data: data.toJson(),
+  ).encode();
+}
+
+String encodePeriodTimesEnvelope(List<CoursePeriodTime> periodTimes) {
+  return ImportExportEnvelope(
+    schema: periodTimesSchema,
+    version: importExportVersion,
+    data: {
+      'periodTimes': periodTimes.map((item) => item.toJson()).toList(),
+    },
+  ).encode();
+}
+
+List<CoursePeriodTime> decodePeriodTimesEnvelope(String source) {
+  final envelope = ImportExportEnvelope.decode(source);
+  _ensureSupportedEnvelope(envelope, expectedSchema: periodTimesSchema);
+  return (envelope.data['periodTimes'] as List<dynamic>? ?? const <dynamic>[])
+      .map((item) => CoursePeriodTime.fromJson(Map<String, dynamic>.from(item as Map)))
+      .toList();
+}
+
+AppData decodeAppDataEnvelope(String source) {
+  final envelope = ImportExportEnvelope.decode(source);
+  _ensureSupportedEnvelope(envelope, expectedSchema: appDataSchema);
+  return AppData.fromJson(envelope.data);
+}
+
+TimetableData decodeTimetableDataEnvelope(String source) {
+  final envelope = ImportExportEnvelope.decode(source);
+  _ensureSupportedEnvelope(envelope, expectedSchema: timetableDataSchema);
+  return TimetableData.fromJson(envelope.data);
+}
+
+void _ensureSupportedEnvelope(ImportExportEnvelope envelope, {required String expectedSchema}) {
+  if (envelope.schema != expectedSchema) {
+    throw const FormatException('导入文件类型不匹配');
+  }
+  if (envelope.version != importExportVersion) {
+    throw const FormatException('导入文件版本暂不支持');
   }
 }
 

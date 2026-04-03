@@ -4,7 +4,9 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter test:*)",
       "Bash(flutter run:*)",
-      "Bash(flutter clean:*)"
+      "Bash(flutter clean:*)",
+      "WebSearch",
+      "Bash(flutter pub:*)"
     ]
   }
 }

@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart';
 import '../data/timetable_storage.dart';
 import '../models/timetable_models.dart';
 
+enum AppImportMode { replaceAll, addAll }
+
+enum TimetableImportMode { addAsNew, replaceActive }
+
 /// 负责承载当前激活课表、当前周数，以及所有持久化写回操作。
 class TimetableProvider extends ChangeNotifier {
   TimetableProvider({TimetableStorage? storage}) : _storage = storage ?? TimetableStorage();
@@ -133,6 +137,77 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  /// 导出完整应用数据，包含全部课表与各自节次时间。
+  String exportAppDataJson() => encodeAppDataEnvelope(_appData);
+
+  /// 导出当前课表，节次时间会跟随课表配置一并导出。
+  String exportActiveTimetableJson() => encodeTimetableDataEnvelope(activeTimetable);
+
+  /// 导出当前课表的节次时间模板。
+  String exportActivePeriodTimesJson() => encodePeriodTimesEnvelope(activeTimetable.config.periodTimes);
+
+  /// 导入完整应用数据；覆盖模式会直接替换当前数据，新增模式则把导入课表附加到现有列表末尾。
+  Future<int> importAppDataJson(String source, {required AppImportMode mode}) async {
+    final imported = _normalizeImportedAppData(decodeAppDataEnvelope(source));
+    if (mode == AppImportMode.replaceAll) {
+      _appData = imported;
+      _selectedWeek = currentWeekFor(activeTimetable.config);
+      await _saveAndNotify();
+      return imported.timetables.length;
+    }
+
+    final existingIds = _appData.timetables.map((item) => item.id).toSet();
+    final appended = imported.timetables
+        .map((item) => _copyImportedTimetableWithUniqueId(item, existingIds))
+        .toList();
+    _appData = AppData(
+      activeTimetableId: _appData.activeTimetableId,
+      timetables: [..._appData.timetables, ...appended],
+    );
+    await _saveAndNotify();
+    return appended.length;
+  }
+
+  /// 导入单个课表；可作为新课表加入，也可直接覆盖当前激活课表。
+  Future<String> importTimetableJson(String source, {required TimetableImportMode mode}) async {
+    final imported = _normalizeTimetable(decodeTimetableDataEnvelope(source));
+    if (mode == TimetableImportMode.replaceActive) {
+      final replaced = imported.copyWith(id: activeTimetable.id);
+      final updated = _appData.timetables
+          .map((item) => item.id == activeTimetable.id ? replaced : item)
+          .toList();
+      _appData = AppData(
+        activeTimetableId: activeTimetable.id,
+        timetables: updated,
+      );
+      _selectedWeek = currentWeekFor(replaced.config);
+      await _saveAndNotify();
+      return replaced.config.name;
+    }
+
+    final existingIds = _appData.timetables.map((item) => item.id).toSet();
+    final appended = _copyImportedTimetableWithUniqueId(imported, existingIds);
+    _appData = AppData(
+      activeTimetableId: appended.id,
+      timetables: [..._appData.timetables, appended],
+    );
+    _selectedWeek = currentWeekFor(appended.config);
+    await _saveAndNotify();
+    return appended.config.name;
+  }
+
+  /// 读取节次时间模板；是否真正保存由调用方决定，这样页面可以先作为草稿预览。
+  List<CoursePeriodTime> importPeriodTimesJson(String source) {
+    final periodTimes = decodePeriodTimesEnvelope(source);
+    if (periodTimes.isEmpty) {
+      throw const FormatException('导入文件中没有节次时间');
+    }
+    return List.generate(
+      periodTimes.length,
+      (index) => periodTimes[index].copyWith(index: index + 1),
+    );
+  }
+
   Future<void> _replaceActiveTimetable(TimetableData timetable) async {
     final updated = _appData.timetables
         .map((item) => item.id == timetable.id ? timetable : item)
@@ -142,6 +217,53 @@ class TimetableProvider extends ChangeNotifier {
       timetables: updated,
     );
     await _saveAndNotify();
+  }
+
+  TimetableData _normalizeTimetable(TimetableData timetable) {
+    final defaults = buildDefaultPeriodTimes();
+    final fallbackCount = timetable.config.dailyPeriods.clamp(1, defaults.length);
+    final normalizedPeriodTimes = timetable.config.periodTimes.isEmpty
+        ? defaults.take(fallbackCount).toList()
+        : List.generate(
+            timetable.config.periodTimes.length,
+            (index) => timetable.config.periodTimes[index].copyWith(index: index + 1),
+          );
+    return timetable.copyWith(
+      config: timetable.config.copyWith(
+        dailyPeriods: normalizedPeriodTimes.length,
+        periodTimes: normalizedPeriodTimes,
+      ),
+    );
+  }
+
+  AppData _normalizeImportedAppData(AppData data) {
+    if (data.timetables.isEmpty) {
+      throw const FormatException('导入文件中没有课表数据');
+    }
+    final normalizedTimetables = data.timetables.map(_normalizeTimetable).toList();
+    final activeId = normalizedTimetables.any((item) => item.id == data.activeTimetableId)
+        ? data.activeTimetableId
+        : normalizedTimetables.first.id;
+    return AppData(activeTimetableId: activeId, timetables: normalizedTimetables);
+  }
+
+  TimetableData _copyImportedTimetableWithUniqueId(TimetableData timetable, Set<String> existingIds) {
+    var nextId = timetable.id.trim();
+    if (nextId.isEmpty || existingIds.contains(nextId)) {
+      nextId = _nextImportedTimetableId(existingIds);
+    }
+    existingIds.add(nextId);
+    return timetable.copyWith(id: nextId);
+  }
+
+  String _nextImportedTimetableId(Set<String> existingIds) {
+    var stamp = DateTime.now().microsecondsSinceEpoch;
+    var candidate = 'table_import_$stamp';
+    while (existingIds.contains(candidate)) {
+      stamp += 1;
+      candidate = 'table_import_$stamp';
+    }
+    return candidate;
   }
 
   Future<void> _saveAndNotify() async {

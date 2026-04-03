@@ -79,24 +79,28 @@ class TimetableGrid extends StatelessWidget {
                                   child: SizedBox(
                                     height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
                                     child: Padding(
-                                      padding: EdgeInsets.only(right: metrics.sidePadding),
-                                      child: FittedBox(
-                                        alignment: Alignment.topRight,
-                                        fit: BoxFit.scaleDown,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              slot.index.toString(),
-                                              style: Theme.of(context).textTheme.labelLarge,
-                                            ),
-                                            Text(
-                                              '${formatMinutes(slot.startMinutes)}\n${formatMinutes(slot.endMinutes)}',
-                                              textAlign: TextAlign.right,
-                                              style: Theme.of(context).textTheme.labelSmall,
-                                            ),
-                                          ],
+                                      padding: EdgeInsets.symmetric(horizontal: metrics.sidePadding),
+                                      child: Center(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                slot.index.toString(),
+                                                textAlign: TextAlign.center,
+                                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                '${formatMinutes(slot.startMinutes)}\n${formatMinutes(slot.endMinutes)}',
+                                                textAlign: TextAlign.center,
+                                                style: Theme.of(context).textTheme.labelSmall?.copyWith(height: 1.05),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -179,14 +183,14 @@ class _TimetableMetrics {
   factory _TimetableMetrics.fromWidth(double width) {
     final safeWidth = width.isFinite && width > 0 ? width : 980.0;
     final compact = safeWidth < 920;
-    final timeLabelWidth = safeWidth < 600 ? 42.0 : safeWidth < 840 ? 52.0 : 64.0;
+    final timeLabelWidth = safeWidth < 600 ? 38.0 : safeWidth < 840 ? 48.0 : 58.0;
     final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 0.0);
     return _TimetableMetrics(
       timeLabelWidth: timeLabelWidth,
       dayColumnWidth: math.min(availableDaysWidth / 7, 180.0),
       courseGap: safeWidth < 600 ? 2.0 : compact ? 4.0 : 6.0,
-      cardPadding: safeWidth < 600 ? 4.0 : compact ? 6.0 : 10.0,
-      sidePadding: safeWidth < 600 ? 2.0 : compact ? 4.0 : 8.0,
+      cardPadding: safeWidth < 600 ? 3.0 : compact ? 5.0 : 8.0,
+      sidePadding: safeWidth < 600 ? 1.0 : compact ? 2.0 : 4.0,
       compact: compact,
     );
   }
@@ -286,41 +290,44 @@ class _CourseCard extends StatelessWidget {
                 );
                 final titleStyle = (compact ? textTheme.titleSmall : textTheme.titleMedium)?.copyWith(
                   fontWeight: FontWeight.w700,
-                  height: 1.15,
+                  height: 1.1,
                   color: textColor,
                 );
                 final bodyStyle = (compact ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(
-                  height: 1.15,
+                  height: 1.1,
                   color: textColor,
                 );
-                final timeStyle = textTheme.labelMedium?.copyWith(height: 1.15, color: textColor);
+                final timeStyle = (compact ? textTheme.labelSmall : textTheme.labelMedium)?.copyWith(
+                  height: 1.1,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                );
+                final titleLines = height < 118 ? 2 : compact ? 3 : 4;
+                final locationLines = height < 118 ? 1 : compact ? 2 : 3;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       layout.course.name,
-                      maxLines: compact ? 3 : 4,
+                      maxLines: titleLines,
                       overflow: TextOverflow.ellipsis,
                       style: titleStyle,
                     ),
-                    SizedBox(height: compact ? 4 : 8),
-                    Expanded(
-                      child: Align(
-                        alignment: compact ? Alignment.topLeft : Alignment.centerLeft,
-                        child: Text(
-                          layout.course.location,
-                          maxLines: compact ? 2 : 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: bodyStyle,
-                        ),
+                    SizedBox(height: compact ? 3 : 6),
+                    if (layout.course.location.isNotEmpty)
+                      Text(
+                        layout.course.location,
+                        maxLines: locationLines,
+                        overflow: TextOverflow.ellipsis,
+                        style: bodyStyle,
                       ),
-                    ),
-                    const SizedBox(height: 6),
+                    const Spacer(),
                     Text(
                       layout.course.timeRange,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: height < 118 ? 1 : 2,
+                      overflow: TextOverflow.fade,
+                      softWrap: true,
                       style: timeStyle,
                     ),
                   ],
