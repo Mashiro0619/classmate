@@ -8,7 +8,6 @@ enum AppImportMode { replaceAll, addAll }
 
 enum TimetableImportMode { addAsNew, replaceActive }
 
-/// 负责承载当前活跃课表、当前周数，以及所有持久化写回操作。
 class TimetableProvider extends ChangeNotifier {
   TimetableProvider({TimetableStorage? storage})
     : _storage = storage ?? TimetableStorage();
@@ -60,8 +59,13 @@ class TimetableProvider extends ChangeNotifier {
   PeriodTimeSet get activePeriodTimeSet =>
       activePeriodTimeSetOrNull ?? _createFallbackPeriodTimeSet();
 
-  /// 应用启动后异步加载数据：即便存储失败，也至少先把界面渲染出来。
+  int _currentWeekForActiveTimetable() {
+    final timetable = activeTimetableOrNull;
+    return timetable == null ? 1 : currentWeekFor(timetable.config);
+  }
+
   Future<void> load() async {
+    // 存储层出问题时先回退到默认数据，别让首页一直卡在启动阶段。
     if (_isLoaded || _isLoading) {
       return;
     }
@@ -83,9 +87,7 @@ class TimetableProvider extends ChangeNotifier {
         _storagePath = null;
       }
     } finally {
-      _selectedWeek = activeTimetableOrNull == null
-          ? 1
-          : currentWeekFor(activeTimetable.config);
+      _selectedWeek = _currentWeekForActiveTimetable();
       _isLoaded = true;
       _isLoading = false;
       notifyListeners();
@@ -119,7 +121,6 @@ class TimetableProvider extends ChangeNotifier {
         const [];
   }
 
-  /// 切换当前活跃课表，并重置到该课表对应的当前周。
   Future<void> switchTimetable(String timetableId) async {
     if (_appData.activeTimetableId == timetableId) {
       return;
@@ -132,8 +133,8 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
-  /// 只更新当前周，不触发文件写入，避免滑动切周时频繁落盘。
   Future<void> setSelectedWeek(int week) async {
+    // 当前周只影响界面状态，不单独持久化，避免滑动时频繁写文件。
     final timetable = activeTimetableOrNull;
     if (timetable == null) {
       _selectedWeek = 1;
@@ -149,7 +150,6 @@ class TimetableProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 保存课表设置。
   Future<void> updateTimetableConfig(TimetableConfig config) async {
     final timetable = activeTimetableOrNull;
     if (timetable == null) {
@@ -172,7 +172,6 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
-  /// 新增或覆盖一门课程。
   Future<void> saveCourse(CourseItem course) async {
     final timetable = activeTimetableOrNull;
     if (timetable == null) {
@@ -188,7 +187,6 @@ class TimetableProvider extends ChangeNotifier {
     await _replaceActiveTimetable(timetable.copyWith(courses: courses));
   }
 
-  /// 删除指定课程。
   Future<void> deleteCourse(String courseId) async {
     final timetable = activeTimetableOrNull;
     if (timetable == null) {
@@ -213,9 +211,9 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
-  /// 新建课表时沿用共享节次时间集结构。
   Future<void> addTimetable() async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    // 新课表默认复用当前节次时间集，避免立刻多出一份内容相同的副本。
     final fallbackSet =
         activePeriodTimeSetOrNull ?? _createFallbackPeriodTimeSet();
     final timetable = TimetableData(
@@ -262,9 +260,7 @@ class TimetableProvider extends ChangeNotifier {
       timetables: remaining,
       conflictDisplayCourseIds: filteredPrefs,
     );
-    _selectedWeek = activeTimetableOrNull == null
-        ? 1
-        : currentWeekFor(activeTimetable.config);
+    _selectedWeek = _currentWeekForActiveTimetable();
     await _saveAndNotify();
   }
 
@@ -358,10 +354,8 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
-  /// 导出完整应用数据，包含全部课表与全部节次时间集。
   String exportAppDataJson() => encodeAppDataEnvelope(_appData);
 
-  /// 导出指定课表，以及它们依赖的节次时间集。
   String exportSelectedTimetablesJson(List<String> timetableIds) {
     final selectedIdSet = timetableIds.toSet();
     final selectedTimetables = _appData.timetables
@@ -386,7 +380,6 @@ class TimetableProvider extends ChangeNotifier {
     );
   }
 
-  /// 兼容保留：导出当前课表。
   String exportActiveTimetableJson() {
     final timetable = activeTimetableOrNull;
     if (timetable == null) {
@@ -397,7 +390,6 @@ class TimetableProvider extends ChangeNotifier {
     return exportSelectedTimetablesJson([timetable.id]);
   }
 
-  /// 导出当前课表的节次时间模板。
   String exportActivePeriodTimesJson() =>
       encodePeriodTimesEnvelope(activePeriodTimeSet.periodTimes);
 
@@ -512,7 +504,6 @@ class TimetableProvider extends ChangeNotifier {
     return appendedTimetables.length;
   }
 
-  /// 导入完整应用数据；覆盖模式会直接替换当前数据，新增模式则把导入课表与节次时间集合并进现有数据。
   Future<int> importAppDataJson(
     String source, {
     required AppImportMode mode,
@@ -520,9 +511,7 @@ class TimetableProvider extends ChangeNotifier {
     final imported = _normalizeImportedAppData(decodeAppDataEnvelope(source));
     if (mode == AppImportMode.replaceAll) {
       _appData = imported;
-      _selectedWeek = activeTimetableOrNull == null
-          ? 1
-          : currentWeekFor(activeTimetable.config);
+      _selectedWeek = _currentWeekForActiveTimetable();
       await _saveAndNotify();
       return imported.timetables.length;
     }
@@ -534,7 +523,6 @@ class TimetableProvider extends ChangeNotifier {
     );
   }
 
-  /// 导入单个课表；可作为新课表加入，也可直接覆盖当前激活课表。
   Future<String> importTimetableJson(
     String source, {
     required TimetableImportMode mode,
@@ -549,7 +537,6 @@ class TimetableProvider extends ChangeNotifier {
     return selected.config.name;
   }
 
-  /// 读取节次时间模板；是否真正保存由调用方决定，这样页面可以先作为草稿预览。
   List<CoursePeriodTime> importPeriodTimesJson(String source) {
     final periodTimes = decodePeriodTimesEnvelope(
       source,

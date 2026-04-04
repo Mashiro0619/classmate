@@ -234,7 +234,7 @@ class CourseItem {
     'customFields': customFields,
   };
 
-  /// 旧数据里的 weekday/weekdays 只视为“星期几”来源；周次范围缺失时默认留空，表示全学期有效。
+  /// 兼容旧字段时只拿 weekday/weekdays 推 dayOfWeek，别顺手猜一套周次出来。
   factory CourseItem.fromJson(Map<String, dynamic> json) {
     final legacyDayOfWeek =
         (json['dayOfWeek'] as num?)?.toInt() ?? _decodeLegacyDayOfWeek(json);
@@ -860,7 +860,7 @@ String normalizeLocaleCode(String? localeCode) {
   return localeCode == 'en' ? 'en' : defaultLocaleCode;
 }
 
-/// 周次范围留空表示“全学期有效”，这样旧数据不需要反推具体周次也能继续显示。
+/// 这里保留空列表语义，后面会把它当成“整学期都生效”，不用强行补满所有周。
 List<int> normalizeSemesterWeeks(List<int> semesterWeeks) {
   final normalized = semesterWeeks.where((week) => week > 0).toSet().toList()
     ..sort();
@@ -961,7 +961,7 @@ String formatSemesterWeeksLabel(
   return isEnglish ? 'Weeks ${ranges.join(', ')}' : '第 ${ranges.join('、')} 周';
 }
 
-/// 当课程时间恰好覆盖若干连续节次时，自动返回这些节次；否则返回空列表，表示应隐藏节次。
+/// 只有时间段能和连续节次严丝合缝对上时才回填节次；对不上就宁可不显示。
 List<int> matchPeriodsForTimeRange(
   List<CoursePeriodTime> periodTimes,
   int startMinutes,

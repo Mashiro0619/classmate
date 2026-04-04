@@ -4,7 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart'
     show CourseItem, formatDayOfWeekLabel, formatSemesterWeeksLabel;
 
-/// 课程详情弹窗默认只读，编辑作为二级操作，避免误触直接进入编辑。
+/// 详情先保持只读，编辑放成二级动作，能少很多误触和来回撤销。
 class CourseDetailsSheet extends StatelessWidget {
   const CourseDetailsSheet({
     super.key,

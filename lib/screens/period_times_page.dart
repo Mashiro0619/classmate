@@ -16,7 +16,7 @@ enum _PeriodTimesMenuAction {
   deleteSet,
 }
 
-/// 节次时间编辑独立成页面，直接修改共享节次时间集。
+/// 这块单独拆页，不塞进设置弹窗里，不然一口气改多节时间会很难操作。
 class PeriodTimesPage extends StatefulWidget {
   const PeriodTimesPage({super.key, required this.periodTimeSetId});
 
@@ -467,8 +467,8 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     );
   }
 
-  /// 单独页面里逐节调整开始与结束时间，保存后直接写回共享资源。
   Future<void> _pickPeriodTime(int index, {required bool isStart}) async {
+    // 这里先只改草稿，等用户点保存时再整体写回，避免改到一半就影响正在用的课表。
     final period = _periodTimes[index];
     final initialMinutes = isStart ? period.startMinutes : period.endMinutes;
     final picked = await showTimePicker(

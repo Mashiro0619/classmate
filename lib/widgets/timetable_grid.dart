@@ -36,11 +36,7 @@ class TimetableCourseTapInfo {
   }
 }
 
-/// 课表主网格：
-/// - 负责按真实时间定位课程块
-/// - 完全冲突显示主课程并标记冲突
-/// - 部分冲突继续重叠显示，晚开始课程位于上层
-/// - 负责在不同宽度下动态调整列宽
+/// 这里按真实时间排版课程块，这样换一套节次时间后，视觉位置也会跟着对齐。
 class TimetableGrid extends StatelessWidget {
   const TimetableGrid({
     super.key,
@@ -250,7 +246,7 @@ class TimetableGrid extends StatelessWidget {
   }
 }
 
-/// 针对不同窗口宽度生成网格布局参数，核心目标是整周必须始终压缩进当前视口。
+/// 这些阈值先保证整周能塞进当前宽度，再去调留白和可读性。
 class _TimetableMetrics {
   const _TimetableMetrics({
     required this.timeLabelWidth,
@@ -749,7 +745,7 @@ String _buildConflictKey(
   return '$timetableId|$weekday|$startMinutes|$endMinutes|${courseIds.join(',')}';
 }
 
-/// 部分冲突规则：开始时间更晚的课程位于上层；若开始时间相同，则更短课程优先级更高。
+/// 晚开始的课压在上层，更符合肉眼对重叠关系的直觉；开始时间一样时再优先短课。
 int _comparePaintPriority(CourseItem a, CourseItem b) {
   final startCompare = a.startMinutes.compareTo(b.startMinutes);
   if (startCompare != 0) {

@@ -2,16 +2,16 @@ import '../models/timetable_models.dart';
 import 'timetable_storage_stub.dart'
     if (dart.library.io) 'timetable_storage_io.dart';
 
-/// 统一的课表存储接口：不同平台各自决定底层实现，但都保存同一份 JSON 数据。
+/// 这里只管整份 AppData 的读写，至于落文件还是浏览器存储，让平台层自己决定。
 abstract class TimetableStorage {
   factory TimetableStorage() => createTimetableStorage();
 
-  /// 读取应用数据；若本地还没有保存内容则返回 null。
+  /// 首次启动还没数据时允许返回 null，这样上层可以走默认初始化流程。
   Future<AppData?> load();
 
-  /// 覆写保存整个应用数据快照。
+  /// 统一按整份快照写回，省得在不同平台维护细碎的增量更新逻辑。
   Future<void> save(AppData data);
 
-  /// 返回调试用的数据位置；Web 端没有真实文件时可返回虚拟路径。
+  /// 主要给设置页和排查问题时用；Web 没真实路径的话给个虚拟地址就行。
   Future<String?> filePath();
 }

@@ -12,10 +12,6 @@ import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
 import 'settings_page.dart';
 
-/// 主页面负责三件事：
-/// 1. 通过 PageView 提供左右滑动切周
-/// 2. 提供多课表切换与课表设置入口
-/// 3. 统一管理课程详情弹窗与编辑弹窗的切换流程
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -223,8 +219,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Provider 改成异步加载后，需要在首帧拿到真实周数时再创建或校正 PageController。
   void _ensurePageController(int week) {
+    // 周数要等 provider 异步加载完成后才稳定，所以这里每次 build 都顺手校正一下页码。
     final targetPage = week - 1;
     if (_pageController == null) {
       _pageController = PageController(initialPage: targetPage);
@@ -256,7 +252,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _animateToWeek(provider, targetWeek);
   }
 
-  /// 统一处理带动画的周跳转，确保与滑动体验一致。
   Future<void> _animateToWeek(TimetableProvider provider, int week) async {
     final controller = _pageController;
     final targetPage = week - 1;
@@ -271,12 +266,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 点击课程后先看详情，再由详情页进入编辑模式。
   Future<void> _openDetails(
     BuildContext context,
     TimetableProvider provider,
     TimetableCourseTapInfo info,
   ) async {
+    // 先关详情再开编辑，避免两个 bottom sheet 叠在一起。
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -314,13 +309,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 课程编辑恢复为底部弹窗；上课日和周次都在这里维护，但周次通过二级弹窗选择。
   Future<void> _openEditor(
     BuildContext context,
     TimetableProvider provider, {
     CourseItem? course,
     int? weekday,
   }) async {
+    // 外部点按是否关闭交给设置控制，但底部弹窗本身仍保持明确的保存/取消出口。
     final periodTimes = provider.activeTimetableOrNull == null
         ? buildDefaultPeriodTimes()
         : provider.periodTimesForTimetable(provider.activeTimetable);
@@ -357,12 +352,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// 顶部周数入口使用快捷弹窗，便于快速跳到任意周。
   Future<void> _showWeekPicker(
     BuildContext context,
     TimetableProvider provider,
     int totalWeeks,
   ) async {
+    // 这里直接给一个轻量选择框，比再进设置页改周数顺手很多。
     final week = await showDialog<int>(
       context: context,
       builder: (context) {

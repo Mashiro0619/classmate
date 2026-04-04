@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 
-/// 编辑器返回值：要么保存课程，要么删除课程，要么取消关闭。
+/// delete 单独保留成一个标记，避免和“只是点了取消”共用同一种空值语义。
 class CourseEditorResult {
   const CourseEditorResult.save(this.course) : delete = false;
   const CourseEditorResult.delete() : course = null, delete = true;
@@ -12,10 +12,7 @@ class CourseEditorResult {
   final bool delete;
 }
 
-/// 课程编辑底部弹窗：
-/// - 上课日使用单选
-/// - 周次通过二级弹窗选择
-/// - 时间段始终优先于节次，节次只作为自动推导出的附属信息展示
+/// 周次选择单独放二级弹窗，不然编辑页一长起来，在手机上会很挤。
 class CourseEditorSheet extends StatefulWidget {
   const CourseEditorSheet({
     super.key,

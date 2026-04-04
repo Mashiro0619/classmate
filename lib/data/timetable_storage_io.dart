@@ -8,7 +8,7 @@ import 'timetable_storage.dart';
 
 TimetableStorage createTimetableStorage() => _IoTimetableStorage();
 
-/// 桌面与移动端继续使用真实 JSON 文件，便于备份和调试。
+/// IO 平台继续落真实文件，用户自己备份或者排查数据时都更直观。
 class _IoTimetableStorage implements TimetableStorage {
   static const _fileName = 'classmate_data.json';
 

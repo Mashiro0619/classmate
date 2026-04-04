@@ -5,7 +5,7 @@ import 'timetable_storage.dart';
 
 TimetableStorage createTimetableStorage() => _BrowserTimetableStorage();
 
-/// Web 端改用浏览器可用的键值存储，但仍保存同一份 JSON 字符串。
+/// Web 没有稳定的本地文件路径，就退回浏览器存储，但数据格式还是保持同一份 JSON。
 class _BrowserTimetableStorage implements TimetableStorage {
   static const _storageKey = 'classmate_app_data';
 
