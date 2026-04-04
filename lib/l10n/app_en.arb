@@ -225,5 +225,42 @@
   "androidFilePermissionMessage": "Android export requires file access permission. Grant permission to continue saving.",
   "reauthorize": "Authorize again",
   "permissionPermanentlyDeniedTitle": "Permission permanently denied",
-  "permissionSettingsExportMessage": "Enable file access in system settings, then return and try exporting again."
+  "permissionSettingsExportMessage": "Enable file access in system settings, then return and try exporting again.",
+  "privacyPolicyTitle": "Privacy Policy",
+  "privacyPolicyEntryDesc": "Learn how the app handles local data, import/export, and external links.",
+  "privacyPolicyAcceptedVersionLabel": "Accepted version: {version}",
+  "@privacyPolicyAcceptedVersionLabel": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "privacyPolicyIntro": "Classmate currently works as a local-first app. Timetable data, timetable settings, and period-time data are stored on your device or in your browser by default. The app only uses system capabilities such as import, export, sharing, or opening external links when you explicitly trigger those actions.",
+  "privacyPolicyLocalStorageTitle": "Local storage",
+  "privacyPolicyLocalStorageBody": "On Android, iOS, Windows, macOS, and Linux, the app stores timetable data and related settings in a local file named classmate_data.json inside the app documents directory. On the web, the app stores the same kind of data in browser storage. The app does not upload this data to a developer-controlled server by default.",
+  "privacyPolicyImportExportTitle": "Import and export",
+  "privacyPolicyImportExportBody": "The app only reads or writes timetable JSON files and period-template files when you explicitly choose a file or start an export action. Imported file contents are only used to create or update timetable data locally.",
+  "privacyPolicySharingTitle": "Sharing",
+  "privacyPolicySharingBody": "When you explicitly use sharing, the app passes the exported file to the system share sheet or to the target app you choose. How that file is handled afterward depends on the target app or service you selected.",
+  "privacyPolicyExternalLinksTitle": "External links",
+  "privacyPolicyExternalLinksBody": "When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.",
+  "privacyPolicyNoCollectionTitle": "What is not collected right now",
+  "privacyPolicyNoCollectionBody": "In the current version, the app does not require an account and does not collect school account passwords, cloud backup data, advertising identifiers, or analytics data by default.",
+  "privacyPolicyFutureFeatureTitle": "Future feature notice",
+  "privacyPolicyFutureFeatureBody": "A future version may support importing courses from a school timetable webpage when you explicitly start that process. If that feature introduces new data handling, network requests, or additional information requirements, this policy will be updated before the feature is released.",
+  "privacyPolicyUpdatesTitle": "Policy updates",
+  "privacyPolicyUpdatesBody": "The current privacy policy version is {version}. If a future version changes how data is handled, the app may ask you to read and agree to the updated policy again.",
+  "@privacyPolicyUpdatesBody": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "privacyGateTitle": "Please agree to the privacy policy before using the app",
+  "privacyGateSummaryStorage": "Timetables and settings are stored locally by default and are not automatically uploaded to a developer server.",
+  "privacyGateSummaryImportExport": "Import, export, and sharing only happen when you explicitly start them.",
+  "privacyGateSummaryExternal": "Opening GitHub or other external links hands the action to your browser or another app.",
+  "privacyGateSummaryUpdates": "If future features such as webpage import change data handling, the privacy policy will be updated first.",
+  "privacyViewFullPolicy": "View full privacy policy",
+  "privacyAgreeAndContinue": "Agree and continue",
+  "privacyDecline": "Decline",
+  "privacyDeclineWebHint": "This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself."
 }

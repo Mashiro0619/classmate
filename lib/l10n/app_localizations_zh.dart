@@ -310,8 +310,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get browserDownloadRestrictedTitle => '浏览器下载受限';
 
   @override
-  String get browserDownloadRestrictedMessage =>
-      '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。';
+  String get browserDownloadRestrictedMessage => '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。';
 
   @override
   String get switchToShare => '改用分享';
@@ -320,8 +319,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fileSaveFailedTitle => '文件保存失败';
 
   @override
-  String get fileSaveFailedWindowsMessage =>
-      '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。';
+  String get fileSaveFailedWindowsMessage => '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。';
 
   @override
   String get fileSaveFailedGenericMessage => '系统未能完成文件保存。你可以重试、检查系统设置，或改用文件分享。';
@@ -427,4 +425,89 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get permissionSettingsExportMessage => '请在系统设置中打开文件访问权限，然后再回来重试导出。';
+
+  @override
+  String get privacyPolicyTitle => '隐私政策';
+
+  @override
+  String get privacyPolicyEntryDesc => '了解应用如何处理本地数据、导入导出和外部链接。';
+
+  @override
+  String privacyPolicyAcceptedVersionLabel(Object version) {
+    return '已同意版本：$version';
+  }
+
+  @override
+  String get privacyPolicyIntro => 'Classmate 当前以本地功能为主。课程、课表设置和节次时间等数据默认保存在你的设备或浏览器本地。只有在你主动执行导入、导出、分享或打开外部链接等操作时，应用才会调用相应的系统能力。';
+
+  @override
+  String get privacyPolicyLocalStorageTitle => '本地存储';
+
+  @override
+  String get privacyPolicyLocalStorageBody => '在 Android、iOS、Windows、macOS 和 Linux 等平台，应用会将课表数据和相关设置保存到应用文档目录中的本地文件 classmate_data.json。在 Web 端，应用会将同类数据保存在浏览器本地存储中。应用当前不会默认把这些数据上传到开发者服务器。';
+
+  @override
+  String get privacyPolicyImportExportTitle => '导入与导出';
+
+  @override
+  String get privacyPolicyImportExportBody => '只有在你主动选择文件或主动执行导出时，应用才会读取或写出 JSON 课表文件与节次模板文件。导入的文件内容仅用于在本地生成或更新课表数据。';
+
+  @override
+  String get privacyPolicySharingTitle => '分享功能';
+
+  @override
+  String get privacyPolicySharingBody => '当你主动使用分享功能时，应用会把你选中的导出文件交给系统分享面板或目标应用。后续如何处理该文件，由你选择的目标应用自行决定。';
+
+  @override
+  String get privacyPolicyExternalLinksTitle => '外部链接';
+
+  @override
+  String get privacyPolicyExternalLinksBody => '当你主动打开 GitHub 仓库等外部链接时，应用会调用系统浏览器或其他外部应用。离开应用后的数据处理将受对应第三方的政策约束。';
+
+  @override
+  String get privacyPolicyNoCollectionTitle => '当前不采集的内容';
+
+  @override
+  String get privacyPolicyNoCollectionBody => '在当前版本中，应用不要求你注册账号，也不会默认收集学校账号密码、云端备份数据、广告标识符或分析统计数据。';
+
+  @override
+  String get privacyPolicyFutureFeatureTitle => '未来功能说明';
+
+  @override
+  String get privacyPolicyFutureFeatureBody => '未来版本可能支持由用户主动发起的学校课程表网页导入功能。如果该功能引入新的数据处理方式、网络请求或需要额外提供的信息，应用会在功能上线前更新本隐私政策。';
+
+  @override
+  String get privacyPolicyUpdatesTitle => '政策更新';
+
+  @override
+  String privacyPolicyUpdatesBody(Object version) {
+    return '当前隐私政策版本为 $version。如果未来版本调整了数据处理方式，应用可能会要求你重新阅读并同意更新后的隐私政策。';
+  }
+
+  @override
+  String get privacyGateTitle => '使用前请先同意隐私政策';
+
+  @override
+  String get privacyGateSummaryStorage => '课表和设置默认保存在本地，不会自动上传到开发者服务器。';
+
+  @override
+  String get privacyGateSummaryImportExport => '导入、导出和分享仅在你主动操作时触发。';
+
+  @override
+  String get privacyGateSummaryExternal => '打开 GitHub 等外部链接会交给系统浏览器或其他应用处理。';
+
+  @override
+  String get privacyGateSummaryUpdates => '如果未来新增网页导入等功能并改变数据处理方式，会先更新隐私政策。';
+
+  @override
+  String get privacyViewFullPolicy => '查看完整隐私政策';
+
+  @override
+  String get privacyAgreeAndContinue => '同意并继续';
+
+  @override
+  String get privacyDecline => '不同意';
+
+  @override
+  String get privacyDeclineWebHint => '当前浏览器环境无法由应用主动关闭页面。若你不同意，请直接关闭此标签页或窗口。';
 }

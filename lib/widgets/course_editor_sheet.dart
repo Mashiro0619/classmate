@@ -20,12 +20,18 @@ class CourseEditorSheet extends StatefulWidget {
     required this.totalWeeks,
     required this.dayOfWeek,
     this.initialCourse,
+    this.initialStartMinutes,
+    this.initialEndMinutes,
+    this.initialPeriods,
   });
 
   final List<CoursePeriodTime> periodTimes;
   final int totalWeeks;
   final int dayOfWeek;
   final CourseItem? initialCourse;
+  final int? initialStartMinutes;
+  final int? initialEndMinutes;
+  final List<int>? initialPeriods;
 
   @override
   State<CourseEditorSheet> createState() => _CourseEditorSheetState();
@@ -49,14 +55,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   void initState() {
     super.initState();
     final initial = widget.initialCourse;
-    final defaultStartMinutes = widget.periodTimes.isNotEmpty
-        ? widget.periodTimes.first.startMinutes
-        : 8 * 60;
-    final defaultEndMinutes = widget.periodTimes.length > 1
-        ? widget.periodTimes[1].endMinutes
-        : widget.periodTimes.isNotEmpty
-        ? widget.periodTimes.first.endMinutes
-        : (8 * 60) + 45;
+    final defaultStartMinutes = widget.initialStartMinutes ??
+        (widget.periodTimes.isNotEmpty
+            ? widget.periodTimes.first.startMinutes
+            : 8 * 60);
+    final defaultEndMinutes = widget.initialEndMinutes ??
+        (widget.periodTimes.length > 1
+            ? widget.periodTimes[1].endMinutes
+            : widget.periodTimes.isNotEmpty
+            ? widget.periodTimes.first.endMinutes
+            : (8 * 60) + 45);
 
     _nameController = TextEditingController(text: initial?.name ?? '');
     _teacherController = TextEditingController(text: initial?.teacher ?? '');
@@ -84,6 +92,8 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     _endTime = _timeOfDayFromMinutes(initial?.endMinutes ?? defaultEndMinutes);
     _selectedPeriods = initial?.periods.isNotEmpty == true
         ? List<int>.from(initial!.periods)
+        : widget.initialPeriods != null
+        ? List<int>.from(widget.initialPeriods!)
         : matchPeriodsForTimeRange(
             widget.periodTimes,
             initial?.startMinutes ?? defaultStartMinutes,

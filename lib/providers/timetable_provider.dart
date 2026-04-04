@@ -30,6 +30,15 @@ class TimetableProvider extends ChangeNotifier {
   bool get closeCoursePopupOnOutsideTap =>
       _appData.closeCoursePopupOnOutsideTap;
   String get localeCode => _appData.localeCode;
+  String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
+  String? get acceptedPrivacyPolicyVersion => _appData.privacyPolicyAcceptedVersion;
+  DateTime? get privacyPolicyAcceptedAt {
+    final value = _appData.privacyPolicyAcceptedAtIso;
+    return value == null ? null : DateTime.tryParse(value);
+  }
+
+  bool get hasAcceptedCurrentPrivacyPolicy =>
+      _appData.privacyPolicyAcceptedVersion == activePrivacyPolicyVersion;
 
   TimetableData? get activeTimetableOrNull {
     if (_appData.timetables.isEmpty) {
@@ -155,20 +164,48 @@ class TimetableProvider extends ChangeNotifier {
     if (timetable == null) {
       return;
     }
-    final periodTimeSetId =
-        periodTimeSetForId(config.periodTimeSetId)?.id ??
+    await updateTimetableConfigFor(timetable.id, config);
+  }
+
+  Future<void> updateTimetableConfigFor(
+    String timetableId,
+    TimetableConfig config,
+  ) async {
+    TimetableData? timetable;
+    for (final item in _appData.timetables) {
+      if (item.id == timetableId) {
+        timetable = item;
+        break;
+      }
+    }
+    if (timetable == null) {
+      return;
+    }
+    final targetTimetable = timetable;
+    final normalizedConfig = config.copyWith(
+      totalWeeks: normalizeTimetableWeeks(config.totalWeeks),
+    );
+    final fallbackPeriodTimeSetId =
+        periodTimeSetForId(targetTimetable.config.periodTimeSetId)?.id ??
         activePeriodTimeSet.id;
+    final periodTimeSetId =
+        periodTimeSetForId(normalizedConfig.periodTimeSetId)?.id ??
+        fallbackPeriodTimeSetId;
     final updated = _appData.timetables
         .map(
-          (item) => item.id == timetable.id
+          (item) => item.id == targetTimetable.id
               ? item.copyWith(
-                  config: config.copyWith(periodTimeSetId: periodTimeSetId),
+                  config: normalizedConfig.copyWith(
+                    periodTimeSetId: periodTimeSetId,
+                  ),
                 )
               : item,
         )
         .toList();
     _appData = _appData.copyWith(timetables: updated);
-    _selectedWeek = _selectedWeek.clamp(1, config.totalWeeks);
+    if (_appData.activeTimetableId == targetTimetable.id) {
+      _selectedWeek = _selectedWeek.clamp(1, normalizedConfig.totalWeeks);
+    }
     await _saveAndNotify();
   }
 
@@ -201,9 +238,7 @@ class TimetableProvider extends ChangeNotifier {
     _appData = _appData.copyWith(
       timetables: _appData.timetables
           .map(
-            (item) => item.id == timetable.id
-                ? item.copyWith(courses: courses)
-                : item,
+            (item) => item.id == timetable.id ? item.copyWith(courses: courses) : item,
           )
           .toList(),
       conflictDisplayCourseIds: filteredPrefs,
@@ -587,6 +622,17 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  Future<void> acceptPrivacyPolicyCurrentVersion() async {
+    if (_appData.privacyPolicyAcceptedVersion == activePrivacyPolicyVersion) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      privacyPolicyAcceptedVersion: activePrivacyPolicyVersion,
+      privacyPolicyAcceptedAtIso: DateTime.now().toIso8601String(),
+    );
+    await _saveAndNotify();
+  }
+
   Future<void> _replaceActiveTimetable(TimetableData timetable) async {
     final updated = _appData.timetables
         .map((item) => item.id == timetable.id ? timetable : item)
@@ -625,7 +671,7 @@ class TimetableProvider extends ChangeNotifier {
       normalizedTimetables.add(
         item.copyWith(
           config: item.config.copyWith(
-            totalWeeks: item.config.totalWeeks < 1 ? 1 : item.config.totalWeeks,
+            totalWeeks: normalizeTimetableWeeks(item.config.totalWeeks),
             periodTimeSetId: periodTimeSetId,
           ),
         ),
@@ -706,7 +752,7 @@ class TimetableProvider extends ChangeNotifier {
     for (final item in data.timetables) {
       var timetable = item.copyWith(
         config: item.config.copyWith(
-          totalWeeks: item.config.totalWeeks < 1 ? 1 : item.config.totalWeeks,
+          totalWeeks: normalizeTimetableWeeks(item.config.totalWeeks),
         ),
       );
       if (normalizedSets.isEmpty ||

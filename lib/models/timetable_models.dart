@@ -4,6 +4,8 @@ const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
 const defaultInitialTimetableId = 'default';
 const defaultLocaleCode = 'zh';
+const maxTimetableWeeks = 100;
+const currentPrivacyPolicyVersion = '2026-04-04';
 
 bool _isEnglishLocale(String localeCode) =>
     normalizeLocaleCode(localeCode) == 'en';
@@ -329,7 +331,7 @@ class TimetableConfig {
           json['name'] as String? ??
           untitledTimetableName(localeCode: localeCode),
       startDate: DateTime.tryParse(startDateValue ?? '') ?? DateTime.now(),
-      totalWeeks: ((json['totalWeeks'] as num?)?.toInt() ?? 18).clamp(1, 999),
+      totalWeeks: normalizeTimetableWeeks((json['totalWeeks'] as num?)?.toInt()),
       periodTimeSetId: json['periodTimeSetId'] as String? ?? '',
     );
   }
@@ -343,7 +345,7 @@ class TimetableConfig {
     return TimetableConfig(
       name: name ?? this.name,
       startDate: startDate ?? this.startDate,
-      totalWeeks: totalWeeks ?? this.totalWeeks,
+      totalWeeks: normalizeTimetableWeeks(totalWeeks ?? this.totalWeeks),
       periodTimeSetId: periodTimeSetId ?? this.periodTimeSetId,
     );
   }
@@ -503,6 +505,8 @@ class AppData {
     this.conflictDisplayCourseIds = const {},
     this.closeCoursePopupOnOutsideTap = true,
     this.localeCode = defaultLocaleCode,
+    this.privacyPolicyAcceptedVersion,
+    this.privacyPolicyAcceptedAtIso,
   });
 
   final String activeTimetableId;
@@ -511,6 +515,8 @@ class AppData {
   final Map<String, String> conflictDisplayCourseIds;
   final bool closeCoursePopupOnOutsideTap;
   final String localeCode;
+  final String? privacyPolicyAcceptedVersion;
+  final String? privacyPolicyAcceptedAtIso;
 
   Map<String, dynamic> toJson() => {
     'activeTimetableId': activeTimetableId,
@@ -519,6 +525,8 @@ class AppData {
     'conflictDisplayCourseIds': conflictDisplayCourseIds,
     'closeCoursePopupOnOutsideTap': closeCoursePopupOnOutsideTap,
     'localeCode': normalizeLocaleCode(localeCode),
+    'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
+    'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
   };
 
   factory AppData.fromJson(Map<String, dynamic> json) {
@@ -603,6 +611,9 @@ class AppData {
       closeCoursePopupOnOutsideTap:
           json['closeCoursePopupOnOutsideTap'] as bool? ?? true,
       localeCode: localeCode,
+      privacyPolicyAcceptedVersion:
+          json['privacyPolicyAcceptedVersion'] as String?,
+      privacyPolicyAcceptedAtIso: json['privacyPolicyAcceptedAtIso'] as String?,
     );
   }
 
@@ -613,6 +624,8 @@ class AppData {
     Map<String, String>? conflictDisplayCourseIds,
     bool? closeCoursePopupOnOutsideTap,
     String? localeCode,
+    String? privacyPolicyAcceptedVersion,
+    String? privacyPolicyAcceptedAtIso,
   }) {
     return AppData(
       activeTimetableId: activeTimetableId ?? this.activeTimetableId,
@@ -623,6 +636,10 @@ class AppData {
       closeCoursePopupOnOutsideTap:
           closeCoursePopupOnOutsideTap ?? this.closeCoursePopupOnOutsideTap,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
+      privacyPolicyAcceptedVersion:
+          privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
+      privacyPolicyAcceptedAtIso:
+          privacyPolicyAcceptedAtIso ?? this.privacyPolicyAcceptedAtIso,
     );
   }
 
@@ -847,6 +864,19 @@ String formatMinutes(int minutes) {
   return '$hour:$minute';
 }
 
+int normalizeTimetableWeeks(int? totalWeeks) {
+  return (totalWeeks ?? 18).clamp(1, maxTimetableWeeks);
+}
+
+DateTime normalizeDateOnly(DateTime date) {
+  return DateTime(date.year, date.month, date.day);
+}
+
+DateTime startOfWeekMonday(DateTime date) {
+  final normalized = normalizeDateOnly(date);
+  return normalized.subtract(Duration(days: normalized.weekday - DateTime.monday));
+}
+
 String buildTimeRange(int startMinutes, int endMinutes) {
   return '${formatMinutes(startMinutes)} - ${formatMinutes(endMinutes)}';
 }
@@ -868,7 +898,7 @@ List<int> normalizeSemesterWeeks(List<int> semesterWeeks) {
 }
 
 List<int> buildAllSemesterWeeks(int totalWeeks) {
-  final safeTotalWeeks = totalWeeks < 1 ? 1 : totalWeeks;
+  final safeTotalWeeks = normalizeTimetableWeeks(totalWeeks);
   return List.generate(safeTotalWeeks, (index) => index + 1);
 }
 
@@ -1051,12 +1081,8 @@ String _nextGeneratedPeriodTimeSetId(Set<String> existingIds) {
 
 int currentWeekFor(TimetableConfig config, {DateTime? now}) {
   final today = (now ?? DateTime.now());
-  final normalizedToday = DateTime(today.year, today.month, today.day);
-  final normalizedStart = DateTime(
-    config.startDate.year,
-    config.startDate.month,
-    config.startDate.day,
-  );
+  final normalizedToday = normalizeDateOnly(today);
+  final normalizedStart = normalizeDateOnly(config.startDate);
   final days = normalizedToday.difference(normalizedStart).inDays;
   if (days < 0) {
     return 1;
@@ -1069,11 +1095,9 @@ int currentWeekFor(TimetableConfig config, {DateTime? now}) {
 }
 
 DateTime startOfWeekFor(TimetableConfig config, int week) {
-  return DateTime(
-    config.startDate.year,
-    config.startDate.month,
-    config.startDate.day,
-  ).add(Duration(days: (week - 1) * 7));
+  return startOfWeekMonday(
+    normalizeDateOnly(config.startDate).add(Duration(days: (week - 1) * 7)),
+  );
 }
 
 AppData buildInitialAppData(

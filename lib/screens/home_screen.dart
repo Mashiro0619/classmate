@@ -1,5 +1,6 @@
 import 'dart:ui' show PointerDeviceKind;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ import '../providers/timetable_provider.dart';
 import '../widgets/course_details_sheet.dart';
 import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
+import 'privacy_policy_page.dart';
 import 'settings_page.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,6 +38,17 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!provider.isLoaded) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (!provider.hasAcceptedCurrentPrivacyPolicy) {
+          return _PrivacyConsentGate(
+            onViewPolicy: () => _openPrivacyPolicyPage(
+              context,
+              provider,
+              showConsentActions: true,
+            ),
+            onAccept: provider.acceptPrivacyPolicyCurrentVersion,
+            onDecline: () => _declinePrivacyPolicy(context),
           );
         }
 
@@ -131,12 +144,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             trailing: IconButton(
                               tooltip: l10n.editTimetable,
                               icon: const Icon(Icons.edit_outlined),
-                              onPressed: () async {
-                                await _openTimetableItemDialog(
-                                  context,
-                                  provider,
-                                  item,
-                                );
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (!mounted) {
+                                    return;
+                                  }
+                                  _openTimetableItemDialog(
+                                    this.context,
+                                    provider,
+                                    item,
+                                  );
+                                });
                               },
                             ),
                             onTap: () async {
@@ -205,8 +224,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             provider.displayedCourseIdForConflict,
                         onCourseTap: (info) =>
                             _openDetails(context, provider, info),
-                        onEmptySlotTap: (weekday) =>
-                            _openEditor(context, provider, weekday: weekday),
+                        onEmptySlotTap: (slotInfo) => _openEditor(
+                          context,
+                          provider,
+                          weekday: slotInfo.weekday,
+                          emptySlot: slotInfo,
+                        ),
                       ),
                     );
                   },
@@ -314,6 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TimetableProvider provider, {
     CourseItem? course,
     int? weekday,
+    TimetableEmptySlotTapInfo? emptySlot,
   }) async {
     // 外部点按是否关闭交给设置控制，但底部弹窗本身仍保持明确的保存/取消出口。
     final periodTimes = provider.activeTimetableOrNull == null
@@ -335,7 +359,10 @@ class _HomeScreenState extends State<HomeScreen> {
           periodTimes: periodTimes,
           totalWeeks: totalWeeks,
           initialCourse: course,
-          dayOfWeek: weekday ?? course?.dayOfWeek ?? 1,
+          dayOfWeek: weekday ?? emptySlot?.weekday ?? course?.dayOfWeek ?? 1,
+          initialStartMinutes: emptySlot?.startMinutes,
+          initialEndMinutes: emptySlot?.endMinutes,
+          initialPeriods: emptySlot?.periods,
         ),
       ),
     );
@@ -401,63 +428,117 @@ class _HomeScreenState extends State<HomeScreen> {
     final weeksController = TextEditingController(
       text: timetable.config.totalWeeks.toString(),
     );
-    final navigator = Navigator.of(context);
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
-        return AlertDialog(
-          title: Text(l10n.timetable),
-          content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(labelText: l10n.timetableName),
+        final viewInsets = MediaQuery.of(context).viewInsets;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.fromLTRB(24, 24, 24, viewInsets.bottom + 24),
+          child: Center(
+            child: Material(
+              color: Theme.of(context).colorScheme.surface,
+              elevation: 6,
+              borderRadius: BorderRadius.circular(28),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        l10n.timetable,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 24),
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: l10n.timetableName,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: weeksController,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            final text = newValue.text;
+                            if (text.isEmpty) {
+                              return newValue;
+                            }
+                            final value = int.tryParse(text);
+                            if (value == null) {
+                              return oldValue;
+                            }
+                            final clamped = normalizeTimetableWeeks(value);
+                            if (clamped == value) {
+                              return newValue;
+                            }
+                            final clampedText = clamped.toString();
+                            return TextEditingValue(
+                              text: clampedText,
+                              selection: TextSelection.collapsed(
+                                offset: clampedText.length,
+                              ),
+                            );
+                          }),
+                        ],
+                        decoration: InputDecoration(labelText: l10n.totalWeeks),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop('delete'),
+                            child: Text(l10n.delete),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(l10n.cancel),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () => Navigator.of(context).pop('save'),
+                            child: Text(l10n.save),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: weeksController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.totalWeeks),
-                ),
-              ],
+              ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop('delete'),
-              child: Text(l10n.delete),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop('save'),
-              child: Text(l10n.save),
-            ),
-          ],
         );
       },
     );
     if (result == 'save') {
-      final totalWeeks =
-          int.tryParse(weeksController.text) ?? timetable.config.totalWeeks;
-      await provider.switchTimetable(timetable.id);
-      await provider.updateTimetableConfig(
+      final totalWeeks = normalizeTimetableWeeks(
+        int.tryParse(weeksController.text) ?? timetable.config.totalWeeks,
+      );
+      weeksController.value = TextEditingValue(
+        text: totalWeeks.toString(),
+        selection: TextSelection.collapsed(
+          offset: totalWeeks.toString().length,
+        ),
+      );
+      await provider.updateTimetableConfigFor(
+        timetable.id,
         timetable.config.copyWith(
           name: nameController.text.trim().isEmpty
               ? timetable.config.name
               : nameController.text.trim(),
-          totalWeeks: totalWeeks < 1 ? 1 : totalWeeks,
+          totalWeeks: totalWeeks,
         ),
       );
-      if (mounted && navigator.canPop()) {
-        navigator.pop();
-      }
     }
     if (result == 'delete') {
       if (!mounted) {
@@ -487,9 +568,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       if (confirmed == true) {
         await provider.deleteTimetable(timetable.id);
-        if (mounted && navigator.canPop()) {
-          navigator.pop();
-        }
       }
     }
     nameController.dispose();
@@ -511,6 +589,48 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null) {
       return;
     }
+  }
+
+  Future<void> _openPrivacyPolicyPage(
+    BuildContext context,
+    TimetableProvider provider, {
+    bool showConsentActions = false,
+  }) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (pageContext) => PrivacyPolicyPage(
+          showConsentActions: showConsentActions,
+          onAccept: !showConsentActions
+              ? null
+              : () async {
+                  await provider.acceptPrivacyPolicyCurrentVersion();
+                  if (pageContext.mounted) {
+                    Navigator.of(pageContext).pop();
+                  }
+                },
+          onDecline: !showConsentActions
+              ? null
+              : () => _declinePrivacyPolicy(pageContext),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _declinePrivacyPolicy(BuildContext context) async {
+    if (kIsWeb) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.privacyDeclineWebHint,
+          ),
+        ),
+      );
+      return;
+    }
+    await SystemNavigator.pop();
   }
 
   Widget _buildAdaptiveBottomSheet(
@@ -552,6 +672,98 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PrivacyConsentGate extends StatelessWidget {
+  const _PrivacyConsentGate({
+    required this.onViewPolicy,
+    required this.onAccept,
+    required this.onDecline,
+  });
+
+  final Future<void> Function() onViewPolicy;
+  final Future<void> Function() onAccept;
+  final Future<void> Function() onDecline;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.privacyPolicyTitle)),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.privacyGateTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 12),
+                Text(l10n.privacyPolicyIntro),
+                const SizedBox(height: 16),
+                _PrivacySummaryRow(text: l10n.privacyGateSummaryStorage),
+                const SizedBox(height: 8),
+                _PrivacySummaryRow(text: l10n.privacyGateSummaryImportExport),
+                const SizedBox(height: 8),
+                _PrivacySummaryRow(text: l10n.privacyGateSummaryExternal),
+                const SizedBox(height: 8),
+                _PrivacySummaryRow(text: l10n.privacyGateSummaryUpdates),
+                const SizedBox(height: 24),
+                OutlinedButton(
+                  onPressed: onViewPolicy,
+                  child: Text(l10n.privacyViewFullPolicy),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onDecline,
+                        child: Text(l10n.privacyDecline),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: onAccept,
+                        child: Text(l10n.privacyAgreeAndContinue),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrivacySummaryRow extends StatelessWidget {
+  const _PrivacySummaryRow({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 3),
+          child: Icon(Icons.check_circle_outline, size: 18),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Text(text)),
+      ],
     );
   }
 }

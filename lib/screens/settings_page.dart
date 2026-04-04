@@ -11,6 +11,7 @@ import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
 import 'period_times_page.dart';
+import 'privacy_policy_page.dart';
 
 enum _DataAction {
   importTimetables,
@@ -130,6 +131,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text(l10n.dataImportExport),
                 subtitle: Text(l10n.dataImportExportDesc),
                 onTap: () => _showDataActions(provider),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: Text(l10n.privacyPolicyTitle),
+                subtitle: Text(
+                  provider.acceptedPrivacyPolicyVersion == null
+                      ? l10n.privacyPolicyEntryDesc
+                      : l10n.privacyPolicyAcceptedVersionLabel(
+                          provider.acceptedPrivacyPolicyVersion!,
+                        ),
+                ),
+                onTap: _openPrivacyPolicyPage,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -320,6 +334,12 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     setState(() => _selectedDate = picked);
     await provider.updateTimetableConfig(config.copyWith(startDate: picked));
+  }
+
+  Future<void> _openPrivacyPolicyPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
+    );
   }
 
   void _openLicensesPage() {

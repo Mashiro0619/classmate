@@ -74,8 +74,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTimetableTitle => 'No timetable yet';
 
   @override
-  String get noTimetableMessage =>
-      'Create a timetable or import one from a JSON file.';
+  String get noTimetableMessage => 'Create a timetable or import one from a JSON file.';
 
   @override
   String get importTimetable => 'Import timetable';
@@ -102,8 +101,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkedPeriods => 'Linked periods';
 
   @override
-  String get linkedPeriodsUnmatched =>
-      'No periods matched for the current time. Tap to choose manually.';
+  String get linkedPeriodsUnmatched => 'No periods matched for the current time. Tap to choose manually.';
 
   @override
   String periodRangeLabel(int start, int end) {
@@ -180,8 +178,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get noTimetableSettings =>
-      'No timetable is currently available for settings.';
+  String get noTimetableSettings => 'No timetable is currently available for settings.';
 
   @override
   String get semesterStartDate => 'Semester start date';
@@ -198,12 +195,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get coursePopupDismissSetting =>
-      'Allow outside tap to close course popup';
+  String get coursePopupDismissSetting => 'Allow outside tap to close course popup';
 
   @override
-  String get coursePopupDismissSettingHint =>
-      'Turning this off also disables swipe-down dismissal.';
+  String get coursePopupDismissSettingHint => 'Turning this off also disables swipe-down dismissal.';
 
   @override
   String get language => 'Language';
@@ -218,15 +213,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataImportExport => 'Import and export data';
 
   @override
-  String get dataImportExportDesc =>
-      'Import full data or single timetables, or export current/all timetables.';
+  String get dataImportExportDesc => 'Import full data or single timetables, or export current/all timetables.';
 
   @override
   String get openSourceLicenses => 'Open-source licenses';
 
   @override
-  String get openSourceLicensesDesc =>
-      'View licenses for dependencies and app icon assets.';
+  String get openSourceLicensesDesc => 'View licenses for dependencies and app icon assets.';
 
   @override
   String get githubRepository => 'GitHub repository';
@@ -247,8 +240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importTimetableFiles => 'Import timetable';
 
   @override
-  String get importTimetableFilesDesc =>
-      'Supports one or multiple timetable files.';
+  String get importTimetableFilesDesc => 'Supports one or multiple timetable files.';
 
   @override
   String get shareTimetableFiles => 'Share timetable files';
@@ -303,15 +295,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileSaveRestrictedTitle => 'File saving restricted';
 
   @override
-  String get fileSaveRestrictedRetryMessage =>
-      'The system could not save the file. You can retry or use sharing instead.';
+  String get fileSaveRestrictedRetryMessage => 'The system could not save the file. You can retry or use sharing instead.';
 
   @override
   String get retrySave => 'Retry save';
 
   @override
-  String get fileSaveRestrictedSettingsMessage =>
-      'Enable file access in system settings, then return and try exporting again.';
+  String get fileSaveRestrictedSettingsMessage => 'Enable file access in system settings, then return and try exporting again.';
 
   @override
   String get openSettings => 'Open settings';
@@ -320,8 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get browserDownloadRestrictedTitle => 'Browser download restricted';
 
   @override
-  String get browserDownloadRestrictedMessage =>
-      'This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.';
+  String get browserDownloadRestrictedMessage => 'This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.';
 
   @override
   String get switchToShare => 'Use sharing instead';
@@ -330,12 +319,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileSaveFailedTitle => 'File save failed';
 
   @override
-  String get fileSaveFailedWindowsMessage =>
-      'Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.';
+  String get fileSaveFailedWindowsMessage => 'Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.';
 
   @override
-  String get fileSaveFailedGenericMessage =>
-      'The system could not save the file. You can retry, check system settings, or use file sharing instead.';
+  String get fileSaveFailedGenericMessage => 'The system could not save the file. You can retry, check system settings, or use file sharing instead.';
 
   @override
   String get retryLater => 'Try again later';
@@ -347,12 +334,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveFailedRetry => 'Save failed. Please try again later.';
 
   @override
-  String get importFailedCheckContent =>
-      'Import failed. Please check the file content.';
+  String get importFailedCheckContent => 'Import failed. Please check the file content.';
 
   @override
-  String get noImportableTimetables =>
-      'No usable timetables were found in the imported file.';
+  String get noImportableTimetables => 'No usable timetables were found in the imported file.';
 
   @override
   String importedTimetablesCount(int count) {
@@ -430,17 +415,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String get periodFilePermissionTitle => 'File permission needed';
 
   @override
-  String get androidFilePermissionMessage =>
-      'Android export requires file access permission. Grant permission to continue saving.';
+  String get androidFilePermissionMessage => 'Android export requires file access permission. Grant permission to continue saving.';
 
   @override
   String get reauthorize => 'Authorize again';
 
   @override
-  String get permissionPermanentlyDeniedTitle =>
-      'Permission permanently denied';
+  String get permissionPermanentlyDeniedTitle => 'Permission permanently denied';
 
   @override
-  String get permissionSettingsExportMessage =>
-      'Enable file access in system settings, then return and try exporting again.';
+  String get permissionSettingsExportMessage => 'Enable file access in system settings, then return and try exporting again.';
+
+  @override
+  String get privacyPolicyTitle => 'Privacy Policy';
+
+  @override
+  String get privacyPolicyEntryDesc => 'Learn how the app handles local data, import/export, and external links.';
+
+  @override
+  String privacyPolicyAcceptedVersionLabel(Object version) {
+    return 'Accepted version: $version';
+  }
+
+  @override
+  String get privacyPolicyIntro => 'Classmate currently works as a local-first app. Timetable data, timetable settings, and period-time data are stored on your device or in your browser by default. The app only uses system capabilities such as import, export, sharing, or opening external links when you explicitly trigger those actions.';
+
+  @override
+  String get privacyPolicyLocalStorageTitle => 'Local storage';
+
+  @override
+  String get privacyPolicyLocalStorageBody => 'On Android, iOS, Windows, macOS, and Linux, the app stores timetable data and related settings in a local file named classmate_data.json inside the app documents directory. On the web, the app stores the same kind of data in browser storage. The app does not upload this data to a developer-controlled server by default.';
+
+  @override
+  String get privacyPolicyImportExportTitle => 'Import and export';
+
+  @override
+  String get privacyPolicyImportExportBody => 'The app only reads or writes timetable JSON files and period-template files when you explicitly choose a file or start an export action. Imported file contents are only used to create or update timetable data locally.';
+
+  @override
+  String get privacyPolicySharingTitle => 'Sharing';
+
+  @override
+  String get privacyPolicySharingBody => 'When you explicitly use sharing, the app passes the exported file to the system share sheet or to the target app you choose. How that file is handled afterward depends on the target app or service you selected.';
+
+  @override
+  String get privacyPolicyExternalLinksTitle => 'External links';
+
+  @override
+  String get privacyPolicyExternalLinksBody => 'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.';
+
+  @override
+  String get privacyPolicyNoCollectionTitle => 'What is not collected right now';
+
+  @override
+  String get privacyPolicyNoCollectionBody => 'In the current version, the app does not require an account and does not collect school account passwords, cloud backup data, advertising identifiers, or analytics data by default.';
+
+  @override
+  String get privacyPolicyFutureFeatureTitle => 'Future feature notice';
+
+  @override
+  String get privacyPolicyFutureFeatureBody => 'A future version may support importing courses from a school timetable webpage when you explicitly start that process. If that feature introduces new data handling, network requests, or additional information requirements, this policy will be updated before the feature is released.';
+
+  @override
+  String get privacyPolicyUpdatesTitle => 'Policy updates';
+
+  @override
+  String privacyPolicyUpdatesBody(Object version) {
+    return 'The current privacy policy version is $version. If a future version changes how data is handled, the app may ask you to read and agree to the updated policy again.';
+  }
+
+  @override
+  String get privacyGateTitle => 'Please agree to the privacy policy before using the app';
+
+  @override
+  String get privacyGateSummaryStorage => 'Timetables and settings are stored locally by default and are not automatically uploaded to a developer server.';
+
+  @override
+  String get privacyGateSummaryImportExport => 'Import, export, and sharing only happen when you explicitly start them.';
+
+  @override
+  String get privacyGateSummaryExternal => 'Opening GitHub or other external links hands the action to your browser or another app.';
+
+  @override
+  String get privacyGateSummaryUpdates => 'If future features such as webpage import change data handling, the privacy policy will be updated first.';
+
+  @override
+  String get privacyViewFullPolicy => 'View full privacy policy';
+
+  @override
+  String get privacyAgreeAndContinue => 'Agree and continue';
+
+  @override
+  String get privacyDecline => 'Decline';
+
+  @override
+  String get privacyDeclineWebHint => 'This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.';
 }

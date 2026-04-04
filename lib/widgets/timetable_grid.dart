@@ -36,6 +36,20 @@ class TimetableCourseTapInfo {
   }
 }
 
+class TimetableEmptySlotTapInfo {
+  const TimetableEmptySlotTapInfo({
+    required this.weekday,
+    required this.startMinutes,
+    required this.endMinutes,
+    required this.periods,
+  });
+
+  final int weekday;
+  final int startMinutes;
+  final int endMinutes;
+  final List<int> periods;
+}
+
 /// 这里按真实时间排版课程块，这样换一套节次时间后，视觉位置也会跟着对齐。
 class TimetableGrid extends StatelessWidget {
   const TimetableGrid({
@@ -56,7 +70,7 @@ class TimetableGrid extends StatelessWidget {
   final int selectedWeek;
   final String localeCode;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
-  final ValueChanged<int> onEmptySlotTap;
+  final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
 
   @override
@@ -181,7 +195,29 @@ class TimetableGrid extends StatelessWidget {
                             ),
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onLongPress: () => onEmptySlotTap(weekday),
+                              onLongPressStart: (details) {
+                                final minutesFromTop =
+                                    (details.localPosition.dy / _minuteHeight)
+                                        .floor();
+                                final maxOffset = math.max(
+                                  endMinutes - startMinutes - 1,
+                                  0,
+                                );
+                                final tappedMinutes = startMinutes +
+                                    minutesFromTop.clamp(0, maxOffset).toInt();
+                                final matchedPeriod = _pickPeriodForMinute(
+                                  slots,
+                                  tappedMinutes,
+                                );
+                                onEmptySlotTap(
+                                  TimetableEmptySlotTapInfo(
+                                    weekday: weekday,
+                                    startMinutes: matchedPeriod.startMinutes,
+                                    endMinutes: matchedPeriod.endMinutes,
+                                    periods: [matchedPeriod.index],
+                                  ),
+                                );
+                              },
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
@@ -390,6 +426,18 @@ class _DayHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+CoursePeriodTime _pickPeriodForMinute(
+  List<CoursePeriodTime> slots,
+  int minute,
+) {
+  for (final slot in slots) {
+    if (minute >= slot.startMinutes && minute < slot.endMinutes) {
+      return slot;
+    }
+  }
+  return slots.first;
 }
 
 class _CourseCard extends StatelessWidget {

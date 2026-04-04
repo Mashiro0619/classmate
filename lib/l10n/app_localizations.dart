@@ -62,8 +62,7 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('zh'),
+    Locale('zh')
   ];
 
   /// No description provided for @appTitle.
@@ -877,10 +874,171 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enable file access in system settings, then return and try exporting again.'**
   String get permissionSettingsExportMessage;
+
+  /// No description provided for @privacyPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyTitle;
+
+  /// No description provided for @privacyPolicyEntryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn how the app handles local data, import/export, and external links.'**
+  String get privacyPolicyEntryDesc;
+
+  /// No description provided for @privacyPolicyAcceptedVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted version: {version}'**
+  String privacyPolicyAcceptedVersionLabel(Object version);
+
+  /// No description provided for @privacyPolicyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Classmate currently works as a local-first app. Timetable data, timetable settings, and period-time data are stored on your device or in your browser by default. The app only uses system capabilities such as import, export, sharing, or opening external links when you explicitly trigger those actions.'**
+  String get privacyPolicyIntro;
+
+  /// No description provided for @privacyPolicyLocalStorageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local storage'**
+  String get privacyPolicyLocalStorageTitle;
+
+  /// No description provided for @privacyPolicyLocalStorageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On Android, iOS, Windows, macOS, and Linux, the app stores timetable data and related settings in a local file named classmate_data.json inside the app documents directory. On the web, the app stores the same kind of data in browser storage. The app does not upload this data to a developer-controlled server by default.'**
+  String get privacyPolicyLocalStorageBody;
+
+  /// No description provided for @privacyPolicyImportExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import and export'**
+  String get privacyPolicyImportExportTitle;
+
+  /// No description provided for @privacyPolicyImportExportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app only reads or writes timetable JSON files and period-template files when you explicitly choose a file or start an export action. Imported file contents are only used to create or update timetable data locally.'**
+  String get privacyPolicyImportExportBody;
+
+  /// No description provided for @privacyPolicySharingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing'**
+  String get privacyPolicySharingTitle;
+
+  /// No description provided for @privacyPolicySharingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you explicitly use sharing, the app passes the exported file to the system share sheet or to the target app you choose. How that file is handled afterward depends on the target app or service you selected.'**
+  String get privacyPolicySharingBody;
+
+  /// No description provided for @privacyPolicyExternalLinksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'External links'**
+  String get privacyPolicyExternalLinksTitle;
+
+  /// No description provided for @privacyPolicyExternalLinksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.'**
+  String get privacyPolicyExternalLinksBody;
+
+  /// No description provided for @privacyPolicyNoCollectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is not collected right now'**
+  String get privacyPolicyNoCollectionTitle;
+
+  /// No description provided for @privacyPolicyNoCollectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In the current version, the app does not require an account and does not collect school account passwords, cloud backup data, advertising identifiers, or analytics data by default.'**
+  String get privacyPolicyNoCollectionBody;
+
+  /// No description provided for @privacyPolicyFutureFeatureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Future feature notice'**
+  String get privacyPolicyFutureFeatureTitle;
+
+  /// No description provided for @privacyPolicyFutureFeatureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A future version may support importing courses from a school timetable webpage when you explicitly start that process. If that feature introduces new data handling, network requests, or additional information requirements, this policy will be updated before the feature is released.'**
+  String get privacyPolicyFutureFeatureBody;
+
+  /// No description provided for @privacyPolicyUpdatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy updates'**
+  String get privacyPolicyUpdatesTitle;
+
+  /// No description provided for @privacyPolicyUpdatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The current privacy policy version is {version}. If a future version changes how data is handled, the app may ask you to read and agree to the updated policy again.'**
+  String privacyPolicyUpdatesBody(Object version);
+
+  /// No description provided for @privacyGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please agree to the privacy policy before using the app'**
+  String get privacyGateTitle;
+
+  /// No description provided for @privacyGateSummaryStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetables and settings are stored locally by default and are not automatically uploaded to a developer server.'**
+  String get privacyGateSummaryStorage;
+
+  /// No description provided for @privacyGateSummaryImportExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import, export, and sharing only happen when you explicitly start them.'**
+  String get privacyGateSummaryImportExport;
+
+  /// No description provided for @privacyGateSummaryExternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening GitHub or other external links hands the action to your browser or another app.'**
+  String get privacyGateSummaryExternal;
+
+  /// No description provided for @privacyGateSummaryUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'If future features such as webpage import change data handling, the privacy policy will be updated first.'**
+  String get privacyGateSummaryUpdates;
+
+  /// No description provided for @privacyViewFullPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'View full privacy policy'**
+  String get privacyViewFullPolicy;
+
+  /// No description provided for @privacyAgreeAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree and continue'**
+  String get privacyAgreeAndContinue;
+
+  /// No description provided for @privacyDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get privacyDecline;
+
+  /// No description provided for @privacyDeclineWebHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.'**
+  String get privacyDeclineWebHint;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -889,26 +1047,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'zh':
-      return AppLocalizationsZh();
+    case 'en': return AppLocalizationsEn();
+    case 'zh': return AppLocalizationsZh();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }
