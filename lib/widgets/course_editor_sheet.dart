@@ -116,6 +116,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final linkedPeriods = _selectedPeriods;
+    final linkedPeriodsLabel = _formatPeriodsLabel(linkedPeriods, l10n);
 
     return SafeArea(
       child: FractionallySizedBox(
@@ -221,10 +222,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                         subtitle: Text(
                           linkedPeriods.isEmpty
                               ? l10n.linkedPeriodsUnmatched
-                              : l10n.periodRangeLabel(
-                                  linkedPeriods.first,
-                                  linkedPeriods.last,
-                                ),
+                              : linkedPeriodsLabel,
                         ),
                         trailing: const Icon(Icons.tune),
                         onTap: _pickPeriods,
@@ -501,9 +499,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                   children: [
                     for (final period in widget.periodTimes)
                       ChoiceChip(
-                        label: Text(
-                          l10n.periodRangeLabel(period.index, period.index),
-                        ),
+                        label: Text(l10n.periodNumberLabel(period.index)),
                         selected: draft.contains(period.index),
                         onSelected: (_) {
                           setState(() {
@@ -618,6 +614,17 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  String _formatPeriodsLabel(List<int> periods, AppLocalizations l10n) {
+    if (periods.isEmpty) {
+      return '';
+    }
+    final sorted = [...periods]..sort();
+    if (sorted.first == sorted.last) {
+      return l10n.periodNumberLabel(sorted.first);
+    }
+    return l10n.periodRangeLabel(sorted.first, sorted.last);
   }
 
   Map<String, dynamic> _parseCustomFields(String value) {

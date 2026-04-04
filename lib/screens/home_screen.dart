@@ -294,14 +294,18 @@ class _HomeScreenState extends State<HomeScreen> {
     TimetableProvider provider,
     TimetableCourseTapInfo info,
   ) async {
+    final canDismiss = provider.closeCoursePopupOnOutsideTap;
     // 先关详情再开编辑，避免两个 bottom sheet 叠在一起。
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      isDismissible: canDismiss,
+      enableDrag: canDismiss,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => _buildAdaptiveBottomSheet(
         sheetContext,
         maxWidth: 860,
+        dismissOnOutsideTap: canDismiss,
         child: CourseDetailsSheet(
           course: info.course,
           conflictCourses: info.isFullConflict ? info.courses : const [],
@@ -348,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showModalBottomSheet<CourseEditorResult>(
       context: context,
       isScrollControlled: true,
-      isDismissible: false,
+      isDismissible: canDismiss,
       enableDrag: canDismiss,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => _buildAdaptiveBottomSheet(
