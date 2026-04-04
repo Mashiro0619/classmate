@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/foundation.dart';
@@ -392,24 +393,78 @@ class _HomeScreenState extends State<HomeScreen> {
     final week = await showDialog<int>(
       context: context,
       builder: (context) {
+        final theme = Theme.of(context);
+        final mediaQuery = MediaQuery.of(context);
+        final dialogWidth = math.min(mediaQuery.size.width - 32, 360.0);
+        const spacing = 10.0;
+        const chipHeight = 40.0;
+        final maxGridHeight = mediaQuery.size.height * 0.5;
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.jumpToWeek),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           content: SizedBox(
-            width: 320,
-            child: GridView.builder(
-              shrinkWrap: true,
-              itemCount: totalWeeks,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 1.6,
-              ),
-              itemBuilder: (context, index) {
-                final week = index + 1;
-                return FilledButton.tonal(
-                  onPressed: () => Navigator.of(context).pop(week),
-                  child: FittedBox(fit: BoxFit.scaleDown, child: Text('$week')),
+            width: dialogWidth,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availableWidth = constraints.maxWidth;
+                final crossAxisCount = availableWidth >= 280 ? 4 : 3;
+                final chipWidth =
+                    (availableWidth - ((crossAxisCount - 1) * spacing)) /
+                    crossAxisCount;
+                final rowCount = (totalWeeks / crossAxisCount).ceil();
+                final fullGridHeight =
+                    (rowCount * chipHeight) + ((rowCount - 1) * spacing);
+                final visibleRows = math.max(
+                  1,
+                  math.min(
+                    rowCount,
+                    ((maxGridHeight + spacing) / (chipHeight + spacing)).floor(),
+                  ),
+                );
+                final gridHeight = rowCount <= visibleRows
+                    ? fullGridHeight
+                    : (visibleRows * chipHeight) +
+                        ((visibleRows - 1) * spacing);
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: gridHeight),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (var index = 0; index < totalWeeks; index++)
+                          SizedBox(
+                            width: chipWidth,
+                            height: chipHeight,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: () => Navigator.of(context).pop(index + 1),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    color: index + 1 == provider.selectedWeek
+                                        ? theme.colorScheme.secondaryContainer
+                                        : theme.colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: theme.textTheme.titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
