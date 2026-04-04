@@ -7,60 +7,45 @@
 
 [English README](README_EN.md)
 
-Classmate 是一个基于 Flutter 的课程表应用，支持多课表管理、共享节次时间集、课程编辑、课程冲突展示，以及课表数据导入导出。
+Classmate 是一个基于 Flutter 的课程表应用，提供多课表管理、共享节次时间集、课程编辑、冲突展示，以及课表与节次模板导入导出能力。
 
-## 功能特性
+支持平台：Android、iOS、Windows、macOS、Linux、Web。
 
-- 首次启动自动创建空白课表，并载入内置默认节次时间
-- 多课表管理：新建、切换、重命名、删除
-- 共享节次时间集：选择、新建、编辑，并可被多个课表复用
-- 按周查看课表，支持快捷跳转周数
-- 桌面端支持方向键切周与鼠标左右拖动切周
-- 添加、编辑、删除课程
-- 课程详情查看与冲突课程处理
-- 导入、导出、分享一个或多个课表 JSON 文件
-- Android / Windows / Web 多平台支持
+## 功能概览
 
-## 首次启动默认数据
+- 多课表：新建、切换、重命名、编辑、删除
+- 周视图课表：支持顶部跳周、左右滑动切周、键盘方向键切周
+- 课程管理：支持地点、教师、学分、备注、自定义字段
+- 冲突处理：查看冲突课程，并切换外部显示的冲突课程
+- 节次时间集：支持选择、新建、编辑、删除，并可被多个课表复用
+- 模板与数据：支持导入、导出、分享、保存课表 JSON 与节次模板
+- 设置页：提供开学日期、节次时间集、开源许可、GitHub 仓库入口
 
-应用首次启动时会自动生成：
+## 默认数据
+
+首次启动时，应用会自动生成：
 
 - 一个名为“空白课表”的默认课表
 - 一套内置默认节次时间，来源于 [assets/default_period_times.json](assets/default_period_times.json)
 
 如果本地已有保存数据，则会优先加载本地数据。
 
-## 主要界面
+## 截图展示
 
-### 主页
-
-- 按周展示课程表
-- 顶部可快捷跳转到任意周
-- 点击课程查看详情与冲突信息
-- 长按空白区域可按当天快速添加课程
-- 侧边栏可切换课表、编辑课表、创建新课表
-
-### 设置页
-
-- 设置开学日期
-- 选择节次时间集
-- 在“选择节次时间集”弹窗中直接新建或编辑节次时间集
-- 导入导出课表数据
-- 跳转 GitHub 仓库
-
-## 数据导入导出
-
-- 支持导入单个或多个课表
-- 支持导出一个或多个课表为 JSON 文件
-- 导入单个课表时，可选择“作为新课表导入”或“覆盖当前课表”
-- 导入时会自动处理节次时间集关联与 ID 冲突
-
-## 技术栈
-
-- Flutter
-- Dart
-- Provider
-- Material 3
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/screenshot1.png" alt="主页" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot2.png" alt="侧边栏" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot3.png" alt="课程详情弹窗" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot4.png" alt="设置页" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center">主页</td>
+    <td align="center">侧边栏</td>
+    <td align="center">课程详情弹窗</td>
+    <td align="center">设置页</td>
+  </tr>
+</table>
 
 ## 项目结构
 
@@ -73,27 +58,6 @@ lib/
 ├─ services/     # 导出、分享等服务
 └─ widgets/      # 课表网格、课程编辑、详情弹窗等组件
 ```
-
-## 运行项目
-
-### 安装依赖
-
-```bash
-flutter pub get
-```
-
-### 启动应用
-
-```bash
-flutter run
-```
-
-## 开发入口
-
-- 应用入口：[lib/main.dart](lib/main.dart)
-- 状态管理：[lib/providers/timetable_provider.dart](lib/providers/timetable_provider.dart)
-- 主页面：[lib/screens/home_screen.dart](lib/screens/home_screen.dart)
-- 设置页：[lib/screens/settings_page.dart](lib/screens/settings_page.dart)
 
 ## 开源许可证
 

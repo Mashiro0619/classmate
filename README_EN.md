@@ -7,21 +7,21 @@
 
 [中文 README](README.md)
 
-Classmate is a Flutter timetable app with multi-timetable management, shared period-time sets, course editing, conflict display, and timetable data import/export.
+Classmate is a Flutter timetable app for multi-timetable management, shared period-time sets, course editing, conflict display, and timetable/template import and export.
+
+Supported targets: Android, iOS, Windows, macOS, Linux, and Web.
 
 ## Features
 
-- Creates a blank timetable automatically on first launch and loads built-in default period times
-- Multi-timetable management: create, switch, rename, and delete timetables
-- Shared period-time sets: select, create, edit, and reuse them across multiple timetables
-- Weekly timetable view with quick week jumping
-- Desktop support for week switching with arrow keys and horizontal mouse dragging
-- Add, edit, and delete courses
-- Course details view with conflict handling
-- Import, export, share, and save one or more timetable JSON files
-- Cross-platform support for Android, Windows, and Web
+- Multi-timetable management: create, switch, rename, edit, and delete timetables
+- Weekly timetable view with quick week jump, horizontal swipe navigation, and keyboard arrow key navigation
+- Course management with location, teacher, credits, remarks, and custom fields
+- Conflict handling with support for viewing conflicting courses and choosing which one is shown externally
+- Shared period-time sets with create, select, edit, delete, and reuse support across timetables
+- Template and data workflows for importing, exporting, sharing, and saving timetable JSON files and period templates
+- Settings entry points for semester start date, period-time sets, open-source licenses, and the GitHub repository
 
-## Default first-run data
+## Default data
 
 On first launch, the app automatically creates:
 
@@ -30,37 +30,22 @@ On first launch, the app automatically creates:
 
 If local data already exists, the app loads the saved data first.
 
-## Main screens
+## Screenshots
 
-### Home screen
-
-- Shows the weekly timetable
-- Lets you jump to any week from the top bar
-- Opens course details and conflict info when tapping a course
-- Lets you quickly add a course for a weekday by long-pressing an empty area
-- Provides a drawer for switching, editing, and creating timetables
-
-### Settings screen
-
-- Set the semester start date
-- Select a period-time set
-- Create or edit period-time sets directly inside the selection dialog
-- Import and export timetable data
-- Open the GitHub repository
-
-## Import and export
-
-- Import one or more timetables
-- Export one or more timetables as a JSON file
-- When importing a single timetable, choose either "Import as new timetable" or "Replace current timetable"
-- Period-time set references and ID conflicts are normalized automatically during import
-
-## Tech stack
-
-- Flutter
-- Dart
-- Provider
-- Material 3
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/screenshot1.png" alt="Home" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot2.png" alt="Drawer" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot3.png" alt="Course details" width="240"></td>
+    <td align="center"><img src="docs/screenshots/screenshot4.png" alt="Settings" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center">Home</td>
+    <td align="center">Drawer</td>
+    <td align="center">Course details</td>
+    <td align="center">Settings</td>
+  </tr>
+</table>
 
 ## Project structure
 
@@ -73,27 +58,6 @@ lib/
 ├─ services/     # Export and sharing services
 └─ widgets/      # Timetable grid, course editor, and detail sheets
 ```
-
-## Run the project
-
-### Install dependencies
-
-```bash
-flutter pub get
-```
-
-### Start the app
-
-```bash
-flutter run
-```
-
-## Entry points
-
-- App entry: [lib/main.dart](lib/main.dart)
-- State management: [lib/providers/timetable_provider.dart](lib/providers/timetable_provider.dart)
-- Home screen: [lib/screens/home_screen.dart](lib/screens/home_screen.dart)
-- Settings screen: [lib/screens/settings_page.dart](lib/screens/settings_page.dart)
 
 ## Open-source license
 
