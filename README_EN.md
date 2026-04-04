@@ -21,15 +21,6 @@ Supported targets: Android, iOS, Windows, macOS, Linux, and Web.
 - Template and data workflows for importing, exporting, sharing, and saving timetable JSON files and period templates
 - Settings entry points for semester start date, period-time sets, open-source licenses, and the GitHub repository
 
-## Default data
-
-On first launch, the app automatically creates:
-
-- A default blank timetable named `空白课表`
-- A built-in default period-time set loaded from [assets/default_period_times.json](assets/default_period_times.json)
-
-If local data already exists, the app loads the saved data first.
-
 ## Screenshots
 
 <table>
@@ -46,6 +37,15 @@ If local data already exists, the app loads the saved data first.
     <td align="center">Settings</td>
   </tr>
 </table>
+
+## Default data
+
+On first launch, the app automatically creates:
+
+- A default blank timetable named `空白课表`
+- A built-in default period-time set loaded from [assets/default_period_times.json](assets/default_period_times.json)
+
+If local data already exists, the app loads the saved data first.
 
 ## Project structure
 
