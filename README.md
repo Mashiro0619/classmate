@@ -98,3 +98,5 @@ flutter run
 ## 开源许可证
 
 本项目基于 [GNU Affero General Public License v3.0](LICENSE) 开源。
+
+项目内分发的启动图标及相关图标资源包含第三方授权内容，详见 [NOTICE](NOTICE)。

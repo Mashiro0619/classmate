@@ -58,7 +58,9 @@ class _SettingsPageState extends State<SettingsPage> {
             body: const Center(child: Text('当前没有可设置的课表')),
           );
         }
-        final selectedSet = provider.periodTimeSetForId(_selectedPeriodTimeSetId) ?? provider.activePeriodTimeSetOrNull;
+        final selectedSet =
+            provider.periodTimeSetForId(_selectedPeriodTimeSetId) ??
+            provider.activePeriodTimeSetOrNull;
         return Scaffold(
           appBar: AppBar(title: const Text('设置')),
           body: ListView(
@@ -73,21 +75,40 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.calendar_month),
                 onTap: () => _pickStartDate(provider, timetable.config),
               ),
-              Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('节次时间集'),
-                subtitle: Text(selectedSet == null ? '暂无可用节次时间' : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节'),
+                subtitle: Text(
+                  selectedSet == null
+                      ? '暂无可用节次时间'
+                      : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节',
+                ),
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickPeriodTimeSet(provider, timetable.config),
               ),
-              Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35)),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.import_export),
                 title: const Text('导入导出数据'),
                 subtitle: const Text('导入整包/单课表，或导出当前课表与全部课表'),
                 onTap: () => _showDataActions(provider),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('开源许可'),
+                subtitle: const Text('查看依赖与应用图标的许可信息'),
+                onTap: _openLicensesPage,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -103,7 +124,10 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _pickPeriodTimeSet(TimetableProvider provider, TimetableConfig config) async {
+  Future<void> _pickPeriodTimeSet(
+    TimetableProvider provider,
+    TimetableConfig config,
+  ) async {
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
@@ -142,8 +166,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     final item = provider.periodTimeSets[index];
                     final selected = item.id == currentSelectedId;
                     return ListTile(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      tileColor: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      tileColor: selected
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : null,
                       title: Text(item.name),
                       subtitle: Text('${item.periodTimes.length} 节'),
                       trailing: Wrap(
@@ -158,10 +186,16 @@ class _SettingsPageState extends State<SettingsPage> {
                               if (!mounted) {
                                 return;
                               }
-                              final stillExists = provider.periodTimeSetForId(item.id) != null;
-                              if (!stillExists && _selectedPeriodTimeSetId == item.id) {
-                                final fallbackId = provider.activePeriodTimeSetOrNull?.id ?? '';
-                                setState(() => _selectedPeriodTimeSetId = fallbackId);
+                              final stillExists =
+                                  provider.periodTimeSetForId(item.id) != null;
+                              if (!stillExists &&
+                                  _selectedPeriodTimeSetId == item.id) {
+                                final fallbackId =
+                                    provider.activePeriodTimeSetOrNull?.id ??
+                                    '';
+                                setState(
+                                  () => _selectedPeriodTimeSetId = fallbackId,
+                                );
                               }
                               refreshDialog(() {});
                             },
@@ -189,10 +223,15 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     setState(() => _selectedPeriodTimeSetId = result);
-    await provider.updateTimetableConfig(config.copyWith(periodTimeSetId: result));
+    await provider.updateTimetableConfig(
+      config.copyWith(periodTimeSetId: result),
+    );
   }
 
-  Future<void> _pickStartDate(TimetableProvider provider, TimetableConfig config) async {
+  Future<void> _pickStartDate(
+    TimetableProvider provider,
+    TimetableConfig config,
+  ) async {
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2020),
@@ -206,6 +245,10 @@ class _SettingsPageState extends State<SettingsPage> {
     await provider.updateTimetableConfig(config.copyWith(startDate: picked));
   }
 
+  void _openLicensesPage() {
+    showLicensePage(context: context, applicationName: 'Classmate');
+  }
+
   Future<void> _openGithubRepo() async {
     final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -214,7 +257,10 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _openPeriodTimePage(TimetableProvider provider, String periodTimeSetId) async {
+  Future<void> _openPeriodTimePage(
+    TimetableProvider provider,
+    String periodTimeSetId,
+  ) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
@@ -242,20 +288,26 @@ class _SettingsPageState extends State<SettingsPage> {
                   leading: const Icon(Icons.file_download_outlined),
                   title: const Text('导入课表'),
                   subtitle: const Text('支持单个或多个课表文件'),
-                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.importTimetables),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.importTimetables),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.share_outlined),
                   title: const Text('分享课表文件'),
                   subtitle: const Text('先选择一个或多个课表'),
-                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.exportTimetablesShare),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesShare),
                 ),
                 ListTile(
                   leading: const Icon(Icons.save_alt_outlined),
                   title: const Text('保存课表文件'),
                   subtitle: const Text('先选择一个或多个课表'),
-                  onTap: () => Navigator.of(sheetContext).pop(_DataAction.exportTimetablesSave),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesSave),
                 ),
               ],
             ),
@@ -279,7 +331,10 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _exportTimetables(TimetableProvider provider, {required bool share}) async {
+  Future<void> _exportTimetables(
+    TimetableProvider provider, {
+    required bool share,
+  }) async {
     final activeId = provider.activeTimetableOrNull?.id;
     final selectedIds = await _pickTimetableIds(
       timetables: provider.timetables,
@@ -356,11 +411,14 @@ class _SettingsPageState extends State<SettingsPage> {
             content: const Text('请选择导入方式'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(TimetableImportMode.addAsNew),
+                onPressed: () =>
+                    Navigator.of(context).pop(TimetableImportMode.addAsNew),
                 child: const Text('作为新课表导入'),
               ),
               FilledButton(
-                onPressed: () => Navigator.of(context).pop(TimetableImportMode.replaceActive),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(TimetableImportMode.replaceActive),
                 child: const Text('覆盖当前课表'),
               ),
             ],
@@ -400,7 +458,9 @@ class _SettingsPageState extends State<SettingsPage> {
     List<String> initialSelectedIds = const [],
   }) {
     final draft = <String>{
-      ...initialSelectedIds.where((id) => timetables.any((item) => item.id == id)),
+      ...initialSelectedIds.where(
+        (id) => timetables.any((item) => item.id == id),
+      ),
     };
     if (draft.isEmpty && timetables.isNotEmpty) {
       draft.add(timetables.first.id);
@@ -447,8 +507,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           final timetable = timetables[index];
                           final selected = draft.contains(timetable.id);
                           return ListTile(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            tileColor: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            tileColor: selected
+                                ? Theme.of(
+                                    context,
+                                  ).colorScheme.secondaryContainer
+                                : null,
                             title: Text(timetable.config.name),
                             subtitle: Text('${timetable.courses.length} 门课程'),
                             trailing: selected ? const Icon(Icons.check) : null,
@@ -477,8 +543,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: draft.isEmpty
                       ? null
                       : () => Navigator.of(context).pop(
-                            timetables.where((item) => draft.contains(item.id)).map((item) => item.id).toList(),
-                          ),
+                          timetables
+                              .where((item) => draft.contains(item.id))
+                              .map((item) => item.id)
+                              .toList(),
+                        ),
                   child: Text(confirmText),
                 ),
               ],
@@ -504,11 +573,15 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _shareJson(String fileName, String content) async {
-    await _exportService.shareFile(ExportPayload(fileName: fileName, content: content));
+    await _exportService.shareFile(
+      ExportPayload(fileName: fileName, content: content),
+    );
   }
 
   Future<void> _saveJsonToFile(String fileName, String content) async {
-    final result = await _exportService.saveFile(ExportPayload(fileName: fileName, content: content));
+    final result = await _exportService.saveFile(
+      ExportPayload(fileName: fileName, content: content),
+    );
     if (!mounted) {
       return;
     }
@@ -626,7 +699,9 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildAdaptiveBottomSheet(

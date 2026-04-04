@@ -1,0 +1,22 @@
+Classmate third-party notices
+==========================
+
+This project's source code is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This notice file covers bundled third-party materials that use different license terms.
+
+App icon and related launcher assets
+-----------------------------------
+
+The app icon and related launcher assets distributed with this project are derived from Google Material Icons / Material Symbols and were modified for this project.
+
+Upstream source:
+- Google Material Icons / Material Symbols
+- Copyright Google LLC
+- Licensed under the Apache License, Version 2.0
+- License text: https://www.apache.org/licenses/LICENSE-2.0
+
+These modified icon assets remain subject to the Apache License, Version 2.0.
+
+In-app icon libraries and package dependencies
+---------------------------------------------
+
+This app also uses third-party Flutter packages and icon libraries, including package-provided icons such as font_awesome_flutter. Their license information can be viewed from the app's open-source licenses page.

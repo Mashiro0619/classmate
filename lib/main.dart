@@ -1,16 +1,37 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/timetable_provider.dart';
 import 'screens/home_screen.dart';
 
+const _appIconLicense =
+    '''Classmate 的应用启动图标及相关平台图标资源基于 Google Material Icons / Material Symbols 修改。
+
+Copyright Google LLC
+Licensed under the Apache License, Version 2.0
+
+The icon assets distributed with this app were modified from the original source materials.
+
+Apache License 2.0:
+https://www.apache.org/licenses/LICENSE-2.0''';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _registerLicenses();
   final provider = TimetableProvider();
   unawaited(provider.load());
   runApp(MyApp(provider: provider));
+}
+
+void _registerLicenses() {
+  LicenseRegistry.addLicense(() async* {
+    yield const LicenseEntryWithLineBreaks([
+      'App icon assets',
+    ], _appIconLicense);
+  });
 }
 
 class MyApp extends StatelessWidget {

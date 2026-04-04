@@ -98,3 +98,5 @@ flutter run
 ## Open-source license
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+Bundled launcher icon assets include third-party licensed material. See [NOTICE](NOTICE) for details.
