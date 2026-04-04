@@ -48,6 +48,7 @@ class TimetableGrid extends StatelessWidget {
     required this.periodTimes,
     required this.weekDateStart,
     required this.selectedWeek,
+    required this.localeCode,
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
@@ -57,13 +58,16 @@ class TimetableGrid extends StatelessWidget {
   final List<CoursePeriodTime> periodTimes;
   final DateTime weekDateStart;
   final int selectedWeek;
+  final String localeCode;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<int> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
 
   @override
   Widget build(BuildContext context) {
-    final slots = periodTimes.isEmpty ? buildPeriodTimesForCount(1) : periodTimes;
+    final slots = periodTimes.isEmpty
+        ? buildPeriodTimesForCount(1)
+        : periodTimes;
     final startMinutes = slots.first.startMinutes;
     final endMinutes = slots.last.endMinutes;
     final totalHeight = (endMinutes - startMinutes) * _minuteHeight;
@@ -72,7 +76,9 @@ class TimetableGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final metrics = _TimetableMetrics.fromWidth(constraints.maxWidth);
-        final headerHeight = metrics.compact ? _compactHeaderHeight : _regularHeaderHeight;
+        final headerHeight = metrics.compact
+            ? _compactHeaderHeight
+            : _regularHeaderHeight;
 
         return SizedBox(
           width: constraints.maxWidth,
@@ -87,6 +93,7 @@ class TimetableGrid extends StatelessWidget {
                       child: _MonthHeader(
                         date: weekDateStart,
                         compact: metrics.compact,
+                        localeCode: localeCode,
                       ),
                     ),
                     for (var weekday = 1; weekday <= 7; weekday++)
@@ -96,6 +103,7 @@ class TimetableGrid extends StatelessWidget {
                           weekday: weekday,
                           date: weekDateStart.add(Duration(days: weekday - 1)),
                           compact: metrics.compact,
+                          localeCode: localeCode,
                         ),
                       ),
                   ],
@@ -114,13 +122,19 @@ class TimetableGrid extends StatelessWidget {
                             children: [
                               for (final slot in slots)
                                 Positioned(
-                                  top: (slot.startMinutes - startMinutes) * _minuteHeight,
+                                  top:
+                                      (slot.startMinutes - startMinutes) *
+                                      _minuteHeight,
                                   left: 0,
                                   right: 0,
                                   child: SizedBox(
-                                    height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
+                                    height:
+                                        (slot.endMinutes - slot.startMinutes) *
+                                        _minuteHeight,
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: metrics.sidePadding),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: metrics.sidePadding,
+                                      ),
                                       child: Center(
                                         child: FittedBox(
                                           fit: BoxFit.scaleDown,
@@ -130,15 +144,22 @@ class TimetableGrid extends StatelessWidget {
                                               Text(
                                                 slot.index.toString(),
                                                 textAlign: TextAlign.center,
-                                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                                  fontWeight: FontWeight.w800,
-                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                    ),
                                               ),
                                               const SizedBox(height: 2),
                                               Text(
                                                 '${formatMinutes(slot.startMinutes)}\n${formatMinutes(slot.endMinutes)}',
                                                 textAlign: TextAlign.center,
-                                                style: Theme.of(context).textTheme.labelSmall?.copyWith(height: 1.05),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.copyWith(height: 1.05),
                                               ),
                                             ],
                                           ),
@@ -155,7 +176,11 @@ class TimetableGrid extends StatelessWidget {
                             width: metrics.dayColumnWidth,
                             decoration: BoxDecoration(
                               border: Border(
-                                left: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.25)),
+                                left: BorderSide(
+                                  color: colors.outlineVariant.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
                               ),
                             ),
                             child: GestureDetector(
@@ -166,14 +191,22 @@ class TimetableGrid extends StatelessWidget {
                                 children: [
                                   for (final slot in slots)
                                     Positioned(
-                                      top: (slot.startMinutes - startMinutes) * _minuteHeight,
+                                      top:
+                                          (slot.startMinutes - startMinutes) *
+                                          _minuteHeight,
                                       left: 0,
                                       right: 0,
                                       child: Container(
-                                        height: (slot.endMinutes - slot.startMinutes) * _minuteHeight,
+                                        height:
+                                            (slot.endMinutes -
+                                                slot.startMinutes) *
+                                            _minuteHeight,
                                         decoration: BoxDecoration(
                                           border: Border(
-                                            top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.18)),
+                                            top: BorderSide(
+                                              color: colors.outlineVariant
+                                                  .withValues(alpha: 0.18),
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -183,7 +216,8 @@ class TimetableGrid extends StatelessWidget {
                                     courses: timetable.courses,
                                     weekday: weekday,
                                     selectedWeek: selectedWeek,
-                                    displayedCourseIdForConflict: displayedCourseIdForConflict,
+                                    displayedCourseIdForConflict:
+                                        displayedCourseIdForConflict,
                                   ).map(
                                     (item) => _CourseCard(
                                       layout: item,
@@ -237,14 +271,30 @@ class _TimetableMetrics {
   factory _TimetableMetrics.fromWidth(double width) {
     final safeWidth = width.isFinite && width > 0 ? width : 980.0;
     final compact = safeWidth < 920;
-    final timeLabelWidth = safeWidth < 600 ? 34.0 : safeWidth < 840 ? 42.0 : 52.0;
+    final timeLabelWidth = safeWidth < 600
+        ? 34.0
+        : safeWidth < 840
+        ? 42.0
+        : 52.0;
     final availableDaysWidth = math.max(safeWidth - timeLabelWidth, 0.0);
     return _TimetableMetrics(
       timeLabelWidth: timeLabelWidth,
       dayColumnWidth: availableDaysWidth / 7,
-      courseGap: safeWidth < 600 ? 2.0 : compact ? 4.0 : 6.0,
-      cardPadding: safeWidth < 600 ? 3.0 : compact ? 5.0 : 8.0,
-      sidePadding: safeWidth < 600 ? 1.0 : compact ? 2.0 : 4.0,
+      courseGap: safeWidth < 600
+          ? 2.0
+          : compact
+          ? 4.0
+          : 6.0,
+      cardPadding: safeWidth < 600
+          ? 3.0
+          : compact
+          ? 5.0
+          : 8.0,
+      sidePadding: safeWidth < 600
+          ? 1.0
+          : compact
+          ? 2.0
+          : 4.0,
       compact: compact,
     );
   }
@@ -254,10 +304,12 @@ class _MonthHeader extends StatelessWidget {
   const _MonthHeader({
     required this.date,
     required this.compact,
+    required this.localeCode,
   });
 
   final DateTime date;
   final bool compact;
+  final String localeCode;
 
   @override
   Widget build(BuildContext context) {
@@ -265,11 +317,13 @@ class _MonthHeader extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: compact ? 1 : 4, vertical: 8),
       child: Center(
         child: Text(
-          '${date.month}月',
+          formatMonthLabel(date.month, localeCode: localeCode),
           maxLines: 1,
           overflow: TextOverflow.fade,
           softWrap: false,
-          style: compact ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.labelMedium,
+          style: compact
+              ? Theme.of(context).textTheme.labelSmall
+              : Theme.of(context).textTheme.labelMedium,
         ),
       ),
     );
@@ -281,15 +335,16 @@ class _DayHeader extends StatelessWidget {
     required this.weekday,
     required this.date,
     required this.compact,
+    required this.localeCode,
   });
 
   final int weekday;
   final DateTime date;
   final bool compact;
+  final String localeCode;
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['一', '二', '三', '四', '五', '六', '日'];
     final colorScheme = Theme.of(context).colorScheme;
     final isToday = _isSameDate(date, DateTime.now());
     return Padding(
@@ -298,30 +353,41 @@ class _DayHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            labels[weekday - 1],
+            formatWeekdayShortLabel(weekday, localeCode: localeCode),
             maxLines: 1,
             overflow: TextOverflow.fade,
             softWrap: false,
-            style: compact ? Theme.of(context).textTheme.labelMedium : Theme.of(context).textTheme.titleSmall,
+            style: compact
+                ? Theme.of(context).textTheme.labelMedium
+                : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 2),
           Container(
             constraints: BoxConstraints(minWidth: compact ? 24 : 28),
-            padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 6, vertical: compact ? 2 : 3),
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 4 : 6,
+              vertical: compact ? 2 : 3,
+            ),
             decoration: isToday
                 ? BoxDecoration(
                     color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary.withValues(alpha: 0.65)),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.65),
+                    ),
                     borderRadius: BorderRadius.circular(6),
                   )
                 : null,
             child: Text(
               '${date.day}',
               textAlign: TextAlign.center,
-              style: (compact ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.bodySmall)?.copyWith(
-                color: isToday ? colorScheme.onPrimaryContainer : null,
-                fontWeight: isToday ? FontWeight.w700 : null,
-              ),
+              style:
+                  (compact
+                          ? Theme.of(context).textTheme.labelSmall
+                          : Theme.of(context).textTheme.bodySmall)
+                      ?.copyWith(
+                        color: isToday ? colorScheme.onPrimaryContainer : null,
+                        fontWeight: isToday ? FontWeight.w700 : null,
+                      ),
             ),
           ),
         ],
@@ -348,11 +414,17 @@ class _CourseCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final top = (layout.course.startMinutes - dayStartMinutes) * _minuteHeight;
-    final height = math.max(
-      92.0,
-      (layout.course.endMinutes - layout.course.startMinutes) * _minuteHeight,
-    ).toDouble();
-    final width = math.max(0.0, metrics.dayColumnWidth - (metrics.courseGap * 2));
+    final height = math
+        .max(
+          92.0,
+          (layout.course.endMinutes - layout.course.startMinutes) *
+              _minuteHeight,
+        )
+        .toDouble();
+    final width = math.max(
+      0.0,
+      metrics.dayColumnWidth - (metrics.courseGap * 2),
+    );
     final compact = width < 96 || height < 112;
     final baseColor = Color.lerp(
       colorScheme.secondaryContainer,
@@ -376,7 +448,9 @@ class _CourseCard extends StatelessWidget {
         color: color,
         clipBehavior: Clip.antiAlias,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(compact ? 8 : 10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(compact ? 8 : 10),
+        ),
         child: InkWell(
           onTap: onTap,
           child: Padding(
@@ -386,25 +460,40 @@ class _CourseCard extends StatelessWidget {
                 final textColor = colorScheme.onSecondaryContainer.withValues(
                   alpha: layout.priorityDepth == 0 ? 0.96 : 0.92,
                 );
-                final titleStyle = (compact ? textTheme.titleSmall : textTheme.titleMedium)?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
-                  color: textColor,
-                );
-                final bodyStyle = (compact ? textTheme.bodySmall : textTheme.bodyMedium)?.copyWith(
-                  height: 1.1,
-                  color: textColor,
-                );
-                final teacherStyle = (compact ? textTheme.labelSmall : textTheme.labelMedium)?.copyWith(
-                  height: 1.1,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                );
+                final titleStyle =
+                    (compact ? textTheme.titleSmall : textTheme.titleMedium)
+                        ?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
+                          color: textColor,
+                        );
+                final bodyStyle =
+                    (compact ? textTheme.bodySmall : textTheme.bodyMedium)
+                        ?.copyWith(height: 1.1, color: textColor);
+                final teacherStyle =
+                    (compact ? textTheme.labelSmall : textTheme.labelMedium)
+                        ?.copyWith(
+                          height: 1.1,
+                          color: textColor,
+                          fontWeight: FontWeight.w600,
+                        );
                 final dense = height < 110;
                 final medium = height < 150;
-                final titleLines = dense ? 3 : medium ? (compact ? 3 : 4) : (compact ? 4 : 5);
-                final locationLines = dense ? 2 : medium ? 2 : (compact ? 2 : 3);
-                final teacherLines = dense ? 0 : medium ? 1 : 2;
+                final titleLines = dense
+                    ? 3
+                    : medium
+                    ? (compact ? 3 : 4)
+                    : (compact ? 4 : 5);
+                final locationLines = dense
+                    ? 2
+                    : medium
+                    ? 2
+                    : (compact ? 2 : 3);
+                final teacherLines = dense
+                    ? 0
+                    : medium
+                    ? 1
+                    : 2;
 
                 return Stack(
                   children: [
@@ -421,7 +510,13 @@ class _CourseCard extends StatelessWidget {
                         SizedBox(height: compact ? 2 : 4),
                         if (layout.course.location.isNotEmpty)
                           Padding(
-                            padding: EdgeInsets.only(bottom: teacherLines > 0 && layout.course.teacher.isNotEmpty ? (compact ? 2 : 3) : 0),
+                            padding: EdgeInsets.only(
+                              bottom:
+                                  teacherLines > 0 &&
+                                      layout.course.teacher.isNotEmpty
+                                  ? (compact ? 2 : 3)
+                                  : 0,
+                            ),
                             child: Text(
                               layout.course.location,
                               maxLines: locationLines,
@@ -429,7 +524,8 @@ class _CourseCard extends StatelessWidget {
                               style: bodyStyle,
                             ),
                           ),
-                        if (teacherLines > 0 && layout.course.teacher.isNotEmpty)
+                        if (teacherLines > 0 &&
+                            layout.course.teacher.isNotEmpty)
                           Text(
                             layout.course.teacher,
                             maxLines: teacherLines,
@@ -496,28 +592,41 @@ List<_CourseLayout> _buildDayLayouts({
   required int selectedWeek,
   required String? Function(String conflictKey)? displayedCourseIdForConflict,
 }) {
-  final dayCourses = courses
-      .where((item) => item.dayOfWeek == weekday && matchesSemesterWeek(item, selectedWeek))
-      .toList()
-    ..sort((a, b) {
-      final startCompare = a.startMinutes.compareTo(b.startMinutes);
-      if (startCompare != 0) {
-        return startCompare;
-      }
-      final endCompare = a.endMinutes.compareTo(b.endMinutes);
-      if (endCompare != 0) {
-        return endCompare;
-      }
-      return a.id.compareTo(b.id);
-    });
+  final dayCourses =
+      courses
+          .where(
+            (item) =>
+                item.dayOfWeek == weekday &&
+                matchesSemesterWeek(item, selectedWeek),
+          )
+          .toList()
+        ..sort((a, b) {
+          final startCompare = a.startMinutes.compareTo(b.startMinutes);
+          if (startCompare != 0) {
+            return startCompare;
+          }
+          final endCompare = a.endMinutes.compareTo(b.endMinutes);
+          if (endCompare != 0) {
+            return endCompare;
+          }
+          return a.id.compareTo(b.id);
+        });
 
   final layouts = <_CourseLayout>[];
   for (final group in _buildOverlapGroups(dayCourses)) {
     if (_isFullConflictGroup(group.courses)) {
-      final conflictKey = _buildConflictKey(timetable.id, weekday, group.courses);
+      final conflictKey = _buildConflictKey(
+        timetable.id,
+        weekday,
+        group.courses,
+      );
       final displayedCourseId = displayedCourseIdForConflict?.call(conflictKey);
-      final displayedCourse = _pickDisplayedCourse(group.courses, displayedCourseId);
-      final sortedCourses = [...group.courses]..sort(_compareDisplayedCourseChoice);
+      final displayedCourse = _pickDisplayedCourse(
+        group.courses,
+        displayedCourseId,
+      );
+      final sortedCourses = [...group.courses]
+        ..sort(_compareDisplayedCourseChoice);
       layouts.add(
         _CourseLayout(
           course: displayedCourse,
@@ -581,22 +690,29 @@ bool _isFullConflictGroup(List<CourseItem> courses) {
   }
   final first = courses.first;
   final allSameRange = courses.every(
-    (item) => item.startMinutes == first.startMinutes && item.endMinutes == first.endMinutes,
+    (item) =>
+        item.startMinutes == first.startMinutes &&
+        item.endMinutes == first.endMinutes,
   );
   if (allSameRange) {
     return true;
   }
   if (courses.length == 2) {
-    return _contains(courses[0], courses[1]) || _contains(courses[1], courses[0]);
+    return _contains(courses[0], courses[1]) ||
+        _contains(courses[1], courses[0]);
   }
   return false;
 }
 
 bool _contains(CourseItem outer, CourseItem inner) {
-  return outer.startMinutes <= inner.startMinutes && outer.endMinutes >= inner.endMinutes;
+  return outer.startMinutes <= inner.startMinutes &&
+      outer.endMinutes >= inner.endMinutes;
 }
 
-CourseItem _pickDisplayedCourse(List<CourseItem> courses, String? displayedCourseId) {
+CourseItem _pickDisplayedCourse(
+  List<CourseItem> courses,
+  String? displayedCourseId,
+) {
   for (final course in courses) {
     if (course.id == displayedCourseId) {
       return course;
@@ -607,7 +723,9 @@ CourseItem _pickDisplayedCourse(List<CourseItem> courses, String? displayedCours
 }
 
 int _compareDisplayedCourseChoice(CourseItem a, CourseItem b) {
-  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(a.endMinutes - a.startMinutes);
+  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(
+    a.endMinutes - a.startMinutes,
+  );
   if (durationCompare != 0) {
     return durationCompare;
   }
@@ -618,9 +736,15 @@ int _compareDisplayedCourseChoice(CourseItem a, CourseItem b) {
   return a.id.compareTo(b.id);
 }
 
-String _buildConflictKey(String timetableId, int weekday, List<CourseItem> courses) {
+String _buildConflictKey(
+  String timetableId,
+  int weekday,
+  List<CourseItem> courses,
+) {
   final courseIds = courses.map((item) => item.id).toList()..sort();
-  final startMinutes = courses.map((item) => item.startMinutes).reduce(math.min);
+  final startMinutes = courses
+      .map((item) => item.startMinutes)
+      .reduce(math.min);
   final endMinutes = courses.map((item) => item.endMinutes).reduce(math.max);
   return '$timetableId|$weekday|$startMinutes|$endMinutes|${courseIds.join(',')}';
 }
@@ -631,7 +755,9 @@ int _comparePaintPriority(CourseItem a, CourseItem b) {
   if (startCompare != 0) {
     return startCompare;
   }
-  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(a.endMinutes - a.startMinutes);
+  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(
+    a.endMinutes - a.startMinutes,
+  );
   if (durationCompare != 0) {
     return durationCompare;
   }

@@ -1,0 +1,229 @@
+{
+  "@@locale": "en",
+  "appTitle": "Classmate",
+  "weekLabel": "Week {week}",
+  "@weekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "addCourse": "Add course",
+  "settings": "Settings",
+  "multiTimetableSwitch": "Switch timetables",
+  "currentTimetableWeeks": "Current timetable · {weeks} weeks",
+  "@currentTimetableWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "tapToSwitchWeeks": "Tap to switch · {weeks} weeks",
+  "@tapToSwitchWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "editTimetable": "Edit timetable",
+  "createTimetable": "New timetable",
+  "jumpToWeek": "Jump to week",
+  "timetable": "Timetable",
+  "timetableName": "Timetable name",
+  "totalWeeks": "Total weeks",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+  "deleteTimetableTitle": "Delete timetable",
+  "deleteTimetableMessage": "Delete \"{name}\"?",
+  "@deleteTimetableMessage": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "noTimetableTitle": "No timetable yet",
+  "noTimetableMessage": "Create a timetable or import one from a JSON file.",
+  "importTimetable": "Import timetable",
+  "courseName": "Course name",
+  "location": "Location",
+  "dayOfWeek": "Day",
+  "semesterWeeks": "Weeks",
+  "startTime": "Start time",
+  "endTime": "End time",
+  "linkedPeriods": "Linked periods",
+  "linkedPeriodsUnmatched": "No periods matched for the current time. Tap to choose manually.",
+  "periodRangeLabel": "Period {start}-{end}",
+  "@periodRangeLabel": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "teacherName": "Teacher",
+  "credits": "Credits",
+  "remarks": "Remarks",
+  "customFields": "Custom fields",
+  "customFieldsHint": "One per line, format: key:value",
+  "selectDayOfWeek": "Choose day",
+  "selectSemesterWeeks": "Choose weeks",
+  "selectAll": "Select all",
+  "clear": "Clear",
+  "confirm": "Confirm",
+  "selectLinkedPeriods": "Choose linked periods",
+  "addCourseTitle": "Add course",
+  "editCourseTitle": "Edit course",
+  "editCourseTooltip": "Edit course",
+  "place": "Location",
+  "time": "Time",
+  "notFilled": "Not filled",
+  "none": "None",
+  "conflictCourses": "Conflicting courses",
+  "locationNotFilled": "Location not filled",
+  "setAsDisplayed": "Set as displayed",
+  "editThisCourse": "Edit this course",
+  "settingsTitle": "Settings",
+  "noTimetableSettings": "No timetable is currently available for settings.",
+  "semesterStartDate": "Semester start date",
+  "periodTimeSets": "Period time set",
+  "noPeriodTimeAvailable": "No available period time set",
+  "periodTimeSetSummary": "{name} · {count} periods",
+  "@periodTimeSetSummary": {
+    "placeholders": {
+      "name": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coursePopupDismissSetting": "Allow outside tap to close course popup",
+  "coursePopupDismissSettingHint": "Turning this off also disables swipe-down dismissal.",
+  "language": "Language",
+  "languageChinese": "中文",
+  "languageEnglish": "English",
+  "dataImportExport": "Import and export data",
+  "dataImportExportDesc": "Import full data or single timetables, or export current/all timetables.",
+  "openSourceLicenses": "Open-source licenses",
+  "openSourceLicensesDesc": "View licenses for dependencies and app icon assets.",
+  "githubRepository": "GitHub repository",
+  "openGithubFailed": "Unable to open the GitHub repository link",
+  "selectPeriodTimeSet": "Choose period time set",
+  "newItem": "New",
+  "editPeriodTimeSet": "Edit period time set",
+  "importTimetableFiles": "Import timetable",
+  "importTimetableFilesDesc": "Supports one or multiple timetable files.",
+  "shareTimetableFiles": "Share timetable files",
+  "shareTimetableFilesDesc": "Choose one or more timetables first.",
+  "saveTimetableFiles": "Save timetable files",
+  "saveTimetableFilesDesc": "Choose one or more timetables first.",
+  "share": "Share",
+  "selectTimetablesToExport": "Choose timetables to export",
+  "selectTimetablesToImport": "Choose timetables to import",
+  "timetableCourseCount": "{count} courses",
+  "@timetableCourseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importAction": "Import",
+  "importTimetableDialogTitle": "Import timetable",
+  "chooseImportMethod": "Choose how to import.",
+  "importAsNewTimetable": "Import as new timetable",
+  "replaceCurrentTimetable": "Replace current timetable",
+  "savedToPath": "Saved to {path}",
+  "@savedToPath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "saveCancelled": "Save cancelled",
+  "fileSaveRestrictedTitle": "File saving restricted",
+  "fileSaveRestrictedRetryMessage": "The system could not save the file. You can retry or use sharing instead.",
+  "retrySave": "Retry save",
+  "fileSaveRestrictedSettingsMessage": "Enable file access in system settings, then return and try exporting again.",
+  "openSettings": "Open settings",
+  "browserDownloadRestrictedTitle": "Browser download restricted",
+  "browserDownloadRestrictedMessage": "This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.",
+  "switchToShare": "Use sharing instead",
+  "fileSaveFailedTitle": "File save failed",
+  "fileSaveFailedWindowsMessage": "Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.",
+  "fileSaveFailedGenericMessage": "The system could not save the file. You can retry, check system settings, or use file sharing instead.",
+  "retryLater": "Try again later",
+  "exportSwitchedToShare": "Switched to file sharing for export",
+  "saveFailedRetry": "Save failed. Please try again later.",
+  "importFailedCheckContent": "Import failed. Please check the file content.",
+  "noImportableTimetables": "No usable timetables were found in the imported file.",
+  "importedTimetablesCount": "Imported {count} timetables",
+  "@importedTimetablesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodTimesTitle": "Period times",
+  "importExport": "Import and export",
+  "importPeriodTemplate": "Import period template",
+  "sharePeriodTemplate": "Share period template",
+  "saveTemplateToFile": "Save template to file",
+  "deletePeriodTimeSet": "Delete period time set",
+  "periodTimeSetName": "Period time set name",
+  "addOnePeriod": "Add period",
+  "periodNumberLabel": "Period {index}",
+  "@periodNumberLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteThisPeriod": "Delete this period",
+  "durationMinutes": "Duration {minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "gapFromPrevious": "Gap from previous {minutes} min",
+  "@gapFromPrevious": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "endTimeMustBeLater": "End time must be later than start time",
+  "periodOverlapPrevious": "This period overlaps the previous one",
+  "periodTimesSaved": "Period times saved",
+  "deletePeriodTimeSetTitle": "Delete period time set",
+  "deletePeriodTimeSetMessage": "Delete \"{name}\"?",
+  "@deletePeriodTimeSetMessage": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "currentPeriodTimeSet": "current period time set",
+  "importedPeriodTimesCount": "Imported {count} period times",
+  "@importedPeriodTimesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodFilePermissionTitle": "File permission needed",
+  "androidFilePermissionMessage": "Android export requires file access permission. Grant permission to continue saving.",
+  "reauthorize": "Authorize again",
+  "permissionPermanentlyDeniedTitle": "Permission permanently denied",
+  "permissionSettingsExportMessage": "Enable file access in system settings, then return and try exporting again."
+}

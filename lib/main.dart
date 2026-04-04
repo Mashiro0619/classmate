@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
 import 'providers/timetable_provider.dart';
 import 'screens/home_screen.dart';
 
@@ -43,15 +45,30 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TimetableProvider>.value(
       value: provider,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Classmate',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
-          cardTheme: const CardThemeData(margin: EdgeInsets.zero),
-        ),
-        home: const HomeScreen(),
+      child: Consumer<TimetableProvider>(
+        builder: (context, timetableProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
+            locale: Locale(timetableProvider.localeCode),
+            supportedLocales: const [Locale('zh'), Locale('en')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF6750A4),
+              ),
+              cardTheme: const CardThemeData(margin: EdgeInsets.zero),
+            ),
+            home: const HomeScreen(),
+          );
+        },
       ),
     );
   }

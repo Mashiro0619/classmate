@@ -1,5 +1,6 @@
 import '../models/timetable_models.dart';
-import 'timetable_storage_stub.dart' if (dart.library.io) 'timetable_storage_io.dart';
+import 'timetable_storage_stub.dart'
+    if (dart.library.io) 'timetable_storage_io.dart';
 
 /// 统一的课表存储接口：不同平台各自决定底层实现，但都保存同一份 JSON 数据。
 abstract class TimetableStorage {

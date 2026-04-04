@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models/timetable_models.dart' show CourseItem, formatDayOfWeekLabel, formatSemesterWeeksLabel;
+import '../l10n/app_localizations.dart';
+import '../models/timetable_models.dart'
+    show CourseItem, formatDayOfWeekLabel, formatSemesterWeeksLabel;
 
 /// 课程详情弹窗默认只读，编辑作为二级操作，避免误触直接进入编辑。
 class CourseDetailsSheet extends StatelessWidget {
@@ -22,7 +24,10 @@ class CourseDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final otherConflictCourses = conflictCourses.where((item) => item.id != course.id).toList();
+    final l10n = AppLocalizations.of(context)!;
+    final otherConflictCourses = conflictCourses
+        .where((item) => item.id != course.id)
+        .toList();
 
     final maxHeight = MediaQuery.of(context).size.height * 0.8;
 
@@ -45,7 +50,7 @@ class CourseDetailsSheet extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: '编辑课程',
+                    tooltip: l10n.editCourseTooltip,
                     onPressed: onEdit,
                     icon: const Icon(Icons.edit),
                   ),
@@ -54,24 +59,51 @@ class CourseDetailsSheet extends StatelessWidget {
               const SizedBox(height: 8),
               _PrimaryInfoCard(
                 icon: Icons.place_outlined,
-                label: '地点',
-                value: course.location.isEmpty ? '未填写' : course.location,
+                label: l10n.place,
+                value: course.location.isEmpty
+                    ? l10n.notFilled
+                    : course.location,
               ),
               const SizedBox(height: 10),
               _PrimaryInfoCard(
                 icon: Icons.schedule,
-                label: '时间',
-                value: course.periods.isEmpty ? course.timeRange : '${course.timeRange} · ${_formatPeriodsLabel(course.periods)}',
+                label: l10n.time,
+                value: course.periods.isEmpty
+                    ? course.timeRange
+                    : '${course.timeRange} · ${_formatPeriodsLabel(l10n, course.periods)}',
               ),
               const SizedBox(height: 12),
-              _DetailRow(label: '老师', value: course.teacher.isEmpty ? '未填写' : course.teacher),
-              _DetailRow(label: '上课日', value: formatDayOfWeekLabel(course.dayOfWeek)),
-              _DetailRow(label: '周次', value: formatSemesterWeeksLabel(course.semesterWeeks)),
-              _DetailRow(label: '学分', value: course.credit == 0 ? '未填写' : course.credit.toString()),
-              _DetailRow(label: '备注', value: course.remarks.isEmpty ? '无' : course.remarks),
+              _DetailRow(
+                label: l10n.teacherName,
+                value: course.teacher.isEmpty ? l10n.notFilled : course.teacher,
+              ),
+              _DetailRow(
+                label: l10n.dayOfWeek,
+                value: formatDayOfWeekLabel(
+                  course.dayOfWeek,
+                  localeCode: Localizations.localeOf(context).languageCode,
+                ),
+              ),
+              _DetailRow(
+                label: l10n.semesterWeeks,
+                value: formatSemesterWeeksLabel(
+                  course.semesterWeeks,
+                  localeCode: Localizations.localeOf(context).languageCode,
+                ),
+              ),
+              _DetailRow(
+                label: l10n.credits,
+                value: course.credit == 0
+                    ? l10n.notFilled
+                    : course.credit.toString(),
+              ),
+              _DetailRow(
+                label: l10n.remarks,
+                value: course.remarks.isEmpty ? l10n.none : course.remarks,
+              ),
               if (otherConflictCourses.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text('冲突课程', style: theme.textTheme.titleMedium),
+                Text(l10n.conflictCourses, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 for (final item in otherConflictCourses)
                   Card.outlined(
@@ -79,20 +111,20 @@ class CourseDetailsSheet extends StatelessWidget {
                     child: ListTile(
                       title: Text(item.name),
                       subtitle: Text(
-                        '${item.location.isEmpty ? '未填写地点' : item.location} · ${item.timeRange}${item.periods.isEmpty ? '' : ' · ${_formatPeriodsLabel(item.periods)}'}',
+                        '${item.location.isEmpty ? l10n.locationNotFilled : item.location} · ${item.timeRange}${item.periods.isEmpty ? '' : ' · ${_formatPeriodsLabel(l10n, item.periods)}'}',
                       ),
                       trailing: Wrap(
                         spacing: 4,
                         children: [
                           if (onSelectDisplayedCourse != null)
                             IconButton(
-                              tooltip: '设为外部显示',
+                              tooltip: l10n.setAsDisplayed,
                               onPressed: () => onSelectDisplayedCourse!(item),
                               icon: const Icon(Icons.visibility_outlined),
                             ),
                           if (onEditConflictCourse != null)
                             IconButton(
-                              tooltip: '编辑这门课',
+                              tooltip: l10n.editThisCourse,
                               onPressed: () => onEditConflictCourse!(item),
                               icon: const Icon(Icons.edit_outlined),
                             ),
@@ -103,7 +135,7 @@ class CourseDetailsSheet extends StatelessWidget {
               ],
               if (course.customFields.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Text('自定义字段', style: theme.textTheme.titleMedium),
+                Text(l10n.customFields, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 for (final entry in course.customFields.entries)
                   _DetailRow(label: entry.key, value: entry.value.toString()),
@@ -116,12 +148,12 @@ class CourseDetailsSheet extends StatelessWidget {
   }
 }
 
-String _formatPeriodsLabel(List<int> periods) {
+String _formatPeriodsLabel(AppLocalizations l10n, List<int> periods) {
   if (periods.isEmpty) {
     return '';
   }
   final sorted = [...periods]..sort();
-  return '第 ${sorted.first}-${sorted.last} 节';
+  return l10n.periodRangeLabel(sorted.first, sorted.last);
 }
 
 class _PrimaryInfoCard extends StatelessWidget {
@@ -167,10 +199,7 @@ class _PrimaryInfoCard extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.label,
-    required this.value,
-  });
+  const _DetailRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -187,10 +216,7 @@ class _DetailRow extends StatelessWidget {
             child: Text(label, style: Theme.of(context).textTheme.labelLarge),
           ),
           const SizedBox(width: 12),
-          Flexible(
-            flex: 7,
-            child: Text(value, softWrap: true),
-          ),
+          Flexible(flex: 7, child: Text(value, softWrap: true)),
         ],
       ),
     );

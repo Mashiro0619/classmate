@@ -26,5 +26,6 @@ class _BrowserTimetableStorage implements TimetableStorage {
   }
 
   @override
-  Future<String?> filePath() async => 'browser://local-storage/classmate_app_data';
+  Future<String?> filePath() async =>
+      'browser://local-storage/classmate_app_data';
 }

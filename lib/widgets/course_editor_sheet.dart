@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 
 /// 编辑器返回值：要么保存课程，要么删除课程，要么取消关闭。
 class CourseEditorResult {
   const CourseEditorResult.save(this.course) : delete = false;
-  const CourseEditorResult.delete()
-      : course = null,
-        delete = true;
+  const CourseEditorResult.delete() : course = null, delete = true;
 
   final CourseItem? course;
   final bool delete;
@@ -53,7 +52,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   void initState() {
     super.initState();
     final initial = widget.initialCourse;
-    final defaultStartMinutes = widget.periodTimes.isNotEmpty ? widget.periodTimes.first.startMinutes : 8 * 60;
+    final defaultStartMinutes = widget.periodTimes.isNotEmpty
+        ? widget.periodTimes.first.startMinutes
+        : 8 * 60;
     final defaultEndMinutes = widget.periodTimes.length > 1
         ? widget.periodTimes[1].endMinutes
         : widget.periodTimes.isNotEmpty
@@ -64,21 +65,33 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     _teacherController = TextEditingController(text: initial?.teacher ?? '');
     _locationController = TextEditingController(text: initial?.location ?? '');
     _creditController = TextEditingController(
-      text: initial == null || initial.credit == 0 ? '' : initial.credit.toString(),
+      text: initial == null || initial.credit == 0
+          ? ''
+          : initial.credit.toString(),
     );
     _remarksController = TextEditingController(text: initial?.remarks ?? '');
     _customFieldsController = TextEditingController(
       text: initial == null
           ? ''
-          : initial.customFields.entries.map((entry) => '${entry.key}:${entry.value}').join('\n'),
+          : initial.customFields.entries
+                .map((entry) => '${entry.key}:${entry.value}')
+                .join('\n'),
     );
     _selectedDayOfWeek = initial?.dayOfWeek ?? widget.dayOfWeek;
-    _selectedSemesterWeeks = normalizeSemesterWeeks(initial?.semesterWeeks ?? buildAllSemesterWeeks(widget.totalWeeks));
-    _startTime = _timeOfDayFromMinutes(initial?.startMinutes ?? defaultStartMinutes);
+    _selectedSemesterWeeks = normalizeSemesterWeeks(
+      initial?.semesterWeeks ?? buildAllSemesterWeeks(widget.totalWeeks),
+    );
+    _startTime = _timeOfDayFromMinutes(
+      initial?.startMinutes ?? defaultStartMinutes,
+    );
     _endTime = _timeOfDayFromMinutes(initial?.endMinutes ?? defaultEndMinutes);
     _selectedPeriods = initial?.periods.isNotEmpty == true
         ? List<int>.from(initial!.periods)
-        : matchPeriodsForTimeRange(widget.periodTimes, initial?.startMinutes ?? defaultStartMinutes, initial?.endMinutes ?? defaultEndMinutes);
+        : matchPeriodsForTimeRange(
+            widget.periodTimes,
+            initial?.startMinutes ?? defaultStartMinutes,
+            initial?.endMinutes ?? defaultEndMinutes,
+          );
   }
 
   @override
@@ -94,6 +107,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final linkedPeriods = _selectedPeriods;
 
     return SafeArea(
@@ -115,15 +129,20 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        widget.initialCourse == null ? '添加课程' : '编辑课程',
+                        widget.initialCourse == null
+                            ? l10n.addCourseTitle
+                            : l10n.editCourseTitle,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
-                      TextField(controller: _nameController, decoration: const InputDecoration(labelText: '课程名称')),
+                      TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(labelText: l10n.courseName),
+                      ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _locationController,
-                        decoration: const InputDecoration(labelText: '上课地点'),
+                        decoration: InputDecoration(labelText: l10n.location),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -131,8 +150,15 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           Expanded(
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('上课日'),
-                              subtitle: Text(formatDayOfWeekLabel(_selectedDayOfWeek)),
+                              title: Text(l10n.dayOfWeek),
+                              subtitle: Text(
+                                formatDayOfWeekLabel(
+                                  _selectedDayOfWeek,
+                                  localeCode: Localizations.localeOf(
+                                    context,
+                                  ).languageCode,
+                                ),
+                              ),
                               trailing: const Icon(Icons.today_outlined),
                               onTap: _pickDayOfWeek,
                             ),
@@ -141,8 +167,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           Expanded(
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('周次'),
-                              subtitle: Text(formatSemesterWeeksLabel(_selectedSemesterWeeks, totalWeeks: widget.totalWeeks)),
+                              title: Text(l10n.semesterWeeks),
+                              subtitle: Text(
+                                formatSemesterWeeksLabel(
+                                  _selectedSemesterWeeks,
+                                  totalWeeks: widget.totalWeeks,
+                                  localeCode: Localizations.localeOf(
+                                    context,
+                                  ).languageCode,
+                                ),
+                              ),
                               trailing: const Icon(Icons.edit_calendar),
                               onTap: _pickSemesterWeeks,
                             ),
@@ -155,7 +189,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           Expanded(
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('开始时间'),
+                              title: Text(l10n.startTime),
                               subtitle: Text(_formatTimeOfDay(_startTime)),
                               trailing: const Icon(Icons.schedule),
                               onTap: () => _pickTime(isStart: true),
@@ -165,7 +199,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           Expanded(
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('结束时间'),
+                              title: Text(l10n.endTime),
                               subtitle: Text(_formatTimeOfDay(_endTime)),
                               trailing: const Icon(Icons.schedule),
                               onTap: () => _pickTime(isStart: false),
@@ -176,9 +210,14 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                       const SizedBox(height: 8),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('关联节次'),
+                        title: Text(l10n.linkedPeriods),
                         subtitle: Text(
-                          linkedPeriods.isEmpty ? '当前时间未匹配到节次，点此手动选择' : '第 ${linkedPeriods.first}-${linkedPeriods.last} 节',
+                          linkedPeriods.isEmpty
+                              ? l10n.linkedPeriodsUnmatched
+                              : l10n.periodRangeLabel(
+                                  linkedPeriods.first,
+                                  linkedPeriods.last,
+                                ),
                         ),
                         trailing: const Icon(Icons.tune),
                         onTap: _pickPeriods,
@@ -189,15 +228,22 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                           Expanded(
                             child: TextField(
                               controller: _teacherController,
-                              decoration: const InputDecoration(labelText: '老师姓名'),
+                              decoration: InputDecoration(
+                                labelText: l10n.teacherName,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _creditController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: '学分'),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                labelText: l10n.credits,
+                              ),
                             ),
                           ),
                         ],
@@ -205,15 +251,15 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _remarksController,
-                        decoration: const InputDecoration(labelText: '备注'),
+                        decoration: InputDecoration(labelText: l10n.remarks),
                         maxLines: 2,
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _customFieldsController,
-                        decoration: const InputDecoration(
-                          labelText: '自定义字段',
-                          hintText: '每行一个，格式：键:值',
+                        decoration: InputDecoration(
+                          labelText: l10n.customFields,
+                          hintText: l10n.customFieldsHint,
                         ),
                         maxLines: 3,
                       ),
@@ -227,19 +273,18 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                 children: [
                   if (widget.initialCourse != null)
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(const CourseEditorResult.delete()),
-                      child: const Text('删除'),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pop(const CourseEditorResult.delete()),
+                      child: Text(l10n.delete),
                     ),
                   const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
+                    child: Text(l10n.cancel),
                   ),
                   const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _submit,
-                    child: const Text('保存'),
-                  ),
+                  FilledButton(onPressed: _submit, child: Text(l10n.save)),
                 ],
               ),
             ],
@@ -250,17 +295,17 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   }
 
   List<int> get _matchedPeriods => matchPeriodsForTimeRange(
-        widget.periodTimes,
-        _minutesFromTimeOfDay(_startTime),
-        _minutesFromTimeOfDay(_endTime),
-      );
+    widget.periodTimes,
+    _minutesFromTimeOfDay(_startTime),
+    _minutesFromTimeOfDay(_endTime),
+  );
 
   Future<void> _pickDayOfWeek() async {
     final result = await showDialog<int>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('选择上课日'),
+          title: Text(AppLocalizations.of(context)!.selectDayOfWeek),
           content: SizedBox(
             width: 320,
             child: Wrap(
@@ -269,7 +314,12 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
               children: List.generate(7, (index) {
                 final day = index + 1;
                 return ChoiceChip(
-                  label: Text(formatDayOfWeekLabel(day)),
+                  label: Text(
+                    formatDayOfWeekLabel(
+                      day,
+                      localeCode: Localizations.localeOf(context).languageCode,
+                    ),
+                  ),
                   selected: day == _selectedDayOfWeek,
                   onSelected: (_) => Navigator.of(context).pop(day),
                 );
@@ -291,8 +341,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final l10n = AppLocalizations.of(context)!;
             return AlertDialog(
-              title: const Text('选择周次'),
+              title: Text(l10n.selectSemesterWeeks),
               content: SizedBox(
                 width: 360,
                 child: Column(
@@ -307,13 +358,15 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                             onPressed: () => setState(() {
                               draft
                                 ..clear()
-                                ..addAll(buildAllSemesterWeeks(widget.totalWeeks));
+                                ..addAll(
+                                  buildAllSemesterWeeks(widget.totalWeeks),
+                                );
                             }),
-                            child: const Text('全选'),
+                            child: Text(l10n.selectAll),
                           ),
                           TextButton(
                             onPressed: () => setState(() => draft.clear()),
-                            child: const Text('清空'),
+                            child: Text(l10n.clear),
                           ),
                         ],
                       ),
@@ -323,12 +376,13 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                       child: GridView.builder(
                         shrinkWrap: true,
                         itemCount: widget.totalWeeks,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 1.6,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                              childAspectRatio: 1.6,
+                            ),
                         itemBuilder: (context, index) {
                           final week = index + 1;
                           final selected = draft.contains(week);
@@ -353,12 +407,13 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                                 child: Text(
                                   '$week',
                                   textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: selected
-                                        ? colorScheme.onSecondaryContainer
-                                        : colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(
+                                        color: selected
+                                            ? colorScheme.onSecondaryContainer
+                                            : colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                 ),
                               ),
                             ),
@@ -372,11 +427,13 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('取消'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(normalizeSemesterWeeks(draft.toList())),
-                  child: const Text('确定'),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(normalizeSemesterWeeks(draft.toList())),
+                  child: Text(l10n.confirm),
                 ),
               ],
             );
@@ -388,7 +445,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       return;
     }
     setState(() {
-      _selectedSemesterWeeks = result.isEmpty ? buildAllSemesterWeeks(widget.totalWeeks) : result;
+      _selectedSemesterWeeks = result.isEmpty
+          ? buildAllSemesterWeeks(widget.totalWeeks)
+          : result;
     });
   }
 
@@ -424,8 +483,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final l10n = AppLocalizations.of(context)!;
             return AlertDialog(
-              title: const Text('选择关联节次'),
+              title: Text(l10n.selectLinkedPeriods),
               content: SizedBox(
                 width: 360,
                 child: Wrap(
@@ -434,11 +494,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                   children: [
                     for (final period in widget.periodTimes)
                       ChoiceChip(
-                        label: Text('第 ${period.index} 节'),
+                        label: Text(
+                          l10n.periodRangeLabel(period.index, period.index),
+                        ),
                         selected: draft.contains(period.index),
                         onSelected: (_) {
                           setState(() {
-                            final next = _togglePeriodSelection(draft, period.index);
+                            final next = _togglePeriodSelection(
+                              draft,
+                              period.index,
+                            );
                             draft
                               ..clear()
                               ..addAll(next);
@@ -451,15 +516,16 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
               actions: [
                 TextButton(
                   onPressed: () => setState(draft.clear),
-                  child: const Text('清空'),
+                  child: Text(l10n.clear),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('取消'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(List<int>.from(draft)),
-                  child: const Text('确定'),
+                  onPressed: () =>
+                      Navigator.of(context).pop(List<int>.from(draft)),
+                  child: Text(l10n.confirm),
                 ),
               ],
             );
@@ -473,8 +539,11 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     setState(() {
       _selectedPeriods = result;
       if (_selectedPeriods.isNotEmpty) {
-        final selectedTimes = widget.periodTimes.where((item) => _selectedPeriods.contains(item.index)).toList()
-          ..sort((a, b) => a.index.compareTo(b.index));
+        final selectedTimes =
+            widget.periodTimes
+                .where((item) => _selectedPeriods.contains(item.index))
+                .toList()
+              ..sort((a, b) => a.index.compareTo(b.index));
         _startTime = _timeOfDayFromMinutes(selectedTimes.first.startMinutes);
         _endTime = _timeOfDayFromMinutes(selectedTimes.last.endMinutes);
       }
@@ -488,9 +557,13 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       return;
     }
 
-    final periods = _selectedPeriods.isEmpty ? _matchedPeriods : _selectedPeriods;
+    final periods = _selectedPeriods.isEmpty
+        ? _matchedPeriods
+        : _selectedPeriods;
     final course = CourseItem(
-      id: widget.initialCourse?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      id:
+          widget.initialCourse?.id ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
       teacher: _teacherController.text.trim(),
       location: _locationController.text.trim(),

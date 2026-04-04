@@ -1,0 +1,446 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'Classmate';
+
+  @override
+  String weekLabel(int week) {
+    return 'Week $week';
+  }
+
+  @override
+  String get addCourse => 'Add course';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get multiTimetableSwitch => 'Switch timetables';
+
+  @override
+  String currentTimetableWeeks(int weeks) {
+    return 'Current timetable · $weeks weeks';
+  }
+
+  @override
+  String tapToSwitchWeeks(int weeks) {
+    return 'Tap to switch · $weeks weeks';
+  }
+
+  @override
+  String get editTimetable => 'Edit timetable';
+
+  @override
+  String get createTimetable => 'New timetable';
+
+  @override
+  String get jumpToWeek => 'Jump to week';
+
+  @override
+  String get timetable => 'Timetable';
+
+  @override
+  String get timetableName => 'Timetable name';
+
+  @override
+  String get totalWeeks => 'Total weeks';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get deleteTimetableTitle => 'Delete timetable';
+
+  @override
+  String deleteTimetableMessage(Object name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get noTimetableTitle => 'No timetable yet';
+
+  @override
+  String get noTimetableMessage =>
+      'Create a timetable or import one from a JSON file.';
+
+  @override
+  String get importTimetable => 'Import timetable';
+
+  @override
+  String get courseName => 'Course name';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get dayOfWeek => 'Day';
+
+  @override
+  String get semesterWeeks => 'Weeks';
+
+  @override
+  String get startTime => 'Start time';
+
+  @override
+  String get endTime => 'End time';
+
+  @override
+  String get linkedPeriods => 'Linked periods';
+
+  @override
+  String get linkedPeriodsUnmatched =>
+      'No periods matched for the current time. Tap to choose manually.';
+
+  @override
+  String periodRangeLabel(int start, int end) {
+    return 'Period $start-$end';
+  }
+
+  @override
+  String get teacherName => 'Teacher';
+
+  @override
+  String get credits => 'Credits';
+
+  @override
+  String get remarks => 'Remarks';
+
+  @override
+  String get customFields => 'Custom fields';
+
+  @override
+  String get customFieldsHint => 'One per line, format: key:value';
+
+  @override
+  String get selectDayOfWeek => 'Choose day';
+
+  @override
+  String get selectSemesterWeeks => 'Choose weeks';
+
+  @override
+  String get selectAll => 'Select all';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get selectLinkedPeriods => 'Choose linked periods';
+
+  @override
+  String get addCourseTitle => 'Add course';
+
+  @override
+  String get editCourseTitle => 'Edit course';
+
+  @override
+  String get editCourseTooltip => 'Edit course';
+
+  @override
+  String get place => 'Location';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get notFilled => 'Not filled';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get conflictCourses => 'Conflicting courses';
+
+  @override
+  String get locationNotFilled => 'Location not filled';
+
+  @override
+  String get setAsDisplayed => 'Set as displayed';
+
+  @override
+  String get editThisCourse => 'Edit this course';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get noTimetableSettings =>
+      'No timetable is currently available for settings.';
+
+  @override
+  String get semesterStartDate => 'Semester start date';
+
+  @override
+  String get periodTimeSets => 'Period time set';
+
+  @override
+  String get noPeriodTimeAvailable => 'No available period time set';
+
+  @override
+  String periodTimeSetSummary(Object name, int count) {
+    return '$name · $count periods';
+  }
+
+  @override
+  String get coursePopupDismissSetting =>
+      'Allow outside tap to close course popup';
+
+  @override
+  String get coursePopupDismissSettingHint =>
+      'Turning this off also disables swipe-down dismissal.';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get dataImportExport => 'Import and export data';
+
+  @override
+  String get dataImportExportDesc =>
+      'Import full data or single timetables, or export current/all timetables.';
+
+  @override
+  String get openSourceLicenses => 'Open-source licenses';
+
+  @override
+  String get openSourceLicensesDesc =>
+      'View licenses for dependencies and app icon assets.';
+
+  @override
+  String get githubRepository => 'GitHub repository';
+
+  @override
+  String get openGithubFailed => 'Unable to open the GitHub repository link';
+
+  @override
+  String get selectPeriodTimeSet => 'Choose period time set';
+
+  @override
+  String get newItem => 'New';
+
+  @override
+  String get editPeriodTimeSet => 'Edit period time set';
+
+  @override
+  String get importTimetableFiles => 'Import timetable';
+
+  @override
+  String get importTimetableFilesDesc =>
+      'Supports one or multiple timetable files.';
+
+  @override
+  String get shareTimetableFiles => 'Share timetable files';
+
+  @override
+  String get shareTimetableFilesDesc => 'Choose one or more timetables first.';
+
+  @override
+  String get saveTimetableFiles => 'Save timetable files';
+
+  @override
+  String get saveTimetableFilesDesc => 'Choose one or more timetables first.';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get selectTimetablesToExport => 'Choose timetables to export';
+
+  @override
+  String get selectTimetablesToImport => 'Choose timetables to import';
+
+  @override
+  String timetableCourseCount(int count) {
+    return '$count courses';
+  }
+
+  @override
+  String get importAction => 'Import';
+
+  @override
+  String get importTimetableDialogTitle => 'Import timetable';
+
+  @override
+  String get chooseImportMethod => 'Choose how to import.';
+
+  @override
+  String get importAsNewTimetable => 'Import as new timetable';
+
+  @override
+  String get replaceCurrentTimetable => 'Replace current timetable';
+
+  @override
+  String savedToPath(Object path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get saveCancelled => 'Save cancelled';
+
+  @override
+  String get fileSaveRestrictedTitle => 'File saving restricted';
+
+  @override
+  String get fileSaveRestrictedRetryMessage =>
+      'The system could not save the file. You can retry or use sharing instead.';
+
+  @override
+  String get retrySave => 'Retry save';
+
+  @override
+  String get fileSaveRestrictedSettingsMessage =>
+      'Enable file access in system settings, then return and try exporting again.';
+
+  @override
+  String get openSettings => 'Open settings';
+
+  @override
+  String get browserDownloadRestrictedTitle => 'Browser download restricted';
+
+  @override
+  String get browserDownloadRestrictedMessage =>
+      'This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.';
+
+  @override
+  String get switchToShare => 'Use sharing instead';
+
+  @override
+  String get fileSaveFailedTitle => 'File save failed';
+
+  @override
+  String get fileSaveFailedWindowsMessage =>
+      'Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.';
+
+  @override
+  String get fileSaveFailedGenericMessage =>
+      'The system could not save the file. You can retry, check system settings, or use file sharing instead.';
+
+  @override
+  String get retryLater => 'Try again later';
+
+  @override
+  String get exportSwitchedToShare => 'Switched to file sharing for export';
+
+  @override
+  String get saveFailedRetry => 'Save failed. Please try again later.';
+
+  @override
+  String get importFailedCheckContent =>
+      'Import failed. Please check the file content.';
+
+  @override
+  String get noImportableTimetables =>
+      'No usable timetables were found in the imported file.';
+
+  @override
+  String importedTimetablesCount(int count) {
+    return 'Imported $count timetables';
+  }
+
+  @override
+  String get periodTimesTitle => 'Period times';
+
+  @override
+  String get importExport => 'Import and export';
+
+  @override
+  String get importPeriodTemplate => 'Import period template';
+
+  @override
+  String get sharePeriodTemplate => 'Share period template';
+
+  @override
+  String get saveTemplateToFile => 'Save template to file';
+
+  @override
+  String get deletePeriodTimeSet => 'Delete period time set';
+
+  @override
+  String get periodTimeSetName => 'Period time set name';
+
+  @override
+  String get addOnePeriod => 'Add period';
+
+  @override
+  String periodNumberLabel(int index) {
+    return 'Period $index';
+  }
+
+  @override
+  String get deleteThisPeriod => 'Delete this period';
+
+  @override
+  String durationMinutes(int minutes) {
+    return 'Duration $minutes min';
+  }
+
+  @override
+  String gapFromPrevious(int minutes) {
+    return 'Gap from previous $minutes min';
+  }
+
+  @override
+  String get endTimeMustBeLater => 'End time must be later than start time';
+
+  @override
+  String get periodOverlapPrevious => 'This period overlaps the previous one';
+
+  @override
+  String get periodTimesSaved => 'Period times saved';
+
+  @override
+  String get deletePeriodTimeSetTitle => 'Delete period time set';
+
+  @override
+  String deletePeriodTimeSetMessage(Object name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get currentPeriodTimeSet => 'current period time set';
+
+  @override
+  String importedPeriodTimesCount(int count) {
+    return 'Imported $count period times';
+  }
+
+  @override
+  String get periodFilePermissionTitle => 'File permission needed';
+
+  @override
+  String get androidFilePermissionMessage =>
+      'Android export requires file access permission. Grant permission to continue saving.';
+
+  @override
+  String get reauthorize => 'Authorize again';
+
+  @override
+  String get permissionPermanentlyDeniedTitle =>
+      'Permission permanently denied';
+
+  @override
+  String get permissionSettingsExportMessage =>
+      'Enable file access in system settings, then return and try exporting again.';
+}

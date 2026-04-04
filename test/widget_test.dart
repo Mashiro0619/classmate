@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:classmate/data/timetable_storage.dart';
+import 'package:classmate/l10n/app_localizations.dart';
 import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
@@ -10,6 +11,7 @@ import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -42,7 +44,8 @@ class TestTimetableStorage implements TimetableStorage {
 
 /// 内存存储用于 widget 测试，避免依赖真实文件系统。
 class MemoryTimetableStorage implements TimetableStorage {
-  MemoryTimetableStorage({AppData? initialData}) : _content = initialData?.encode();
+  MemoryTimetableStorage({AppData? initialData})
+    : _content = initialData?.encode();
 
   String? _content;
 
@@ -61,6 +64,20 @@ class MemoryTimetableStorage implements TimetableStorage {
 
   @override
   Future<String?> filePath() async => 'memory://classmate-test';
+}
+
+Widget _buildLocalizedApp(Widget child) {
+  return MaterialApp(
+    locale: const Locale('zh'),
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const [Locale('zh'), Locale('en')],
+    home: Scaffold(body: child),
+  );
 }
 
 AppData _buildTestAppData() {
@@ -94,7 +111,10 @@ AppData _buildTestAppData() {
         periods: const [1, 2],
         startMinutes: periodTimes[0].startMinutes,
         endMinutes: periodTimes[1].endMinutes,
-        timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+        timeRange: buildTimeRange(
+          periodTimes[0].startMinutes,
+          periodTimes[1].endMinutes,
+        ),
         credit: 4,
         remarks: '记得带作业',
         customFields: const {'QQ群': '123456'},
@@ -187,17 +207,24 @@ void main() {
         }
       });
 
-      final firstProvider = TimetableProvider(storage: TestTimetableStorage(file));
+      final firstProvider = TimetableProvider(
+        storage: TestTimetableStorage(file),
+      );
       await firstProvider.load();
 
       expect(await file.exists(), isTrue);
       expect(firstProvider.activeTimetable.config.name, '空白课表');
 
-      final secondProvider = TimetableProvider(storage: TestTimetableStorage(file));
+      final secondProvider = TimetableProvider(
+        storage: TestTimetableStorage(file),
+      );
       await secondProvider.load();
 
       expect(secondProvider.timetables.isNotEmpty, isTrue);
-      expect(secondProvider.activeTimetable.id, firstProvider.activeTimetable.id);
+      expect(
+        secondProvider.activeTimetable.id,
+        firstProvider.activeTimetable.id,
+      );
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
@@ -210,37 +237,52 @@ void main() {
     });
 
     test('provider 支持导入单课表和节次模板', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
       await provider.load();
 
       final exportedTimetable = provider.exportActiveTimetableJson();
       final originalCount = provider.timetables.length;
-      await provider.importTimetableJson(exportedTimetable, mode: TimetableImportMode.addAsNew);
+      await provider.importTimetableJson(
+        exportedTimetable,
+        mode: TimetableImportMode.addAsNew,
+      );
       expect(provider.timetables.length, originalCount + 1);
 
       final exportedPeriodTimes = provider.exportActivePeriodTimesJson();
-      final importedPeriodTimes = provider.importPeriodTimesJson(exportedPeriodTimes);
-      expect(importedPeriodTimes.length, provider.activePeriodTimeSet.periodTimes.length);
+      final importedPeriodTimes = provider.importPeriodTimesJson(
+        exportedPeriodTimes,
+      );
+      expect(
+        importedPeriodTimes.length,
+        provider.activePeriodTimeSet.periodTimes.length,
+      );
       expect(importedPeriodTimes.first.index, 1);
     });
 
     test('旧数据会迁移出独立节次时间集', () {
-      final legacy = AppData.decode(jsonEncode({
-        'activeTimetableId': 'legacy_table',
-        'timetables': [
-          {
-            'id': 'legacy_table',
-            'config': {
-              'name': '旧课表',
-              'startDate': '2026-02-23T00:00:00.000',
-              'totalWeeks': 18,
-              'dailyPeriods': 4,
-              'periodTimes': buildDefaultPeriodTimes().take(4).map((item) => item.toJson()).toList(),
+      final legacy = AppData.decode(
+        jsonEncode({
+          'activeTimetableId': 'legacy_table',
+          'timetables': [
+            {
+              'id': 'legacy_table',
+              'config': {
+                'name': '旧课表',
+                'startDate': '2026-02-23T00:00:00.000',
+                'totalWeeks': 18,
+                'dailyPeriods': 4,
+                'periodTimes': buildDefaultPeriodTimes()
+                    .take(4)
+                    .map((item) => item.toJson())
+                    .toList(),
+              },
+              'courses': [],
             },
-            'courses': [],
-          },
-        ],
-      }));
+          ],
+        }),
+      );
 
       expect(legacy.periodTimeSets.length, 1);
       expect(legacy.timetables.first.config.periodTimeSetId, isNotEmpty);
@@ -248,22 +290,38 @@ void main() {
     });
 
     test('共享节次时间集编辑会直接全局生效', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
       await provider.load();
 
       final currentSet = provider.activePeriodTimeSet;
       await provider.assignPeriodTimeSetToTimetable('backup', currentSet.id);
       await provider.updatePeriodTimeSet(
-        currentSet.copyWith(name: '全局新节次', periodTimes: buildPeriodTimesForCount(14, source: currentSet.periodTimes)),
+        currentSet.copyWith(
+          name: '全局新节次',
+          periodTimes: buildPeriodTimesForCount(
+            14,
+            source: currentSet.periodTimes,
+          ),
+        ),
       );
 
       expect(provider.periodTimeSetForId(currentSet.id)?.name, '全局新节次');
-      expect(provider.periodTimesForTimetable(provider.timetables.first).length, 14);
-      expect(provider.periodTimesForTimetable(provider.timetables.last).length, 14);
+      expect(
+        provider.periodTimesForTimetable(provider.timetables.first).length,
+        14,
+      );
+      expect(
+        provider.periodTimesForTimetable(provider.timetables.last).length,
+        14,
+      );
     });
 
     test('仍被引用的节次时间集不能删除', () async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
       await provider.load();
 
       expect(
@@ -290,7 +348,11 @@ void main() {
               ),
             ],
             periodTimeSets: [
-              PeriodTimeSet(id: 'set1', name: '默认节次', periodTimes: buildPeriodTimesForCount(10)),
+              PeriodTimeSet(
+                id: 'set1',
+                name: '默认节次',
+                periodTimes: buildPeriodTimesForCount(10),
+              ),
             ],
           ),
         ),
@@ -307,13 +369,18 @@ void main() {
 
       expect(periodTimes.length, 16);
       expect(periodTimes.last.index, 16);
-      expect(periodTimes.last.endMinutes, greaterThan(periodTimes[11].endMinutes));
+      expect(
+        periodTimes.last.endMinutes,
+        greaterThan(periodTimes[11].endMinutes),
+      );
     });
   });
 
   group('主页与编辑器', () {
     testWidgets('未加载时先显示加载态', (tester) async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
 
       await tester.pumpWidget(MyApp(provider: provider));
 
@@ -321,13 +388,25 @@ void main() {
     });
 
     testWidgets('主页显示精简标题、右上角添加课程且无 FAB', (tester) async {
-      final provider = TimetableProvider(storage: MemoryTimetableStorage(initialData: _buildTestAppData()));
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
       await provider.load();
 
       await tester.pumpWidget(
         ChangeNotifierProvider<TimetableProvider>.value(
           value: provider,
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('zh'), Locale('en')],
+            home: const HomeScreen(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -338,7 +417,9 @@ void main() {
       expect(find.byType(FloatingActionButton), findsNothing);
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is SingleChildScrollView && widget.scrollDirection == Axis.horizontal,
+          (widget) =>
+              widget is SingleChildScrollView &&
+              widget.scrollDirection == Axis.horizontal,
         ),
         findsNothing,
       );
@@ -346,13 +427,11 @@ void main() {
 
     testWidgets('新建课程时显示周次入口且节次由时间自动推导', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CourseEditorSheet(
-              periodTimes: buildDefaultPeriodTimes().take(4).toList(),
-              totalWeeks: 18,
-              dayOfWeek: 2,
-            ),
+        _buildLocalizedApp(
+          CourseEditorSheet(
+            periodTimes: buildDefaultPeriodTimes().take(4).toList(),
+            totalWeeks: 18,
+            dayOfWeek: 2,
           ),
         ),
       );
@@ -367,14 +446,7 @@ void main() {
       final course = _buildTestAppData().timetables.first.courses.first;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CourseDetailsSheet(
-              course: course,
-              onEdit: () {},
-            ),
-          ),
-        ),
+        _buildLocalizedApp(CourseDetailsSheet(course: course, onEdit: () {})),
       );
 
       expect(find.text('地点'), findsOneWidget);
@@ -390,7 +462,17 @@ void main() {
             activeTimetableId: '',
             timetables: const [],
             periodTimeSets: [
-              PeriodTimeSet(id: 'set1', name: '默认节次', periodTimes: [CoursePeriodTime(index: 1, startMinutes: 480, endMinutes: 525)]),
+              PeriodTimeSet(
+                id: 'set1',
+                name: '默认节次',
+                periodTimes: [
+                  CoursePeriodTime(
+                    index: 1,
+                    startMinutes: 480,
+                    endMinutes: 525,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -426,7 +508,10 @@ void main() {
             periods: const [1, 2],
             startMinutes: periodTimes[0].startMinutes,
             endMinutes: periodTimes[1].endMinutes,
-            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[1].endMinutes,
+            ),
             credit: 0,
             remarks: '',
             customFields: const {},
@@ -441,7 +526,10 @@ void main() {
             periods: const [1],
             startMinutes: periodTimes[0].startMinutes,
             endMinutes: periodTimes[0].endMinutes,
-            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[0].endMinutes),
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[0].endMinutes,
+            ),
             credit: 0,
             remarks: '',
             customFields: const {},
@@ -460,6 +548,7 @@ void main() {
                 periodTimes: periodTimes,
                 weekDateStart: DateTime(2026, 2, 23),
                 selectedWeek: 1,
+                localeCode: 'zh',
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
               ),
@@ -495,7 +584,10 @@ void main() {
             periods: const [1, 2],
             startMinutes: periodTimes[0].startMinutes,
             endMinutes: periodTimes[1].endMinutes,
-            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[1].endMinutes),
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[1].endMinutes,
+            ),
             credit: 0,
             remarks: '',
             customFields: const {},
@@ -510,7 +602,10 @@ void main() {
             periods: const [1],
             startMinutes: periodTimes[0].startMinutes,
             endMinutes: periodTimes[0].endMinutes,
-            timeRange: buildTimeRange(periodTimes[0].startMinutes, periodTimes[0].endMinutes),
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[0].endMinutes,
+            ),
             credit: 0,
             remarks: '',
             customFields: const {},
@@ -529,6 +624,7 @@ void main() {
                 periodTimes: periodTimes,
                 weekDateStart: DateTime(2026, 2, 23),
                 selectedWeek: 1,
+                localeCode: 'zh',
                 displayedCourseIdForConflict: (_) => 'b_short',
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},

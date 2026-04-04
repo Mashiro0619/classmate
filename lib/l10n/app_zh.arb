@@ -1,0 +1,229 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Classmate",
+  "weekLabel": "第 {week} 周",
+  "@weekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "addCourse": "添加课程",
+  "settings": "设置",
+  "multiTimetableSwitch": "多课表切换",
+  "currentTimetableWeeks": "当前课表 · 共 {weeks} 周",
+  "@currentTimetableWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "tapToSwitchWeeks": "点击切换 · 共 {weeks} 周",
+  "@tapToSwitchWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "editTimetable": "编辑课表",
+  "createTimetable": "新建课表",
+  "jumpToWeek": "快捷跳转周数",
+  "timetable": "课表",
+  "timetableName": "课表名称",
+  "totalWeeks": "总周数",
+  "delete": "删除",
+  "cancel": "取消",
+  "save": "保存",
+  "deleteTimetableTitle": "删除课表",
+  "deleteTimetableMessage": "确认删除“{name}”吗？",
+  "@deleteTimetableMessage": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "noTimetableTitle": "当前没有课表",
+  "noTimetableMessage": "可以新建一个课表，或从 JSON 文件导入已有课表。",
+  "importTimetable": "导入课表",
+  "courseName": "课程名称",
+  "location": "上课地点",
+  "dayOfWeek": "上课日",
+  "semesterWeeks": "周次",
+  "startTime": "开始时间",
+  "endTime": "结束时间",
+  "linkedPeriods": "关联节次",
+  "linkedPeriodsUnmatched": "当前时间未匹配到节次，点此手动选择",
+  "periodRangeLabel": "第 {start}-{end} 节",
+  "@periodRangeLabel": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "teacherName": "老师姓名",
+  "credits": "学分",
+  "remarks": "备注",
+  "customFields": "自定义字段",
+  "customFieldsHint": "每行一个，格式：键:值",
+  "selectDayOfWeek": "选择上课日",
+  "selectSemesterWeeks": "选择周次",
+  "selectAll": "全选",
+  "clear": "清空",
+  "confirm": "确定",
+  "selectLinkedPeriods": "选择关联节次",
+  "addCourseTitle": "添加课程",
+  "editCourseTitle": "编辑课程",
+  "editCourseTooltip": "编辑课程",
+  "place": "地点",
+  "time": "时间",
+  "notFilled": "未填写",
+  "none": "无",
+  "conflictCourses": "冲突课程",
+  "locationNotFilled": "未填写地点",
+  "setAsDisplayed": "设为外部显示",
+  "editThisCourse": "编辑这门课",
+  "settingsTitle": "设置",
+  "noTimetableSettings": "当前没有可设置的课表",
+  "semesterStartDate": "开学日期",
+  "periodTimeSets": "节次时间集",
+  "noPeriodTimeAvailable": "暂无可用节次时间",
+  "periodTimeSetSummary": "{name} · {count} 节",
+  "@periodTimeSetSummary": {
+    "placeholders": {
+      "name": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coursePopupDismissSetting": "允许点击空白处关闭课程弹窗",
+  "coursePopupDismissSettingHint": "关闭后也会一并禁用下拉手势关闭，避免误触。",
+  "language": "语言",
+  "languageChinese": "中文",
+  "languageEnglish": "English",
+  "dataImportExport": "导入导出数据",
+  "dataImportExportDesc": "导入整包/单课表，或导出当前课表与全部课表",
+  "openSourceLicenses": "开源许可",
+  "openSourceLicensesDesc": "查看依赖与应用图标的许可信息",
+  "githubRepository": "GitHub 仓库",
+  "openGithubFailed": "无法打开 GitHub 仓库链接",
+  "selectPeriodTimeSet": "选择节次时间集",
+  "newItem": "新建",
+  "editPeriodTimeSet": "编辑节次时间集",
+  "importTimetableFiles": "导入课表",
+  "importTimetableFilesDesc": "支持单个或多个课表文件",
+  "shareTimetableFiles": "分享课表文件",
+  "shareTimetableFilesDesc": "先选择一个或多个课表",
+  "saveTimetableFiles": "保存课表文件",
+  "saveTimetableFilesDesc": "先选择一个或多个课表",
+  "share": "分享",
+  "selectTimetablesToExport": "选择要导出的课表",
+  "selectTimetablesToImport": "选择要导入的课表",
+  "timetableCourseCount": "{count} 门课程",
+  "@timetableCourseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importAction": "导入",
+  "importTimetableDialogTitle": "导入课表",
+  "chooseImportMethod": "请选择导入方式",
+  "importAsNewTimetable": "作为新课表导入",
+  "replaceCurrentTimetable": "覆盖当前课表",
+  "savedToPath": "已保存到 {path}",
+  "@savedToPath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "saveCancelled": "已取消保存",
+  "fileSaveRestrictedTitle": "文件保存受限",
+  "fileSaveRestrictedRetryMessage": "当前系统未能完成文件保存。你可以重试，或改用文件分享。",
+  "retrySave": "重试保存",
+  "fileSaveRestrictedSettingsMessage": "请在系统设置中打开文件访问权限，然后返回重试导出。",
+  "openSettings": "打开设置",
+  "browserDownloadRestrictedTitle": "浏览器下载受限",
+  "browserDownloadRestrictedMessage": "当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。",
+  "switchToShare": "改用分享",
+  "fileSaveFailedTitle": "文件保存失败",
+  "fileSaveFailedWindowsMessage": "无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。",
+  "fileSaveFailedGenericMessage": "系统未能完成文件保存。你可以重试、检查系统设置，或改用文件分享。",
+  "retryLater": "稍后再试",
+  "exportSwitchedToShare": "已改用文件分享导出",
+  "saveFailedRetry": "保存失败，请稍后重试",
+  "importFailedCheckContent": "导入失败，请检查文件内容",
+  "noImportableTimetables": "导入文件中没有可用课表",
+  "importedTimetablesCount": "已导入 {count} 个课表",
+  "@importedTimetablesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodTimesTitle": "节次时间",
+  "importExport": "导入导出",
+  "importPeriodTemplate": "导入节次模板",
+  "sharePeriodTemplate": "分享节次模板",
+  "saveTemplateToFile": "保存模板到文件",
+  "deletePeriodTimeSet": "删除节次时间",
+  "periodTimeSetName": "节次时间名称",
+  "addOnePeriod": "增加一节",
+  "periodNumberLabel": "第 {index} 节",
+  "@periodNumberLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteThisPeriod": "删除本节",
+  "durationMinutes": "时长 {minutes} 分钟",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "gapFromPrevious": "与上一节间隔 {minutes} 分钟",
+  "@gapFromPrevious": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "endTimeMustBeLater": "结束时间必须晚于开始时间",
+  "periodOverlapPrevious": "当前节次与上一节时间重叠",
+  "periodTimesSaved": "已保存节次时间",
+  "deletePeriodTimeSetTitle": "删除节次时间",
+  "deletePeriodTimeSetMessage": "确认删除“{name}”吗？",
+  "@deletePeriodTimeSetMessage": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "currentPeriodTimeSet": "当前节次时间",
+  "importedPeriodTimesCount": "已导入 {count} 条节次时间",
+  "@importedPeriodTimesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodFilePermissionTitle": "需要文件权限",
+  "androidFilePermissionMessage": "Android 导出需要文件访问权限，请授权后继续保存。",
+  "reauthorize": "重新授权",
+  "permissionPermanentlyDeniedTitle": "权限已被永久拒绝",
+  "permissionSettingsExportMessage": "请在系统设置中打开文件访问权限，然后再回来重试导出。"
+}

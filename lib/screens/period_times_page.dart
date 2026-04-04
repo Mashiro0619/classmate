@@ -4,18 +4,21 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
 
-enum _PeriodTimesMenuAction { importTemplate, exportTemplate, saveTemplate, deleteSet }
+enum _PeriodTimesMenuAction {
+  importTemplate,
+  exportTemplate,
+  saveTemplate,
+  deleteSet,
+}
 
 /// 节次时间编辑独立成页面，直接修改共享节次时间集。
 class PeriodTimesPage extends StatefulWidget {
-  const PeriodTimesPage({
-    super.key,
-    required this.periodTimeSetId,
-  });
+  const PeriodTimesPage({super.key, required this.periodTimeSetId});
 
   final String periodTimeSetId;
 
@@ -44,9 +47,11 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       final periodTimeSet = provider.periodTimeSetForId(widget.periodTimeSetId);
       if (periodTimeSet != null) {
         _nameController.text = periodTimeSet.name;
-        _periodTimes = periodTimeSet.periodTimes.map((item) => item.copyWith()).toList();
+        _periodTimes = periodTimeSet.periodTimes
+            .map((item) => item.copyWith())
+            .toList();
       } else {
-        _nameController.text = '节次时间';
+        _nameController.text = AppLocalizations.of(context)!.periodTimesTitle;
         _periodTimes = buildPeriodTimesForCount(10);
       }
       _loading = false;
@@ -61,41 +66,39 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('节次时间'),
+        title: Text(l10n.periodTimesTitle),
         actions: [
           PopupMenuButton<_PeriodTimesMenuAction>(
-            tooltip: '导入导出',
+            tooltip: l10n.importExport,
             onSelected: _handleMenuAction,
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: _PeriodTimesMenuAction.importTemplate,
-                child: Text('导入节次模板'),
+                child: Text(l10n.importPeriodTemplate),
               ),
               PopupMenuItem(
                 value: _PeriodTimesMenuAction.exportTemplate,
-                child: Text('分享节次模板'),
+                child: Text(l10n.sharePeriodTemplate),
               ),
               PopupMenuItem(
                 value: _PeriodTimesMenuAction.saveTemplate,
-                child: Text('保存模板到文件'),
+                child: Text(l10n.saveTemplateToFile),
               ),
               PopupMenuDivider(),
               PopupMenuItem(
                 value: _PeriodTimesMenuAction.deleteSet,
-                child: Text('删除节次时间'),
+                child: Text(l10n.deletePeriodTimeSet),
               ),
             ],
           ),
-          TextButton(
-            onPressed: _save,
-            child: const Text('保存'),
-          ),
+          TextButton(onPressed: _save, child: Text(l10n.save)),
         ],
       ),
       body: ListView(
@@ -103,17 +106,18 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: '节次时间名称',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.periodTimeSetName,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
-          for (var index = 0; index < _periodTimes.length; index++) _buildPeriodCard(index),
+          for (var index = 0; index < _periodTimes.length; index++)
+            _buildPeriodCard(index),
           OutlinedButton.icon(
             onPressed: _addPeriod,
             icon: const Icon(Icons.add),
-            label: const Text('增加一节'),
+            label: Text(l10n.addOnePeriod),
           ),
           const SizedBox(height: 24),
         ],
@@ -122,10 +126,13 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Widget _buildPeriodCard(int index) {
+    final l10n = AppLocalizations.of(context)!;
     final period = _periodTimes[index];
     final previous = index == 0 ? null : _periodTimes[index - 1];
     final duration = period.endMinutes - period.startMinutes;
-    final gap = previous == null ? null : period.startMinutes - previous.endMinutes;
+    final gap = previous == null
+        ? null
+        : period.startMinutes - previous.endMinutes;
     final invalid = duration <= 0 || (previous != null && gap! < 0);
 
     return Card.outlined(
@@ -137,12 +144,15 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
           children: [
             Row(
               children: [
-                Text('第 ${period.index} 节', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.periodNumberLabel(period.index),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Spacer(),
                 if (_periodTimes.length > 1)
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    tooltip: '删除本节',
+                    tooltip: l10n.deleteThisPeriod,
                     onPressed: () => _removePeriod(index),
                     icon: const Icon(Icons.delete_outline),
                   ),
@@ -153,7 +163,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
               children: [
                 Expanded(
                   child: _TimeCell(
-                    label: '开始',
+                    label: l10n.startTime,
                     value: formatMinutes(period.startMinutes),
                     onTap: () => _pickPeriodTime(index, isStart: true),
                   ),
@@ -161,7 +171,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _TimeCell(
-                    label: '结束',
+                    label: l10n.endTime,
                     value: formatMinutes(period.endMinutes),
                     onTap: () => _pickPeriodTime(index, isStart: false),
                   ),
@@ -173,14 +183,19 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _MetaChip(label: '时长 ${duration > 0 ? duration : 0} 分钟'),
-                if (gap != null) _MetaChip(label: '与上一节间隔 ${gap > 0 ? gap : 0} 分钟'),
+                _MetaChip(
+                  label: l10n.durationMinutes(duration > 0 ? duration : 0),
+                ),
+                if (gap != null)
+                  _MetaChip(label: l10n.gapFromPrevious(gap > 0 ? gap : 0)),
               ],
             ),
             if (invalid) ...[
               const SizedBox(height: 10),
               Text(
-                duration <= 0 ? '结束时间必须晚于开始时间' : '当前节次与上一节时间重叠',
+                duration <= 0
+                    ? l10n.endTimeMustBeLater
+                    : l10n.periodOverlapPrevious,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -209,20 +224,29 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
   void _addPeriod() {
     setState(() {
-      _periodTimes = buildPeriodTimesForCount(_periodTimes.length + 1, source: _periodTimes);
+      _periodTimes = buildPeriodTimesForCount(
+        _periodTimes.length + 1,
+        source: _periodTimes,
+      );
     });
   }
 
   void _removePeriod(int index) {
     setState(() {
       final next = [..._periodTimes]..removeAt(index);
-      _periodTimes = List.generate(next.length, (itemIndex) => next[itemIndex].copyWith(index: itemIndex + 1));
+      _periodTimes = List.generate(
+        next.length,
+        (itemIndex) => next[itemIndex].copyWith(index: itemIndex + 1),
+      );
     });
   }
 
   Future<void> _save() async {
     final provider = context.read<TimetableProvider>();
-    final normalized = buildPeriodTimesForCount(_periodTimes.length, source: _periodTimes);
+    final normalized = buildPeriodTimesForCount(
+      _periodTimes.length,
+      source: _periodTimes,
+    );
     await provider.updatePeriodTimeSet(
       PeriodTimeSet(
         id: widget.periodTimeSetId,
@@ -231,7 +255,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       ),
     );
     if (mounted) {
-      _showMessage('已保存节次时间');
+      _showMessage(AppLocalizations.of(context)!.periodTimesSaved);
     }
   }
 
@@ -241,17 +265,21 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        final name = _nameController.text.trim().isEmpty
+            ? l10n.currentPeriodTimeSet
+            : _nameController.text.trim();
         return AlertDialog(
-          title: const Text('删除节次时间'),
-          content: Text('确认删除“${_nameController.text.trim().isEmpty ? '当前节次时间' : _nameController.text.trim()}”吗？'),
+          title: Text(l10n.deletePeriodTimeSetTitle),
+          content: Text(l10n.deletePeriodTimeSetMessage(name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('删除'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -272,6 +300,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
   Future<void> _importTemplate() async {
     final provider = context.read<TimetableProvider>();
+    final l10n = AppLocalizations.of(context)!;
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
@@ -285,17 +314,20 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     try {
       final decoded = utf8.decode(bytes);
       final imported = provider.importPeriodTimesJson(decoded);
-      if (imported.isEmpty) {
-        throw const FormatException('导入文件中没有节次时间');
+      final count = imported.length;
+      if (count == 0) {
+        throw FormatException(
+          noPeriodTimesInImportMessage(localeCode: provider.localeCode),
+        );
       }
       setState(() {
         _periodTimes = imported;
       });
-      _showMessage('已导入 ${_periodTimes.length} 条节次时间');
+      _showMessage(l10n.importedPeriodTimesCount(count));
     } on FormatException catch (error) {
       _showMessage(error.message);
     } catch (_) {
-      _showMessage('导入失败，请检查文件内容');
+      _showMessage(l10n.importFailedCheckContent);
     }
   }
 
@@ -309,6 +341,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Future<void> _saveTemplateToFile() async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await _exportService.saveFile(
       ExportPayload(
         fileName: 'classmate_period_times.json',
@@ -318,16 +351,18 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
     switch (result.status) {
       case ExportSaveStatus.saved:
-        _showMessage('已保存到 ${result.path ?? 'classmate_period_times.json'}');
+        _showMessage(
+          l10n.savedToPath(result.path ?? 'classmate_period_times.json'),
+        );
         return;
       case ExportSaveStatus.cancelled:
-        _showMessage('已取消保存');
+        _showMessage(l10n.saveCancelled);
         return;
       case ExportSaveStatus.permissionDenied:
         final retry = await _showPermissionDialog(
-          title: '需要文件权限',
-          message: 'Android 导出需要文件访问权限，请授权后继续保存。',
-          confirmText: '重新授权',
+          title: l10n.periodFilePermissionTitle,
+          message: l10n.androidFilePermissionMessage,
+          confirmText: l10n.reauthorize,
         );
         if (retry == true && mounted) {
           await _saveTemplateToFile();
@@ -335,9 +370,9 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
         return;
       case ExportSaveStatus.permissionPermanentlyDenied:
         final openSettings = await _showPermissionDialog(
-          title: '权限已被永久拒绝',
-          message: '请在系统设置中打开文件访问权限，然后再回来重试导出。',
-          confirmText: '打开设置',
+          title: l10n.permissionPermanentlyDeniedTitle,
+          message: l10n.permissionSettingsExportMessage,
+          confirmText: l10n.openSettings,
         );
         if (openSettings == true) {
           await _exportService.openSettings();
@@ -345,26 +380,28 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
         return;
       case ExportSaveStatus.unsupported:
         final shouldShare = await _showFailureDialog(
-          title: '浏览器下载受限',
-          message: '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。',
+          title: l10n.browserDownloadRestrictedTitle,
+          message: l10n.browserDownloadRestrictedMessage,
         );
         if (shouldShare == true) {
           await _shareTemplate();
-          _showMessage('已改用文件分享导出');
+          _showMessage(l10n.exportSwitchedToShare);
         }
         return;
       case ExportSaveStatus.failed:
         final shouldShare = await _showFailureDialog(
-          title: _exportService.isWindows ? '文件保存失败' : '保存失败',
+          title: _exportService.isWindows
+              ? l10n.fileSaveFailedTitle
+              : l10n.fileSaveRestrictedTitle,
           message: _exportService.isWindows
-              ? '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。'
-              : '保存失败。若你已授权，问题可能来自目标路径或系统文件访问限制。',
+              ? l10n.fileSaveFailedWindowsMessage
+              : l10n.fileSaveFailedGenericMessage,
         );
         if (shouldShare == true) {
           await _shareTemplate();
-          _showMessage('已改用文件分享导出');
+          _showMessage(l10n.exportSwitchedToShare);
         } else {
-          _showMessage('保存失败，请稍后重试');
+          _showMessage(l10n.saveFailedRetry);
         }
         return;
     }
@@ -374,7 +411,9 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<bool?> _showPermissionDialog({
@@ -391,7 +430,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -416,11 +455,11 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('稍后再试'),
+              child: Text(AppLocalizations.of(context)!.retryLater),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('改用分享'),
+              child: Text(AppLocalizations.of(context)!.switchToShare),
             ),
           ],
         );
@@ -434,7 +473,10 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     final initialMinutes = isStart ? period.startMinutes : period.endMinutes;
     final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: initialMinutes ~/ 60, minute: initialMinutes % 60),
+      initialTime: TimeOfDay(
+        hour: initialMinutes ~/ 60,
+        minute: initialMinutes % 60,
+      ),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),

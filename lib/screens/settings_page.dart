@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
@@ -51,24 +52,25 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
+        final l10n = AppLocalizations.of(context)!;
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('设置')),
-            body: const Center(child: Text('当前没有可设置的课表')),
+            appBar: AppBar(title: Text(l10n.settingsTitle)),
+            body: Center(child: Text(l10n.noTimetableSettings)),
           );
         }
         final selectedSet =
             provider.periodTimeSetForId(_selectedPeriodTimeSetId) ??
             provider.activePeriodTimeSetOrNull;
         return Scaffold(
-          appBar: AppBar(title: const Text('设置')),
+          appBar: AppBar(title: Text(l10n.settingsTitle)),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('开学日期'),
+                title: Text(l10n.semesterStartDate),
                 subtitle: Text(
                   '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
                 ),
@@ -82,11 +84,14 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('节次时间集'),
+                title: Text(l10n.periodTimeSets),
                 subtitle: Text(
                   selectedSet == null
-                      ? '暂无可用节次时间'
-                      : '${selectedSet.name} · ${selectedSet.periodTimes.length} 节',
+                      ? l10n.noPeriodTimeAvailable
+                      : l10n.periodTimeSetSummary(
+                          selectedSet.name,
+                          selectedSet.periodTimes.length,
+                        ),
                 ),
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickPeriodTimeSet(provider, timetable.config),
@@ -96,24 +101,47 @@ class _SettingsPageState extends State<SettingsPage> {
                   context,
                 ).colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: provider.closeCoursePopupOnOutsideTap,
+                title: Text(l10n.coursePopupDismissSetting),
+                subtitle: Text(l10n.coursePopupDismissSettingHint),
+                onChanged: provider.updateCloseCoursePopupOnOutsideTap,
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.language),
+                subtitle: Text(
+                  provider.localeCode == 'en'
+                      ? l10n.languageEnglish
+                      : l10n.languageChinese,
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_down),
+                onTap: () => _pickLanguage(provider),
+              ),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.import_export),
-                title: const Text('导入导出数据'),
-                subtitle: const Text('导入整包/单课表，或导出当前课表与全部课表'),
+                title: Text(l10n.dataImportExport),
+                subtitle: Text(l10n.dataImportExportDesc),
                 onTap: () => _showDataActions(provider),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.description_outlined),
-                title: const Text('开源许可'),
-                subtitle: const Text('查看依赖与应用图标的许可信息'),
+                title: Text(l10n.openSourceLicenses),
+                subtitle: Text(l10n.openSourceLicensesDesc),
                 onTap: _openLicensesPage,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const FaIcon(FontAwesomeIcons.github),
-                title: const Text('GitHub 仓库'),
+                title: Text(l10n.githubRepository),
                 subtitle: const Text('github.com/Mashiro0619/classmate'),
                 onTap: _openGithubRepo,
               ),
@@ -124,10 +152,54 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _pickLanguage(TimetableProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.language),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.languageChinese),
+                trailing: provider.localeCode == 'zh'
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () => Navigator.of(context).pop('zh'),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.languageEnglish),
+                trailing: provider.localeCode == 'en'
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () => Navigator.of(context).pop('en'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == null || result == provider.localeCode) {
+      return;
+    }
+    await provider.updateLocaleCode(result);
+  }
+
   Future<void> _pickPeriodTimeSet(
     TimetableProvider provider,
     TimetableConfig config,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
@@ -137,7 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return AlertDialog(
               title: Row(
                 children: [
-                  const Expanded(child: Text('选择节次时间集')),
+                  Expanded(child: Text(l10n.selectPeriodTimeSet)),
                   TextButton.icon(
                     onPressed: () async {
                       final created = await provider.addPeriodTimeSet();
@@ -152,7 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       refreshDialog(() {});
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('新建'),
+                    label: Text(l10n.newItem),
                   ),
                 ],
               ),
@@ -173,14 +245,19 @@ class _SettingsPageState extends State<SettingsPage> {
                           ? Theme.of(context).colorScheme.secondaryContainer
                           : null,
                       title: Text(item.name),
-                      subtitle: Text('${item.periodTimes.length} 节'),
+                      subtitle: Text(
+                        l10n.periodTimeSetSummary(
+                          item.name,
+                          item.periodTimes.length,
+                        ),
+                      ),
                       trailing: Wrap(
                         spacing: 4,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           if (selected) const Icon(Icons.check),
                           IconButton(
-                            tooltip: '编辑节次时间集',
+                            tooltip: l10n.editPeriodTimeSet,
                             onPressed: () async {
                               await _openPeriodTimePage(provider, item.id);
                               if (!mounted) {
@@ -211,7 +288,7 @@ class _SettingsPageState extends State<SettingsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('取消'),
+                  child: Text(l10n.cancel),
                 ),
               ],
             );
@@ -253,7 +330,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
-      _showMessage('无法打开 GitHub 仓库链接');
+      _showMessage(AppLocalizations.of(context)!.openGithubFailed);
     }
   }
 
@@ -276,6 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext)!;
         return _buildAdaptiveBottomSheet(
           sheetContext,
           maxWidth: 680,
@@ -286,8 +364,8 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.file_download_outlined),
-                  title: const Text('导入课表'),
-                  subtitle: const Text('支持单个或多个课表文件'),
+                  title: Text(l10n.importTimetableFiles),
+                  subtitle: Text(l10n.importTimetableFilesDesc),
                   onTap: () => Navigator.of(
                     sheetContext,
                   ).pop(_DataAction.importTimetables),
@@ -295,16 +373,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.share_outlined),
-                  title: const Text('分享课表文件'),
-                  subtitle: const Text('先选择一个或多个课表'),
+                  title: Text(l10n.shareTimetableFiles),
+                  subtitle: Text(l10n.shareTimetableFilesDesc),
                   onTap: () => Navigator.of(
                     sheetContext,
                   ).pop(_DataAction.exportTimetablesShare),
                 ),
                 ListTile(
                   leading: const Icon(Icons.save_alt_outlined),
-                  title: const Text('保存课表文件'),
-                  subtitle: const Text('先选择一个或多个课表'),
+                  title: Text(l10n.saveTimetableFiles),
+                  subtitle: Text(l10n.saveTimetableFilesDesc),
                   onTap: () => Navigator.of(
                     sheetContext,
                   ).pop(_DataAction.exportTimetablesSave),
@@ -335,11 +413,12 @@ class _SettingsPageState extends State<SettingsPage> {
     TimetableProvider provider, {
     required bool share,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     final activeId = provider.activeTimetableOrNull?.id;
     final selectedIds = await _pickTimetableIds(
       timetables: provider.timetables,
-      title: '选择要导出的课表',
-      confirmText: share ? '分享' : '保存',
+      title: l10n.selectTimetablesToExport,
+      confirmText: share ? l10n.share : l10n.save,
       initialSelectedIds: activeId == null ? const [] : [activeId],
     );
     if (selectedIds == null || selectedIds.isEmpty) {
@@ -359,12 +438,13 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('导出失败，请稍后重试');
+        _showMessage(l10n.saveFailedRetry);
       }
     }
   }
 
   Future<void> _importTimetables(TimetableProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
     final source = await _pickJsonSource();
     if (source == null || !mounted) {
       return;
@@ -377,12 +457,12 @@ class _SettingsPageState extends State<SettingsPage> {
       _showMessage(error.message);
       return;
     } catch (_) {
-      _showMessage('导入失败，请检查文件内容');
+      _showMessage(l10n.importFailedCheckContent);
       return;
     }
 
     if (candidates.isEmpty) {
-      _showMessage('导入文件中没有可用课表');
+      _showMessage(l10n.noImportableTimetables);
       return;
     }
 
@@ -390,8 +470,8 @@ class _SettingsPageState extends State<SettingsPage> {
         ? [candidates.first.id]
         : await _pickTimetableIds(
             timetables: candidates,
-            title: '选择要导入的课表',
-            confirmText: '导入',
+            title: l10n.selectTimetablesToImport,
+            confirmText: l10n.importAction,
             initialSelectedIds: candidates.map((item) => item.id).toList(),
           );
     if (selectedIds == null || selectedIds.isEmpty) {
@@ -406,20 +486,21 @@ class _SettingsPageState extends State<SettingsPage> {
       final pickedMode = await showDialog<TimetableImportMode>(
         context: context,
         builder: (context) {
+          final l10n = AppLocalizations.of(context)!;
           return AlertDialog(
-            title: const Text('导入课表'),
-            content: const Text('请选择导入方式'),
+            title: Text(l10n.importTimetableDialogTitle),
+            content: Text(l10n.chooseImportMethod),
             actions: [
               TextButton(
                 onPressed: () =>
                     Navigator.of(context).pop(TimetableImportMode.addAsNew),
-                child: const Text('作为新课表导入'),
+                child: Text(l10n.importAsNewTimetable),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(
                   context,
                 ).pop(TimetableImportMode.replaceActive),
-                child: const Text('覆盖当前课表'),
+                child: Text(l10n.replaceCurrentTimetable),
               ),
             ],
           );
@@ -438,7 +519,7 @@ class _SettingsPageState extends State<SettingsPage> {
         mode: mode,
       );
       if (mounted) {
-        _showMessage('已导入 $count 个课表');
+        _showMessage(l10n.importedTimetablesCount(count));
       }
     } on FormatException catch (error) {
       if (mounted) {
@@ -446,7 +527,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('导入失败，请检查文件内容');
+        _showMessage(l10n.importFailedCheckContent);
       }
     }
   }
@@ -470,6 +551,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final l10n = AppLocalizations.of(context)!;
             return AlertDialog(
               title: Text(title),
               content: SizedBox(
@@ -488,11 +570,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ..clear()
                                 ..addAll(timetables.map((item) => item.id));
                             }),
-                            child: const Text('全选'),
+                            child: Text(l10n.selectAll),
                           ),
                           TextButton(
                             onPressed: () => setState(draft.clear),
-                            child: const Text('清空'),
+                            child: Text(l10n.clear),
                           ),
                         ],
                       ),
@@ -516,7 +598,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ).colorScheme.secondaryContainer
                                 : null,
                             title: Text(timetable.config.name),
-                            subtitle: Text('${timetable.courses.length} 门课程'),
+                            subtitle: Text(
+                              l10n.timetableCourseCount(
+                                timetable.courses.length,
+                              ),
+                            ),
                             trailing: selected ? const Icon(Icons.check) : null,
                             onTap: () {
                               setState(() {
@@ -537,7 +623,7 @@ class _SettingsPageState extends State<SettingsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('取消'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
                   onPressed: draft.isEmpty
@@ -579,6 +665,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _saveJsonToFile(String fileName, String content) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await _exportService.saveFile(
       ExportPayload(fileName: fileName, content: content),
     );
@@ -588,16 +675,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
     switch (result.status) {
       case ExportSaveStatus.saved:
-        _showMessage('已保存到 ${result.path ?? fileName}');
+        _showMessage(l10n.savedToPath(result.path ?? fileName));
         return;
       case ExportSaveStatus.cancelled:
-        _showMessage('已取消保存');
+        _showMessage(l10n.saveCancelled);
         return;
       case ExportSaveStatus.permissionDenied:
         final retry = await _showPermissionDialog(
-          title: '文件保存受限',
-          message: '当前系统未能完成文件保存。你可以重试，或改用文件分享。',
-          confirmText: '重试保存',
+          title: l10n.fileSaveRestrictedTitle,
+          message: l10n.fileSaveRestrictedRetryMessage,
+          confirmText: l10n.retrySave,
         );
         if (retry == true && mounted) {
           await _saveJsonToFile(fileName, content);
@@ -605,9 +692,9 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       case ExportSaveStatus.permissionPermanentlyDenied:
         final openSettings = await _showPermissionDialog(
-          title: '文件保存受限',
-          message: '请在系统设置中打开文件访问权限，然后返回重试导出。',
-          confirmText: '打开设置',
+          title: l10n.fileSaveRestrictedTitle,
+          message: l10n.fileSaveRestrictedSettingsMessage,
+          confirmText: l10n.openSettings,
         );
         if (openSettings == true) {
           await _exportService.openSettings();
@@ -615,30 +702,32 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       case ExportSaveStatus.unsupported:
         final shouldShare = await _showFailureDialog(
-          title: '浏览器下载受限',
-          message: '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。',
+          title: l10n.browserDownloadRestrictedTitle,
+          message: l10n.browserDownloadRestrictedMessage,
         );
         if (shouldShare == true) {
           await _shareJson(fileName, content);
           if (mounted) {
-            _showMessage('已改用文件分享导出');
+            _showMessage(l10n.exportSwitchedToShare);
           }
         }
         return;
       case ExportSaveStatus.failed:
         final shouldShare = await _showFailureDialog(
-          title: _exportService.isWindows ? '文件保存失败' : '文件保存受限',
+          title: _exportService.isWindows
+              ? l10n.fileSaveFailedTitle
+              : l10n.fileSaveRestrictedTitle,
           message: _exportService.isWindows
-              ? '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。'
-              : '系统未能完成文件保存。你可以重试、检查系统设置，或改用文件分享。',
+              ? l10n.fileSaveFailedWindowsMessage
+              : l10n.fileSaveFailedGenericMessage,
         );
         if (shouldShare == true) {
           await _shareJson(fileName, content);
           if (mounted) {
-            _showMessage('已改用文件分享导出');
+            _showMessage(l10n.exportSwitchedToShare);
           }
         } else if (mounted) {
-          _showMessage('保存失败，请稍后重试');
+          _showMessage(l10n.saveFailedRetry);
         }
         return;
     }
@@ -658,7 +747,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -683,11 +772,11 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('稍后再试'),
+              child: Text(AppLocalizations.of(context)!.retryLater),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('改用分享'),
+              child: Text(AppLocalizations.of(context)!.switchToShare),
             ),
           ],
         );

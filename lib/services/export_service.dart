@@ -7,10 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ExportPayload {
-  const ExportPayload({
-    required this.fileName,
-    required this.content,
-  });
+  const ExportPayload({required this.fileName, required this.content});
 
   final String fileName;
   final String content;
@@ -34,10 +31,7 @@ enum ExportSaveStatus {
 }
 
 class ExportSaveResult {
-  const ExportSaveResult({
-    required this.status,
-    this.path,
-  });
+  const ExportSaveResult({required this.status, this.path});
 
   final ExportSaveStatus status;
   final String? path;
@@ -91,7 +85,10 @@ class ExportService {
         return const ExportSaveResult(status: ExportSaveStatus.cancelled);
       }
       await payload.toXFile().saveTo(location.path);
-      return ExportSaveResult(status: ExportSaveStatus.saved, path: location.path);
+      return ExportSaveResult(
+        status: ExportSaveStatus.saved,
+        path: location.path,
+      );
     } catch (_) {
       return const ExportSaveResult(status: ExportSaveStatus.failed);
     }
