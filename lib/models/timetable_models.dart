@@ -1088,10 +1088,9 @@ String _nextGeneratedPeriodTimeSetId(Set<String> existingIds) {
 }
 
 int currentWeekFor(TimetableConfig config, {DateTime? now}) {
-  final today = (now ?? DateTime.now());
-  final normalizedToday = normalizeDateOnly(today);
-  final normalizedStart = normalizeDateOnly(config.startDate);
-  final days = normalizedToday.difference(normalizedStart).inDays;
+  final today = startOfWeekMonday(now ?? DateTime.now());
+  final semesterWeekStart = startOfWeekMonday(config.startDate);
+  final days = today.difference(semesterWeekStart).inDays;
   if (days < 0) {
     return 1;
   }
