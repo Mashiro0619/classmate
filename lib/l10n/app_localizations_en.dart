@@ -201,6 +201,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coursePopupDismissSettingHint => 'Turning this off also disables swipe-down dismissal.';
 
   @override
+  String get preserveTimetableGaps => 'Preserve timetable gaps';
+
+  @override
+  String get preserveTimetableGapsHint => 'When off, lunch and break gaps are collapsed so later classes move upward.';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -219,7 +225,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openSourceLicenses => 'Open-source licenses';
 
   @override
-  String get openSourceLicensesDesc => 'View licenses for dependencies and app icon assets.';
+  String get openSourceLicensesDesc => 'View licenses for Flutter dependencies and bundled app icon assets.';
+
+  @override
+  String get checkForUpdates => 'Check for updates';
+
+  @override
+  String get openUpdatesFailed => 'Unable to open the releases page';
 
   @override
   String get githubRepository => 'GitHub repository';
@@ -430,7 +442,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicyTitle => 'Privacy Policy';
 
   @override
-  String get privacyPolicyEntryDesc => 'Learn how the app handles local data, import/export, and external links.';
+  String get privacyPolicyEntryDesc => 'Learn how the app handles local storage, school-site configuration, file import/export, webpage parsing, and external links.';
 
   @override
   String privacyPolicyAcceptedVersionLabel(Object version) {
@@ -438,19 +450,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => 'Classmate currently works as a local-first app. Timetable data, timetable settings, and period-time data are stored on your device or in your browser by default. The app only uses system capabilities such as import, export, sharing, or opening external links when you explicitly trigger those actions.';
+  String get privacyPolicyIntro => 'Classmate is a local-first app. Timetables, timetable settings, period-time sets, and school-site configuration are stored on your device or in your browser by default. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Local storage';
 
   @override
-  String get privacyPolicyLocalStorageBody => 'On Android, iOS, Windows, macOS, and Linux, the app stores timetable data and related settings in a local file named classmate_data.json inside the app documents directory. On the web, the app stores the same kind of data in browser storage. The app does not upload this data to a developer-controlled server by default.';
+  String get privacyPolicyLocalStorageBody => 'On Android, iOS, Windows, macOS, and Linux, timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. On the web, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Import and export';
 
   @override
-  String get privacyPolicyImportExportBody => 'The app only reads or writes timetable JSON files and period-template files when you explicitly choose a file or start an export action. Imported file contents are only used to create or update timetable data locally.';
+  String get privacyPolicyImportExportBody => 'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing.';
 
   @override
   String get privacyPolicySharingTitle => 'Sharing';
@@ -465,39 +477,192 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicyExternalLinksBody => 'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.';
 
   @override
-  String get privacyPolicyNoCollectionTitle => 'What is not collected right now';
+  String get privacyPolicyNoCollectionTitle => 'What the app does not collect by default';
 
   @override
-  String get privacyPolicyNoCollectionBody => 'In the current version, the app does not require an account and does not collect school account passwords, cloud backup data, advertising identifiers, or analytics data by default.';
+  String get privacyPolicyNoCollectionBody => 'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup by default. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.';
 
   @override
-  String get privacyPolicyFutureFeatureTitle => 'Future feature notice';
+  String get privacyPolicyFutureFeatureTitle => 'Webpage parsing';
 
   @override
-  String get privacyPolicyFutureFeatureBody => 'A future version may support importing courses from a school timetable webpage when you explicitly start that process. If that feature introduces new data handling, network requests, or additional information requirements, this policy will be updated before the feature is released.';
+  String get privacyPolicyFutureFeatureBody => 'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day. Before the parsed timetable is saved, the app shows a preview and lets you edit the timetable name and semester start date.';
 
   @override
   String get privacyPolicyUpdatesTitle => 'Policy updates';
 
   @override
   String privacyPolicyUpdatesBody(Object version) {
-    return 'The current privacy policy version is $version. If a future version changes how data is handled, the app may ask you to read and agree to the updated policy again.';
+    return 'The current privacy policy version is $version. If a later version changes how data is handled, the app may ask you to read and agree to the updated policy again.';
   }
 
   @override
   String get privacyGateTitle => 'Please agree to the privacy policy before using the app';
 
   @override
-  String get privacyGateSummaryStorage => 'Timetables and settings are stored locally by default and are not automatically uploaded to a developer server.';
+  String get privacyGateSummaryStorage => 'Timetables, period-time sets, and school-site configuration are stored locally by default and are not automatically uploaded to a developer server.';
 
   @override
-  String get privacyGateSummaryImportExport => 'Import, export, and sharing only happen when you explicitly start them.';
+  String get privacyGateSummaryImportExport => 'Import, export, and sharing only happen when you explicitly start them; webpage parsing sends only the compressed content you submit to your configured parsing endpoint, and you can review the parsed timetable before saving.';
 
   @override
   String get privacyGateSummaryExternal => 'Opening GitHub or other external links hands the action to your browser or another app.';
 
   @override
-  String get privacyGateSummaryUpdates => 'If future features such as webpage import change data handling, the privacy policy will be updated first.';
+  String get privacyGateSummaryUpdates => 'If a later version changes how data is handled, the app may ask you to review the updated privacy policy again.';
+
+  @override
+  String get schoolWebImportEntry => 'Import from school webpage';
+
+  @override
+  String get schoolWebImportEntryDesc => 'Open the school site in-app and import the current page after you reach the timetable.';
+
+  @override
+  String get schoolSitesManageEntry => 'Manage school sites';
+
+  @override
+  String get schoolSitesManageEntryDesc => 'Add, edit, and delete school login URLs, with JSON import and export.';
+
+  @override
+  String get schoolSitesPageTitle => 'School site management';
+
+  @override
+  String get schoolSitesImportJson => 'Import school JSON';
+
+  @override
+  String get schoolSitesShareJson => 'Share school JSON';
+
+  @override
+  String get schoolSitesSaveJson => 'Save school JSON';
+
+  @override
+  String get schoolSitesSaved => 'School sites saved';
+
+  @override
+  String get schoolSitesImported => 'School sites imported';
+
+  @override
+  String get schoolSitesEmpty => 'No school site configuration yet.';
+
+  @override
+  String get schoolSitesNameLabel => 'School name';
+
+  @override
+  String get schoolSitesLoginUrlLabel => 'Login URL';
+
+  @override
+  String get schoolSitesAdd => 'Add school';
+
+  @override
+  String get schoolSitesEdit => 'Edit school';
+
+  @override
+  String get schoolSitesDeleteTitle => 'Delete school';
+
+  @override
+  String schoolSitesDeleteMessage(Object name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get schoolSitesFormInvalid => 'Fill in the school name and login URL first.';
+
+  @override
+  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+
+  @override
+  String get schoolHtmlImportEntry => 'Import by pasting timetable HTML';
+
+  @override
+  String get schoolHtmlImportEntryDesc => 'Paste timetable page HTML manually. Useful on Windows and web.';
+
+  @override
+  String get schoolHtmlImportPageTitle => 'Import timetable from HTML';
+
+  @override
+  String get schoolHtmlImportUrlLabel => 'Source URL (optional)';
+
+  @override
+  String get schoolHtmlImportTitleLabel => 'Page title (optional)';
+
+  @override
+  String get schoolHtmlImportHtmlLabel => 'Page HTML';
+
+  @override
+  String get schoolHtmlImportHtmlHint => 'Paste the full timetable page HTML here.';
+
+  @override
+  String get schoolHtmlImportCompress => 'Compress content';
+
+  @override
+  String get schoolHtmlImportCompressed => 'Content compressed';
+
+  @override
+  String get schoolHtmlImportCompressFirst => 'Compress the content first.';
+
+  @override
+  String get schoolHtmlImportSubmit => 'Parse and import';
+
+  @override
+  String get schoolHtmlImportEmpty => 'Paste the page HTML first.';
+
+  @override
+  String get schoolWebImportPageTitle => 'School webpage import';
+
+  @override
+  String get schoolWebImportPreview => 'Import preview';
+
+  @override
+  String schoolWebImportCourseCount(int count) {
+    return '$count courses';
+  }
+
+  @override
+  String schoolWebImportPeriodCount(int count) {
+    return '$count periods';
+  }
+
+  @override
+  String get schoolWebImportPageTitleLabel => 'Page title';
+
+  @override
+  String get schoolWebImportParserUsed => 'Parser';
+
+  @override
+  String get schoolWebImportWarnings => 'Import notes';
+
+  @override
+  String get schoolWebImportOpenPageHint => 'Sign in to the school site in-app, then navigate to the timetable page manually.';
+
+  @override
+  String get schoolWebImportConfigMissing => 'Web import backend API is not configured yet.';
+
+  @override
+  String get schoolWebImportUnsupportedPlatform => 'This platform does not support embedded web login yet. Please use a platform with WebView support.';
+
+  @override
+  String get schoolWebImportSelectSchool => 'Choose school';
+
+  @override
+  String get schoolWebImportNoSchools => 'No school configuration is available. Check school_sites.json first.';
+
+  @override
+  String get schoolWebImportSchoolLoadFailed => 'Failed to load school configuration. Check the JSON file format.';
+
+  @override
+  String get schoolWebImportImportCurrentPage => 'Import current page';
+
+  @override
+  String get schoolWebImportLoadingPage => 'Loading page…';
+
+  @override
+  String get schoolWebImportParsing => 'Parsing current page…';
+
+  @override
+  String get schoolWebImportEmptyPage => 'The current page content is empty and cannot be imported yet.';
+
+  @override
+  String get schoolWebImportSuccess => 'Web timetable imported';
 
   @override
   String get privacyViewFullPolicy => 'View full privacy policy';

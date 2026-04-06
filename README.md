@@ -7,60 +7,83 @@
 
 [English README](README_EN.md)
 
-Classmate 是一个基于 Flutter 的课程表应用，提供多课表管理、共享节次时间集、课程编辑、冲突展示，以及课表与节次模板导入导出能力。
+Classmate 是一个基于 Flutter 的本地优先课程表应用，支持多课表管理、节次时间集复用、课程编辑，以及通过学校网页或 HTML 源码导入课表。
 
-支持平台：Android、iOS、Windows、macOS、Linux、Web。
+## 功能特性
 
-## 功能概览
+- 多课表与课程管理
+- 节次时间集复用
+- 学校站点管理
+- 学校网页 / HTML 导入
+- 导入前预览并修改课表信息
+- 课表、节次模板、学校站点 JSON 导入导出
 
-- 多课表：新建、切换、重命名、编辑、删除
-- 周视图课表：支持顶部跳周、左右滑动切周、键盘方向键切周
-- 课程管理：支持地点、教师、学分、备注、自定义字段
-- 冲突处理：查看冲突课程，并切换外部显示的冲突课程
-- 节次时间集：支持选择、新建、编辑、删除，并可被多个课表复用
-- 模板与数据：支持导入、导出、分享、保存课表 JSON 与节次模板
-- 设置页：提供开学日期、节次时间集、开源许可、GitHub 仓库入口
+欢迎通过提交 PR 为 `assets/school_sites.json` 补充和扩展学校站点配置。
 
 ## 截图展示
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/screenshot1.png" alt="主页" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot2.png" alt="侧边栏" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot3.png" alt="课程详情弹窗" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot4.png" alt="设置页" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s1.png" alt="主页" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s2.png" alt="查看课程详情" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s3.png" alt="设置页" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s4.png" alt="编辑节次时间集页" width="240"></td>
   </tr>
   <tr>
     <td align="center">主页</td>
-    <td align="center">侧边栏</td>
-    <td align="center">课程详情弹窗</td>
+    <td align="center">查看课程详情</td>
     <td align="center">设置页</td>
+    <td align="center">编辑节次时间集页</td>
   </tr>
 </table>
 
-## 默认数据
+## 学校网页导入后端
 
-首次启动时，应用会自动生成：
+项目提供了一个单文件 PHP 中转接口：[web/api.php](web/api.php)，在 [lib\config\app_config.dart](lib\config\app_config.dart) 配置你的api地址。
 
-- 一个名为“空白课表”的默认课表
-- 一套内置默认节次时间，来源于 [assets/default_period_times.json](assets/default_period_times.json)
+### 后端配置
 
-如果本地已有保存数据，则会优先加载本地数据。
+你需要修改 `web/api.php` 顶部配置区：
+
+- `$relayUrl`：上游 AI 接口地址
+- `$relayToken`：你的 API Key
+- `$model`：使用的模型
+- `$timeoutSeconds`：请求超时时间，当前默认 120 秒
+- `$sourceByteLimit`：单次提交内容大小上限，当前默认 300KB
+- `$maxParsesPerIpPerDay`：同一 IP 每日最大解析次数，当前默认 5 次
+
+
+### 当前后端行为
+
+- 使用你配置的 API Key 通过你自己的 PHP 服务中转请求
+- 返回统一 JSON 响应，便于客户端直接展示真实错误
+- 对提交内容执行大小限制与按 IP 的每日解析次数限制
+- 支持网页源码导入场景，不要求输入一定是标准 HTML
 
 ## 项目结构
 
 ```text
 lib/
-├─ data/         # 本地存储与平台适配
-├─ models/       # 课表、课程、节次时间等数据模型
+├─ config/       # 应用配置与默认 API 地址
+├─ models/       # 课表、课程、学校站点、导入响应等数据模型
 ├─ providers/    # 状态管理与导入导出逻辑
-├─ screens/      # 页面，如主页、设置页、节次时间编辑页
-├─ services/     # 导出、分享等服务
-└─ widgets/      # 课表网格、课程编辑、详情弹窗等组件
+├─ screens/      # 页面，如主页、设置页、学校站点管理页
+├─ services/     # 导出、分享、导入 API、本地存储等服务
+└─ widgets/      # 课表网格、课程编辑、导入预览等组件
+
+web/
+└─ api.php
 ```
 
-## 开源许可证
+## 隐私政策
 
-本项目基于 [GNU Affero General Public License v3.0](LICENSE) 开源。
+应用当前采用本地优先策略：课表数据、节次时间、学校站点配置默认保存在本地。
+只有在你主动执行导入、导出、分享，或主动提交当前网页 / 粘贴 HTML 用于解析时，应用才会处理对应数据。
 
-项目内分发的启动图标及相关图标资源包含第三方授权内容，详见 [NOTICE](NOTICE)。
+隐私政策全文可在应用内“设置 → 隐私政策”查看。
+
+## 开源协议与第三方说明
+
+- 本项目源码基于 [GNU Affero General Public License v3.0](LICENSE) 开源
+- 项目内分发的启动图标及相关平台图标资源包含第三方授权内容，详见 [NOTICE](NOTICE)
+- Flutter 依赖与第三方库许可可在应用内“设置 → 开源许可”查看

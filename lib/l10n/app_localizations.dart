@@ -455,6 +455,18 @@ abstract class AppLocalizations {
   /// **'Turning this off also disables swipe-down dismissal.'**
   String get coursePopupDismissSettingHint;
 
+  /// No description provided for @preserveTimetableGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Preserve timetable gaps'**
+  String get preserveTimetableGaps;
+
+  /// No description provided for @preserveTimetableGapsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, lunch and break gaps are collapsed so later classes move upward.'**
+  String get preserveTimetableGapsHint;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
@@ -494,8 +506,20 @@ abstract class AppLocalizations {
   /// No description provided for @openSourceLicensesDesc.
   ///
   /// In en, this message translates to:
-  /// **'View licenses for dependencies and app icon assets.'**
+  /// **'View licenses for Flutter dependencies and bundled app icon assets.'**
   String get openSourceLicensesDesc;
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @openUpdatesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open the releases page'**
+  String get openUpdatesFailed;
 
   /// No description provided for @githubRepository.
   ///
@@ -884,7 +908,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyEntryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Learn how the app handles local data, import/export, and external links.'**
+  /// **'Learn how the app handles local storage, school-site configuration, file import/export, webpage parsing, and external links.'**
   String get privacyPolicyEntryDesc;
 
   /// No description provided for @privacyPolicyAcceptedVersionLabel.
@@ -896,7 +920,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyIntro.
   ///
   /// In en, this message translates to:
-  /// **'Classmate currently works as a local-first app. Timetable data, timetable settings, and period-time data are stored on your device or in your browser by default. The app only uses system capabilities such as import, export, sharing, or opening external links when you explicitly trigger those actions.'**
+  /// **'Classmate is a local-first app. Timetables, timetable settings, period-time sets, and school-site configuration are stored on your device or in your browser by default. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.'**
   String get privacyPolicyIntro;
 
   /// No description provided for @privacyPolicyLocalStorageTitle.
@@ -908,7 +932,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyLocalStorageBody.
   ///
   /// In en, this message translates to:
-  /// **'On Android, iOS, Windows, macOS, and Linux, the app stores timetable data and related settings in a local file named classmate_data.json inside the app documents directory. On the web, the app stores the same kind of data in browser storage. The app does not upload this data to a developer-controlled server by default.'**
+  /// **'On Android, iOS, Windows, macOS, and Linux, timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. On the web, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.'**
   String get privacyPolicyLocalStorageBody;
 
   /// No description provided for @privacyPolicyImportExportTitle.
@@ -920,7 +944,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyImportExportBody.
   ///
   /// In en, this message translates to:
-  /// **'The app only reads or writes timetable JSON files and period-template files when you explicitly choose a file or start an export action. Imported file contents are only used to create or update timetable data locally.'**
+  /// **'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing.'**
   String get privacyPolicyImportExportBody;
 
   /// No description provided for @privacyPolicySharingTitle.
@@ -950,25 +974,25 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyNoCollectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'What is not collected right now'**
+  /// **'What the app does not collect by default'**
   String get privacyPolicyNoCollectionTitle;
 
   /// No description provided for @privacyPolicyNoCollectionBody.
   ///
   /// In en, this message translates to:
-  /// **'In the current version, the app does not require an account and does not collect school account passwords, cloud backup data, advertising identifiers, or analytics data by default.'**
+  /// **'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup by default. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.'**
   String get privacyPolicyNoCollectionBody;
 
   /// No description provided for @privacyPolicyFutureFeatureTitle.
   ///
   /// In en, this message translates to:
-  /// **'Future feature notice'**
+  /// **'Webpage parsing'**
   String get privacyPolicyFutureFeatureTitle;
 
   /// No description provided for @privacyPolicyFutureFeatureBody.
   ///
   /// In en, this message translates to:
-  /// **'A future version may support importing courses from a school timetable webpage when you explicitly start that process. If that feature introduces new data handling, network requests, or additional information requirements, this policy will be updated before the feature is released.'**
+  /// **'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day. Before the parsed timetable is saved, the app shows a preview and lets you edit the timetable name and semester start date.'**
   String get privacyPolicyFutureFeatureBody;
 
   /// No description provided for @privacyPolicyUpdatesTitle.
@@ -980,7 +1004,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyUpdatesBody.
   ///
   /// In en, this message translates to:
-  /// **'The current privacy policy version is {version}. If a future version changes how data is handled, the app may ask you to read and agree to the updated policy again.'**
+  /// **'The current privacy policy version is {version}. If a later version changes how data is handled, the app may ask you to read and agree to the updated policy again.'**
   String privacyPolicyUpdatesBody(Object version);
 
   /// No description provided for @privacyGateTitle.
@@ -992,13 +1016,13 @@ abstract class AppLocalizations {
   /// No description provided for @privacyGateSummaryStorage.
   ///
   /// In en, this message translates to:
-  /// **'Timetables and settings are stored locally by default and are not automatically uploaded to a developer server.'**
+  /// **'Timetables, period-time sets, and school-site configuration are stored locally by default and are not automatically uploaded to a developer server.'**
   String get privacyGateSummaryStorage;
 
   /// No description provided for @privacyGateSummaryImportExport.
   ///
   /// In en, this message translates to:
-  /// **'Import, export, and sharing only happen when you explicitly start them.'**
+  /// **'Import, export, and sharing only happen when you explicitly start them; webpage parsing sends only the compressed content you submit to your configured parsing endpoint, and you can review the parsed timetable before saving.'**
   String get privacyGateSummaryImportExport;
 
   /// No description provided for @privacyGateSummaryExternal.
@@ -1010,8 +1034,302 @@ abstract class AppLocalizations {
   /// No description provided for @privacyGateSummaryUpdates.
   ///
   /// In en, this message translates to:
-  /// **'If future features such as webpage import change data handling, the privacy policy will be updated first.'**
+  /// **'If a later version changes how data is handled, the app may ask you to review the updated privacy policy again.'**
   String get privacyGateSummaryUpdates;
+
+  /// No description provided for @schoolWebImportEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from school webpage'**
+  String get schoolWebImportEntry;
+
+  /// No description provided for @schoolWebImportEntryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the school site in-app and import the current page after you reach the timetable.'**
+  String get schoolWebImportEntryDesc;
+
+  /// No description provided for @schoolSitesManageEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage school sites'**
+  String get schoolSitesManageEntry;
+
+  /// No description provided for @schoolSitesManageEntryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, edit, and delete school login URLs, with JSON import and export.'**
+  String get schoolSitesManageEntryDesc;
+
+  /// No description provided for @schoolSitesPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'School site management'**
+  String get schoolSitesPageTitle;
+
+  /// No description provided for @schoolSitesImportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Import school JSON'**
+  String get schoolSitesImportJson;
+
+  /// No description provided for @schoolSitesShareJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Share school JSON'**
+  String get schoolSitesShareJson;
+
+  /// No description provided for @schoolSitesSaveJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Save school JSON'**
+  String get schoolSitesSaveJson;
+
+  /// No description provided for @schoolSitesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'School sites saved'**
+  String get schoolSitesSaved;
+
+  /// No description provided for @schoolSitesImported.
+  ///
+  /// In en, this message translates to:
+  /// **'School sites imported'**
+  String get schoolSitesImported;
+
+  /// No description provided for @schoolSitesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No school site configuration yet.'**
+  String get schoolSitesEmpty;
+
+  /// No description provided for @schoolSitesNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'School name'**
+  String get schoolSitesNameLabel;
+
+  /// No description provided for @schoolSitesLoginUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Login URL'**
+  String get schoolSitesLoginUrlLabel;
+
+  /// No description provided for @schoolSitesAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add school'**
+  String get schoolSitesAdd;
+
+  /// No description provided for @schoolSitesEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit school'**
+  String get schoolSitesEdit;
+
+  /// No description provided for @schoolSitesDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete school'**
+  String get schoolSitesDeleteTitle;
+
+  /// No description provided for @schoolSitesDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String schoolSitesDeleteMessage(Object name);
+
+  /// No description provided for @schoolSitesFormInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the school name and login URL first.'**
+  String get schoolSitesFormInvalid;
+
+  /// No description provided for @schoolSitesJsonFileName.
+  ///
+  /// In en, this message translates to:
+  /// **'classmate_school_sites.json'**
+  String get schoolSitesJsonFileName;
+
+  /// No description provided for @schoolHtmlImportEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Import by pasting timetable HTML'**
+  String get schoolHtmlImportEntry;
+
+  /// No description provided for @schoolHtmlImportEntryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste timetable page HTML manually. Useful on Windows and web.'**
+  String get schoolHtmlImportEntryDesc;
+
+  /// No description provided for @schoolHtmlImportPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import timetable from HTML'**
+  String get schoolHtmlImportPageTitle;
+
+  /// No description provided for @schoolHtmlImportUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source URL (optional)'**
+  String get schoolHtmlImportUrlLabel;
+
+  /// No description provided for @schoolHtmlImportTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page title (optional)'**
+  String get schoolHtmlImportTitleLabel;
+
+  /// No description provided for @schoolHtmlImportHtmlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page HTML'**
+  String get schoolHtmlImportHtmlLabel;
+
+  /// No description provided for @schoolHtmlImportHtmlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the full timetable page HTML here.'**
+  String get schoolHtmlImportHtmlHint;
+
+  /// No description provided for @schoolHtmlImportCompress.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress content'**
+  String get schoolHtmlImportCompress;
+
+  /// No description provided for @schoolHtmlImportCompressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Content compressed'**
+  String get schoolHtmlImportCompressed;
+
+  /// No description provided for @schoolHtmlImportCompressFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress the content first.'**
+  String get schoolHtmlImportCompressFirst;
+
+  /// No description provided for @schoolHtmlImportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Parse and import'**
+  String get schoolHtmlImportSubmit;
+
+  /// No description provided for @schoolHtmlImportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the page HTML first.'**
+  String get schoolHtmlImportEmpty;
+
+  /// No description provided for @schoolWebImportPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'School webpage import'**
+  String get schoolWebImportPageTitle;
+
+  /// No description provided for @schoolWebImportPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Import preview'**
+  String get schoolWebImportPreview;
+
+  /// No description provided for @schoolWebImportCourseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} courses'**
+  String schoolWebImportCourseCount(int count);
+
+  /// No description provided for @schoolWebImportPeriodCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} periods'**
+  String schoolWebImportPeriodCount(int count);
+
+  /// No description provided for @schoolWebImportPageTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page title'**
+  String get schoolWebImportPageTitleLabel;
+
+  /// No description provided for @schoolWebImportParserUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser'**
+  String get schoolWebImportParserUsed;
+
+  /// No description provided for @schoolWebImportWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Import notes'**
+  String get schoolWebImportWarnings;
+
+  /// No description provided for @schoolWebImportOpenPageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to the school site in-app, then navigate to the timetable page manually.'**
+  String get schoolWebImportOpenPageHint;
+
+  /// No description provided for @schoolWebImportConfigMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Web import backend API is not configured yet.'**
+  String get schoolWebImportConfigMissing;
+
+  /// No description provided for @schoolWebImportUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'This platform does not support embedded web login yet. Please use a platform with WebView support.'**
+  String get schoolWebImportUnsupportedPlatform;
+
+  /// No description provided for @schoolWebImportSelectSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose school'**
+  String get schoolWebImportSelectSchool;
+
+  /// No description provided for @schoolWebImportNoSchools.
+  ///
+  /// In en, this message translates to:
+  /// **'No school configuration is available. Check school_sites.json first.'**
+  String get schoolWebImportNoSchools;
+
+  /// No description provided for @schoolWebImportSchoolLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load school configuration. Check the JSON file format.'**
+  String get schoolWebImportSchoolLoadFailed;
+
+  /// No description provided for @schoolWebImportImportCurrentPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Import current page'**
+  String get schoolWebImportImportCurrentPage;
+
+  /// No description provided for @schoolWebImportLoadingPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading page…'**
+  String get schoolWebImportLoadingPage;
+
+  /// No description provided for @schoolWebImportParsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsing current page…'**
+  String get schoolWebImportParsing;
+
+  /// No description provided for @schoolWebImportEmptyPage.
+  ///
+  /// In en, this message translates to:
+  /// **'The current page content is empty and cannot be imported yet.'**
+  String get schoolWebImportEmptyPage;
+
+  /// No description provided for @schoolWebImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Web timetable imported'**
+  String get schoolWebImportSuccess;
 
   /// No description provided for @privacyViewFullPolicy.
   ///

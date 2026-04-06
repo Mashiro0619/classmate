@@ -59,6 +59,7 @@ class TimetableGrid extends StatelessWidget {
     required this.weekDateStart,
     required this.selectedWeek,
     required this.localeCode,
+    required this.preserveGaps,
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
@@ -69,6 +70,7 @@ class TimetableGrid extends StatelessWidget {
   final DateTime weekDateStart;
   final int selectedWeek;
   final String localeCode;
+  final bool preserveGaps;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
@@ -78,9 +80,10 @@ class TimetableGrid extends StatelessWidget {
     final slots = periodTimes.isEmpty
         ? buildPeriodTimesForCount(1)
         : periodTimes;
-    final startMinutes = slots.first.startMinutes;
-    final endMinutes = slots.last.endMinutes;
-    final totalHeight = (endMinutes - startMinutes) * _minuteHeight;
+    final layout = _TimetableVerticalLayout(
+      slots: slots,
+      preserveGaps: preserveGaps,
+    );
     final colors = Theme.of(context).colorScheme;
 
     return LayoutBuilder(
@@ -122,7 +125,7 @@ class TimetableGrid extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   child: SizedBox(
-                    height: totalHeight,
+                    height: layout.totalHeight,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -132,15 +135,11 @@ class TimetableGrid extends StatelessWidget {
                             children: [
                               for (final slot in slots)
                                 Positioned(
-                                  top:
-                                      (slot.startMinutes - startMinutes) *
-                                      _minuteHeight,
+                                  top: layout.slotTop(slot),
                                   left: 0,
                                   right: 0,
                                   child: SizedBox(
-                                    height:
-                                        (slot.endMinutes - slot.startMinutes) *
-                                        _minuteHeight,
+                                    height: layout.slotHeight(slot),
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         horizontal: metrics.sidePadding,
@@ -196,18 +195,8 @@ class TimetableGrid extends StatelessWidget {
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onLongPressStart: (details) {
-                                final minutesFromTop =
-                                    (details.localPosition.dy / _minuteHeight)
-                                        .floor();
-                                final maxOffset = math.max(
-                                  endMinutes - startMinutes - 1,
-                                  0,
-                                );
-                                final tappedMinutes = startMinutes +
-                                    minutesFromTop.clamp(0, maxOffset).toInt();
-                                final matchedPeriod = _pickPeriodForMinute(
-                                  slots,
-                                  tappedMinutes,
+                                final matchedPeriod = layout.slotForY(
+                                  details.localPosition.dy,
                                 );
                                 onEmptySlotTap(
                                   TimetableEmptySlotTapInfo(
@@ -223,16 +212,11 @@ class TimetableGrid extends StatelessWidget {
                                 children: [
                                   for (final slot in slots)
                                     Positioned(
-                                      top:
-                                          (slot.startMinutes - startMinutes) *
-                                          _minuteHeight,
+                                      top: layout.slotTop(slot),
                                       left: 0,
                                       right: 0,
                                       child: Container(
-                                        height:
-                                            (slot.endMinutes -
-                                                slot.startMinutes) *
-                                            _minuteHeight,
+                                        height: layout.slotHeight(slot),
                                         decoration: BoxDecoration(
                                           border: Border(
                                             top: BorderSide(
@@ -253,7 +237,7 @@ class TimetableGrid extends StatelessWidget {
                                   ).map(
                                     (item) => _CourseCard(
                                       layout: item,
-                                      dayStartMinutes: startMinutes,
+                                      verticalLayout: layout,
                                       metrics: metrics,
                                       onTap: () => onCourseTap(
                                         TimetableCourseTapInfo(
@@ -428,28 +412,119 @@ class _DayHeader extends StatelessWidget {
   }
 }
 
-CoursePeriodTime _pickPeriodForMinute(
-  List<CoursePeriodTime> slots,
-  int minute,
-) {
-  for (final slot in slots) {
-    if (minute >= slot.startMinutes && minute < slot.endMinutes) {
-      return slot;
-    }
+class _TimetableVerticalLayout {
+  _TimetableVerticalLayout({
+    required this.slots,
+    required this.preserveGaps,
+  }) : _slotTops = _buildSlotTops(slots, preserveGaps) {
+    totalHeight = slots.isEmpty
+        ? 0
+        : preserveGaps
+        ? (slots.last.endMinutes - slots.first.startMinutes) * _minuteHeight
+        : slots.fold<double>(
+            0,
+            (sum, slot) => sum + _slotHeightFor(slot),
+          );
   }
-  return slots.first;
+
+  final List<CoursePeriodTime> slots;
+  final bool preserveGaps;
+  final List<double> _slotTops;
+  late final double totalHeight;
+
+  static List<double> _buildSlotTops(
+    List<CoursePeriodTime> slots,
+    bool preserveGaps,
+  ) {
+    if (slots.isEmpty) {
+      return const [];
+    }
+    if (preserveGaps) {
+      final startMinutes = slots.first.startMinutes;
+      return [
+        for (final slot in slots)
+          (slot.startMinutes - startMinutes) * _minuteHeight,
+      ];
+    }
+    var currentTop = 0.0;
+    final tops = <double>[];
+    for (final slot in slots) {
+      tops.add(currentTop);
+      currentTop += _slotHeightFor(slot);
+    }
+    return tops;
+  }
+
+  static double _slotHeightFor(CoursePeriodTime slot) {
+    return math.max(0, slot.endMinutes - slot.startMinutes) * _minuteHeight;
+  }
+
+  int _slotIndex(CoursePeriodTime slot) {
+    final index = slots.indexWhere((item) => item.index == slot.index);
+    return index < 0 ? 0 : index;
+  }
+
+  double slotTop(CoursePeriodTime slot) => _slotTops[_slotIndex(slot)];
+
+  double slotHeight(CoursePeriodTime slot) => _slotHeightFor(slot);
+
+  double minuteToY(int minute) {
+    if (slots.isEmpty) {
+      return 0;
+    }
+    final firstStart = slots.first.startMinutes;
+    final lastEnd = slots.last.endMinutes;
+    final clampedMinute = minute.clamp(firstStart, lastEnd).toInt();
+    if (preserveGaps) {
+      return (clampedMinute - firstStart) * _minuteHeight;
+    }
+    for (var index = 0; index < slots.length; index++) {
+      final slot = slots[index];
+      final top = _slotTops[index];
+      if (clampedMinute < slot.startMinutes) {
+        return top;
+      }
+      if (clampedMinute <= slot.endMinutes) {
+        return top + (clampedMinute - slot.startMinutes) * _minuteHeight;
+      }
+    }
+    return totalHeight;
+  }
+
+  double courseTop(CourseItem course) => minuteToY(course.startMinutes);
+
+  double courseHeight(CourseItem course) {
+    final visualHeight = minuteToY(course.endMinutes) - minuteToY(course.startMinutes);
+    return math.max(92.0, visualHeight);
+  }
+
+  CoursePeriodTime slotForY(double y) {
+    if (slots.isEmpty) {
+      throw StateError('No period slots available');
+    }
+    final clampedY = totalHeight <= 0
+        ? 0.0
+        : y.clamp(0.0, math.max(totalHeight - 0.001, 0.0)).toDouble();
+    for (var index = 0; index < slots.length; index++) {
+      final bottom = _slotTops[index] + slotHeight(slots[index]);
+      if (clampedY < bottom) {
+        return slots[index];
+      }
+    }
+    return slots.last;
+  }
 }
 
 class _CourseCard extends StatelessWidget {
   const _CourseCard({
     required this.layout,
-    required this.dayStartMinutes,
+    required this.verticalLayout,
     required this.metrics,
     required this.onTap,
   });
 
   final _CourseLayout layout;
-  final int dayStartMinutes;
+  final _TimetableVerticalLayout verticalLayout;
   final _TimetableMetrics metrics;
   final VoidCallback onTap;
 
@@ -457,14 +532,8 @@ class _CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final top = (layout.course.startMinutes - dayStartMinutes) * _minuteHeight;
-    final height = math
-        .max(
-          92.0,
-          (layout.course.endMinutes - layout.course.startMinutes) *
-              _minuteHeight,
-        )
-        .toDouble();
+    final top = verticalLayout.courseTop(layout.course);
+    final height = verticalLayout.courseHeight(layout.course);
     final width = math.max(
       0.0,
       metrics.dayColumnWidth - (metrics.courseGap * 2),

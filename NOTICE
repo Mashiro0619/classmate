@@ -16,7 +16,12 @@ Upstream source:
 
 These modified icon assets remain subject to the Apache License, Version 2.0.
 
-In-app icon libraries and package dependencies
----------------------------------------------
+Flutter dependencies and in-app license page
+-------------------------------------------
 
-This app also uses third-party Flutter packages and icon libraries, including package-provided icons such as font_awesome_flutter. Their license information can be viewed from the app's open-source licenses page.
+This app also uses third-party Flutter packages and SDK-provided components. Their license information can be viewed from the app's open-source licenses page.
+
+Imported data and school-site configuration
+------------------------------------------
+
+School-site JSON files, timetable JSON files, period templates, and timetable page source submitted for parsing are user-provided data, not bundled third-party assets. They are handled according to the app's privacy policy and are not covered by this notice file unless the user adds separate third-party materials on their own.

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../data/timetable_storage.dart';
+import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
 
 enum AppImportMode { replaceAll, addAll }
@@ -29,6 +30,7 @@ class TimetableProvider extends ChangeNotifier {
   String? get storagePath => _storagePath;
   bool get closeCoursePopupOnOutsideTap =>
       _appData.closeCoursePopupOnOutsideTap;
+  bool get preserveTimetableGaps => _appData.preserveTimetableGaps;
   String get localeCode => _appData.localeCode;
   String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
   String? get acceptedPrivacyPolicyVersion => _appData.privacyPolicyAcceptedVersion;
@@ -572,6 +574,129 @@ class TimetableProvider extends ChangeNotifier {
     return selected.config.name;
   }
 
+  Future<void> importSchoolWebResponseWithPeriodTimeSet(
+    SchoolImportResponse response, {
+    required TimetableImportMode mode,
+    required String periodTimeSetId,
+  }) async {
+    final selectedPeriodTimeSet = periodTimeSetForId(periodTimeSetId);
+    if (selectedPeriodTimeSet == null) {
+      throw FormatException(
+        noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
+      );
+    }
+    final timetable = _buildSchoolImportedTimetable(
+      response,
+      periodTimeSet: selectedPeriodTimeSet,
+    );
+
+    if (mode == TimetableImportMode.replaceActive) {
+      final current = activeTimetableOrNull;
+      if (current == null) {
+        throw FormatException(
+          noActiveTimetableToReplaceMessage(localeCode: _appData.localeCode),
+        );
+      }
+      final replaced = timetable.copyWith(id: current.id);
+      final updatedTimetables = _appData.timetables
+          .map((item) => item.id == current.id ? replaced : item)
+          .toList();
+      _appData = _appData.copyWith(
+        activeTimetableId: current.id,
+        timetables: updatedTimetables,
+      );
+      _selectedWeek = currentWeekFor(replaced.config);
+      await _saveAndNotify();
+      return;
+    }
+
+    _appData = _appData.copyWith(
+      activeTimetableId: timetable.id,
+      timetables: [..._appData.timetables, timetable],
+    );
+    _selectedWeek = currentWeekFor(timetable.config);
+    await _saveAndNotify();
+  }
+
+  (int, int) _resolveImportedCourseTimeRange(
+    List<CoursePeriodTime> periodTimes,
+    List<int> periods,
+    int startMinutes,
+    int endMinutes,
+  ) {
+    if (startMinutes > 0 && endMinutes > startMinutes) {
+      return (startMinutes, endMinutes);
+    }
+    if (periods.isEmpty || periodTimes.isEmpty) {
+      return (startMinutes, endMinutes);
+    }
+
+    final matchedSlots = periodTimes
+        .where((slot) => periods.contains(slot.index))
+        .toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+    if (matchedSlots.isEmpty) {
+      return (startMinutes, endMinutes);
+    }
+
+    return (matchedSlots.first.startMinutes, matchedSlots.last.endMinutes);
+  }
+
+  TimetableData _buildSchoolImportedTimetable(
+    SchoolImportResponse response, {
+    required PeriodTimeSet periodTimeSet,
+  }) {
+    final draft = response.timetable;
+    var courseSeed = DateTime.now().microsecondsSinceEpoch;
+    final courses = draft.courses.map((item) {
+      final rawStartMinutes = item.startMinutes;
+      final rawEndMinutes = item.endMinutes;
+      final periods = item.periods.isEmpty
+          ? matchPeriodsForTimeRange(
+              periodTimeSet.periodTimes,
+              rawStartMinutes,
+              rawEndMinutes,
+            )
+          : item.periods;
+      final resolvedTimeRange = _resolveImportedCourseTimeRange(
+        periodTimeSet.periodTimes,
+        periods,
+        rawStartMinutes,
+        rawEndMinutes,
+      );
+      final startMinutes = resolvedTimeRange.$1;
+      final endMinutes = resolvedTimeRange.$2;
+      return CourseItem(
+        id: 'school_course_${courseSeed++}',
+        name: item.name.trim(),
+        teacher: item.teacher.trim(),
+        location: item.location.trim(),
+        dayOfWeek: normalizeDayOfWeek(item.dayOfWeek),
+        semesterWeeks: normalizeSemesterWeeks(item.semesterWeeks),
+        periods: periods,
+        startMinutes: startMinutes,
+        endMinutes: endMinutes,
+        timeRange: buildTimeRange(startMinutes, endMinutes),
+        credit: item.credit,
+        remarks: item.remarks.trim(),
+        customFields: const {},
+      );
+    }).toList();
+    final timetableName = draft.name.trim().isEmpty
+        ? untitledTimetableName(localeCode: _appData.localeCode)
+        : draft.name.trim();
+    return TimetableData(
+      id: 'school_import_table_${DateTime.now().microsecondsSinceEpoch}',
+      config: TimetableConfig(
+        name: timetableName,
+        startDate: normalizeDateOnly(draft.startDate),
+        totalWeeks: normalizeTimetableWeeks(draft.totalWeeks),
+        periodTimeSetId: periodTimeSet.id,
+      ),
+      courses: courses,
+    );
+  }
+
   List<CoursePeriodTime> importPeriodTimesJson(String source) {
     final periodTimes = decodePeriodTimesEnvelope(
       source,
@@ -610,6 +735,14 @@ class TimetableProvider extends ChangeNotifier {
       return;
     }
     _appData = _appData.copyWith(closeCoursePopupOnOutsideTap: value);
+    await _saveAndNotify();
+  }
+
+  Future<void> updatePreserveTimetableGaps(bool value) async {
+    if (_appData.preserveTimetableGaps == value) {
+      return;
+    }
+    _appData = _appData.copyWith(preserveTimetableGaps: value);
     await _saveAndNotify();
   }
 

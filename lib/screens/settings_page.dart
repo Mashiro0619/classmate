@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +7,9 @@ import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
-import 'period_times_page.dart';
+import '../widgets/period_time_set_picker_dialog.dart';
 import 'privacy_policy_page.dart';
+import 'timetable_import_flow.dart';
 
 enum _DataAction {
   importTimetables,
@@ -109,6 +107,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: Text(l10n.coursePopupDismissSettingHint),
                 onChanged: provider.updateCloseCoursePopupOnOutsideTap,
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: provider.preserveTimetableGaps,
+                title: Text(l10n.preserveTimetableGaps),
+                subtitle: Text(l10n.preserveTimetableGapsHint),
+                onChanged: provider.updatePreserveTimetableGaps,
+              ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.language),
@@ -134,6 +139,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.language_outlined),
+                title: Text(l10n.schoolWebImportEntry),
+                subtitle: Text(l10n.schoolWebImportEntryDesc),
+                onTap: () => _openSchoolSitesPage(provider),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.privacy_tip_outlined),
                 title: Text(l10n.privacyPolicyTitle),
                 subtitle: Text(
@@ -151,6 +163,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text(l10n.openSourceLicenses),
                 subtitle: Text(l10n.openSourceLicensesDesc),
                 onTap: _openLicensesPage,
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.update_outlined),
+                title: Text(l10n.checkForUpdates),
+                subtitle: const Text(
+                  'github.com/Mashiro0619/classmate/releases/latest',
+                ),
+                onTap: _openReleasesPage,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -213,102 +234,10 @@ class _SettingsPageState extends State<SettingsPage> {
     TimetableProvider provider,
     TimetableConfig config,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, refreshDialog) {
-            final currentSelectedId = _selectedPeriodTimeSetId;
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Expanded(child: Text(l10n.selectPeriodTimeSet)),
-                  TextButton.icon(
-                    onPressed: () async {
-                      final created = await provider.addPeriodTimeSet();
-                      if (!mounted) {
-                        return;
-                      }
-                      setState(() => _selectedPeriodTimeSetId = created.id);
-                      await _openPeriodTimePage(provider, created.id);
-                      if (!mounted) {
-                        return;
-                      }
-                      refreshDialog(() {});
-                    },
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.newItem),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: 420,
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: provider.periodTimeSets.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = provider.periodTimeSets[index];
-                    final selected = item.id == currentSelectedId;
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      tileColor: selected
-                          ? Theme.of(context).colorScheme.secondaryContainer
-                          : null,
-                      title: Text(item.name),
-                      subtitle: Text(
-                        l10n.periodTimeSetSummary(
-                          item.name,
-                          item.periodTimes.length,
-                        ),
-                      ),
-                      trailing: Wrap(
-                        spacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (selected) const Icon(Icons.check),
-                          IconButton(
-                            tooltip: l10n.editPeriodTimeSet,
-                            onPressed: () async {
-                              await _openPeriodTimePage(provider, item.id);
-                              if (!mounted) {
-                                return;
-                              }
-                              final stillExists =
-                                  provider.periodTimeSetForId(item.id) != null;
-                              if (!stillExists &&
-                                  _selectedPeriodTimeSetId == item.id) {
-                                final fallbackId =
-                                    provider.activePeriodTimeSetOrNull?.id ??
-                                    '';
-                                setState(
-                                  () => _selectedPeriodTimeSetId = fallbackId,
-                                );
-                              }
-                              refreshDialog(() {});
-                            },
-                            icon: const Icon(Icons.edit_outlined),
-                          ),
-                        ],
-                      ),
-                      onTap: () => Navigator.of(dialogContext).pop(item.id),
-                    );
-                  },
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(l10n.cancel),
-                ),
-              ],
-            );
-          },
-        );
-      },
+    final result = await showPeriodTimeSetPickerDialog(
+      context,
+      provider: provider,
+      selectedPeriodTimeSetId: _selectedPeriodTimeSetId,
     );
     if (result == null || result == _selectedPeriodTimeSetId) {
       return;
@@ -346,26 +275,22 @@ class _SettingsPageState extends State<SettingsPage> {
     showLicensePage(context: context, applicationName: 'Classmate');
   }
 
+  Future<void> _openReleasesPage() async {
+    final uri = Uri.parse(
+      'https://github.com/Mashiro0619/classmate/releases/latest',
+    );
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      _showMessage(AppLocalizations.of(context)!.openUpdatesFailed);
+    }
+  }
+
   Future<void> _openGithubRepo() async {
     final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
       _showMessage(AppLocalizations.of(context)!.openGithubFailed);
     }
-  }
-
-  Future<void> _openPeriodTimePage(
-    TimetableProvider provider,
-    String periodTimeSetId,
-  ) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
-          value: provider,
-          child: PeriodTimesPage(periodTimeSetId: periodTimeSetId),
-        ),
-      ),
-    );
   }
 
   Future<void> _showDataActions(TimetableProvider provider) async {
@@ -418,7 +343,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     switch (action) {
       case _DataAction.importTimetables:
-        await _importTimetables(provider);
+        await TimetableImportFlow.importTimetables(context, provider);
         return;
       case _DataAction.exportTimetablesShare:
         await _exportTimetables(provider, share: true);
@@ -427,6 +352,10 @@ class _SettingsPageState extends State<SettingsPage> {
         await _exportTimetables(provider, share: false);
         return;
     }
+  }
+
+  Future<void> _openSchoolSitesPage(TimetableProvider provider) async {
+    await TimetableImportFlow.openSchoolSitesPage(context, provider);
   }
 
   Future<void> _exportTimetables(
@@ -463,94 +392,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _importTimetables(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context)!;
-    final source = await _pickJsonSource();
-    if (source == null || !mounted) {
-      return;
-    }
-
-    List<TimetableData> candidates;
-    try {
-      candidates = provider.previewImportTimetables(source);
-    } on FormatException catch (error) {
-      _showMessage(error.message);
-      return;
-    } catch (_) {
-      _showMessage(l10n.importFailedCheckContent);
-      return;
-    }
-
-    if (candidates.isEmpty) {
-      _showMessage(l10n.noImportableTimetables);
-      return;
-    }
-
-    final selectedIds = candidates.length == 1
-        ? [candidates.first.id]
-        : await _pickTimetableIds(
-            timetables: candidates,
-            title: l10n.selectTimetablesToImport,
-            confirmText: l10n.importAction,
-            initialSelectedIds: candidates.map((item) => item.id).toList(),
-          );
-    if (selectedIds == null || selectedIds.isEmpty) {
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
-
-    var mode = TimetableImportMode.addAsNew;
-    if (selectedIds.length == 1 && provider.activeTimetableOrNull != null) {
-      final pickedMode = await showDialog<TimetableImportMode>(
-        context: context,
-        builder: (context) {
-          final l10n = AppLocalizations.of(context)!;
-          return AlertDialog(
-            title: Text(l10n.importTimetableDialogTitle),
-            content: Text(l10n.chooseImportMethod),
-            actions: [
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(TimetableImportMode.addAsNew),
-                child: Text(l10n.importAsNewTimetable),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(
-                  context,
-                ).pop(TimetableImportMode.replaceActive),
-                child: Text(l10n.replaceCurrentTimetable),
-              ),
-            ],
-          );
-        },
-      );
-      if (pickedMode == null) {
-        return;
-      }
-      mode = pickedMode;
-    }
-
-    try {
-      final count = await provider.importSelectedTimetablesJson(
-        source,
-        timetableIds: selectedIds,
-        mode: mode,
-      );
-      if (mounted) {
-        _showMessage(l10n.importedTimetablesCount(count));
-      }
-    } on FormatException catch (error) {
-      if (mounted) {
-        _showMessage(error.message);
-      }
-    } catch (_) {
-      if (mounted) {
-        _showMessage(l10n.importFailedCheckContent);
-      }
-    }
-  }
 
   Future<List<String>?> _pickTimetableIds({
     required List<TimetableData> timetables,
@@ -662,20 +503,6 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
-  }
-
-  Future<String?> _pickJsonSource() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['json'],
-      withData: true,
-    );
-    final file = result?.files.single;
-    final bytes = file?.bytes;
-    if (file == null || bytes == null) {
-      return null;
-    }
-    return utf8.decode(bytes);
   }
 
   Future<void> _shareJson(String fileName, String content) async {

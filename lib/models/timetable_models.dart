@@ -2,20 +2,15 @@ import 'dart:convert';
 
 const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
-const defaultInitialTimetableId = 'default';
 const defaultLocaleCode = 'zh';
 const maxTimetableWeeks = 100;
-const currentPrivacyPolicyVersion = '2026-04-04';
+const currentPrivacyPolicyVersion = '2026-04-08';
 
 bool _isEnglishLocale(String localeCode) =>
     normalizeLocaleCode(localeCode) == 'en';
 
 String defaultPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
   return _isEnglishLocale(localeCode) ? 'Default periods' : '默认节次';
-}
-
-String defaultInitialTimetableName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'Blank timetable' : '空白课表';
 }
 
 String periodTimeSetFallbackName({String localeCode = defaultLocaleCode}) {
@@ -65,6 +60,12 @@ String noPeriodTimesInImportMessage({String localeCode = defaultLocaleCode}) {
   return _isEnglishLocale(localeCode)
       ? 'No period times found in the import file.'
       : '导入文件中没有节次时间';
+}
+
+String noPeriodTimeAvailableMessage({String localeCode = defaultLocaleCode}) {
+  return _isEnglishLocale(localeCode)
+      ? 'No available period time set.'
+      : '暂无可用节次时间';
 }
 
 String selectAtLeastOneTimetableMessage({
@@ -504,6 +505,7 @@ class AppData {
     required this.periodTimeSets,
     this.conflictDisplayCourseIds = const {},
     this.closeCoursePopupOnOutsideTap = true,
+    this.preserveTimetableGaps = true,
     this.localeCode = defaultLocaleCode,
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
@@ -514,6 +516,7 @@ class AppData {
   final List<PeriodTimeSet> periodTimeSets;
   final Map<String, String> conflictDisplayCourseIds;
   final bool closeCoursePopupOnOutsideTap;
+  final bool preserveTimetableGaps;
   final String localeCode;
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
@@ -524,6 +527,7 @@ class AppData {
     'periodTimeSets': periodTimeSets.map((item) => item.toJson()).toList(),
     'conflictDisplayCourseIds': conflictDisplayCourseIds,
     'closeCoursePopupOnOutsideTap': closeCoursePopupOnOutsideTap,
+    'preserveTimetableGaps': preserveTimetableGaps,
     'localeCode': normalizeLocaleCode(localeCode),
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
@@ -610,6 +614,7 @@ class AppData {
       ),
       closeCoursePopupOnOutsideTap:
           json['closeCoursePopupOnOutsideTap'] as bool? ?? true,
+      preserveTimetableGaps: json['preserveTimetableGaps'] as bool? ?? true,
       localeCode: localeCode,
       privacyPolicyAcceptedVersion:
           json['privacyPolicyAcceptedVersion'] as String?,
@@ -623,6 +628,7 @@ class AppData {
     List<PeriodTimeSet>? periodTimeSets,
     Map<String, String>? conflictDisplayCourseIds,
     bool? closeCoursePopupOnOutsideTap,
+    bool? preserveTimetableGaps,
     String? localeCode,
     String? privacyPolicyAcceptedVersion,
     String? privacyPolicyAcceptedAtIso,
@@ -635,6 +641,8 @@ class AppData {
           conflictDisplayCourseIds ?? this.conflictDisplayCourseIds,
       closeCoursePopupOnOutsideTap:
           closeCoursePopupOnOutsideTap ?? this.closeCoursePopupOnOutsideTap,
+      preserveTimetableGaps:
+          preserveTimetableGaps ?? this.preserveTimetableGaps,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
       privacyPolicyAcceptedVersion:
           privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
@@ -1104,7 +1112,6 @@ AppData buildInitialAppData(
   List<CoursePeriodTime> periodTimes, {
   String localeCode = defaultLocaleCode,
 }) {
-  final now = DateTime.now();
   final defaultSet = PeriodTimeSet(
     id: defaultPeriodTimeSetId,
     name: defaultPeriodTimeSetName(localeCode: localeCode),
@@ -1113,20 +1120,10 @@ AppData buildInitialAppData(
       source: periodTimes,
     ),
   );
-  final timetable = TimetableData(
-    id: defaultInitialTimetableId,
-    config: TimetableConfig(
-      name: defaultInitialTimetableName(localeCode: localeCode),
-      startDate: DateTime(now.year, 3, 1),
-      totalWeeks: 18,
-      periodTimeSetId: defaultSet.id,
-    ),
-    courses: const [],
-  );
 
   return AppData(
-    activeTimetableId: timetable.id,
-    timetables: [timetable],
+    activeTimetableId: '',
+    timetables: const [],
     periodTimeSets: [defaultSet],
     localeCode: localeCode,
   );

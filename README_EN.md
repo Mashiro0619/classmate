@@ -7,60 +7,82 @@
 
 [中文 README](README.md)
 
-Classmate is a Flutter timetable app for multi-timetable management, shared period-time sets, course editing, conflict display, and timetable/template import and export.
-
-Supported targets: Android, iOS, Windows, macOS, Linux, and Web.
+Classmate is a local-first Flutter timetable app focused on timetable management, reusable period-time sets, course editing, and timetable import from school webpages or pasted HTML source.
 
 ## Features
 
-- Multi-timetable management: create, switch, rename, edit, and delete timetables
-- Weekly timetable view with quick week jump, horizontal swipe navigation, and keyboard arrow key navigation
-- Course management with location, teacher, credits, remarks, and custom fields
-- Conflict handling with support for viewing conflicting courses and choosing which one is shown externally
-- Shared period-time sets with create, select, edit, delete, and reuse support across timetables
-- Template and data workflows for importing, exporting, sharing, and saving timetable JSON files and period templates
-- Settings entry points for semester start date, period-time sets, open-source licenses, and the GitHub repository
+- Multi-timetable and course management
+- Reusable period-time sets
+- School site management
+- School webpage / HTML import
+- Import preview with editable timetable info
+- Timetable, period-template, and school-site JSON import/export
+
+Welcome to submit PRs to expand `assets/school_sites.json` with more school site entries.
 
 ## Screenshots
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/screenshot1.png" alt="Home" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot2.png" alt="Drawer" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot3.png" alt="Course details" width="240"></td>
-    <td align="center"><img src="docs/screenshots/screenshot4.png" alt="Settings" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s1.png" alt="Home" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s2.png" alt="Course details" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s3.png" alt="Settings" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s4.png" alt="Edit period time set" width="240"></td>
   </tr>
   <tr>
     <td align="center">Home</td>
-    <td align="center">Drawer</td>
     <td align="center">Course details</td>
     <td align="center">Settings</td>
+    <td align="center">Edit period time set</td>
   </tr>
 </table>
 
-## Default data
+## School import backend
 
-On first launch, the app automatically creates:
+The project includes a single-file PHP relay endpoint: [web/api.php](web/api.php)
 
-- A default blank timetable named `空白课表`
-- A built-in default period-time set loaded from [assets/default_period_times.json](assets/default_period_times.json)
+### Backend configuration
 
-If local data already exists, the app loads the saved data first.
+Only the configuration block at the top of `web/api.php` needs to be edited:
+
+- `$relayUrl`: upstream AI API endpoint
+- `$relayToken`: your API key
+- `$model`: model name to use
+- `$timeoutSeconds`: request timeout, currently 120 seconds by default
+- `$sourceByteLimit`: max submitted content size, currently 300KB by default
+- `$maxParsesPerIpPerDay`: max parsing requests per IP per day, currently 5 by default
+
+### Current backend behavior
+
+- Uses your configured API key through your own PHP relay service
+- Returns structured JSON so the client can show the real error directly
+- Enforces submitted-content size limits and per-IP daily parsing limits
+- Supports webpage-source import and does not require strictly valid HTML input
 
 ## Project structure
 
 ```text
 lib/
-├─ data/         # Local storage and platform adapters
-├─ models/       # Timetable, course, and period-time models
+├─ config/       # App configuration and default API URL
+├─ models/       # Timetable, course, school-site, and import response models
 ├─ providers/    # State management and import/export logic
-├─ screens/      # Screens such as home, settings, and period-time editor
-├─ services/     # Export and sharing services
-└─ widgets/      # Timetable grid, course editor, and detail sheets
+├─ screens/      # Screens such as home, settings, and school-site management
+├─ services/     # Export, sharing, import API, and local storage services
+└─ widgets/      # Timetable grid, course editor, and import preview widgets
+
+web/
+└─ api.php
 ```
 
-## Open-source license
+## Privacy policy
 
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+The app currently follows a local-first design. Timetables, period times, and school-site configuration are stored locally by default.
+Only actions you explicitly trigger — such as import, export, sharing, or submitting current webpage / pasted HTML content for parsing — will process the corresponding data.
 
-Bundled launcher icon assets include third-party licensed material. See [NOTICE](NOTICE) for details.
+The full privacy policy can be viewed in the app under `Settings → Privacy Policy`.
+
+## Open-source license and third-party notices
+
+- The source code is licensed under the [GNU Affero General Public License v3.0](LICENSE)
+- Bundled launcher icon and related platform icon assets include third-party licensed material; see [NOTICE](NOTICE)
+- Flutter package and third-party library licenses can be viewed in the app under `Settings → Open-source licenses`

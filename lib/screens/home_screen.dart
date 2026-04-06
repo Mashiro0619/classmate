@@ -14,6 +14,7 @@ import '../widgets/course_editor_sheet.dart';
 import '../widgets/timetable_grid.dart';
 import 'privacy_policy_page.dart';
 import 'settings_page.dart';
+import 'timetable_import_flow.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -60,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             body: _EmptyTimetableState(
               onCreate: provider.addTimetable,
               onImport: () => _importTimetableData(context, provider),
+              onImportFromWeb: () => _importTimetableFromWeb(context, provider),
             ),
           );
         }
@@ -221,6 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         weekDateStart: weekStart,
                         selectedWeek: pageWeek,
                         localeCode: provider.localeCode,
+                        preserveGaps: provider.preserveTimetableGaps,
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
                         onCourseTap: (info) =>
@@ -637,17 +640,14 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
-          value: provider,
-          child: const SettingsPage(),
-        ),
-      ),
-    );
-    if (result == null) {
-      return;
-    }
+    await TimetableImportFlow.importTimetables(context, provider);
+  }
+
+  Future<void> _importTimetableFromWeb(
+    BuildContext context,
+    TimetableProvider provider,
+  ) async {
+    await TimetableImportFlow.openSchoolSitesPage(context, provider);
   }
 
   Future<void> _openPrivacyPolicyPage(
@@ -828,10 +828,15 @@ class _PrivacySummaryRow extends StatelessWidget {
 }
 
 class _EmptyTimetableState extends StatelessWidget {
-  const _EmptyTimetableState({required this.onCreate, required this.onImport});
+  const _EmptyTimetableState({
+    required this.onCreate,
+    required this.onImport,
+    required this.onImportFromWeb,
+  });
 
   final Future<void> Function() onCreate;
   final Future<void> Function() onImport;
+  final Future<void> Function() onImportFromWeb;
 
   @override
   Widget build(BuildContext context) {
@@ -865,6 +870,11 @@ class _EmptyTimetableState extends StatelessWidget {
                   onPressed: onImport,
                   icon: const Icon(Icons.file_download_outlined),
                   label: Text(l10n.importTimetable),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onImportFromWeb,
+                  icon: const Icon(Icons.language_outlined),
+                  label: Text(l10n.schoolWebImportEntry),
                 ),
               ],
             ),

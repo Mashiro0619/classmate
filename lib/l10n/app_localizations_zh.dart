@@ -201,6 +201,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get coursePopupDismissSettingHint => '关闭后也会一并禁用下拉手势关闭，避免误触。';
 
   @override
+  String get preserveTimetableGaps => '保留课表空白时间';
+
+  @override
+  String get preserveTimetableGapsHint => '关闭后会折叠午休、下课等非上课时间，让后续课程向上拼接。';
+
+  @override
   String get language => '语言';
 
   @override
@@ -219,7 +225,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openSourceLicenses => '开源许可';
 
   @override
-  String get openSourceLicensesDesc => '查看依赖与应用图标的许可信息';
+  String get openSourceLicensesDesc => '查看 Flutter 依赖与应用内置图标资源的许可信息';
+
+  @override
+  String get checkForUpdates => '检测更新';
+
+  @override
+  String get openUpdatesFailed => '无法打开更新发布页';
 
   @override
   String get githubRepository => 'GitHub 仓库';
@@ -430,7 +442,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyPolicyTitle => '隐私政策';
 
   @override
-  String get privacyPolicyEntryDesc => '了解应用如何处理本地数据、导入导出和外部链接。';
+  String get privacyPolicyEntryDesc => '了解应用如何处理本地存储、学校站点配置、文件导入导出、网页解析和外部链接。';
 
   @override
   String privacyPolicyAcceptedVersionLabel(Object version) {
@@ -438,25 +450,25 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => 'Classmate 当前以本地功能为主。课程、课表设置和节次时间等数据默认保存在你的设备或浏览器本地。只有在你主动执行导入、导出、分享或打开外部链接等操作时，应用才会调用相应的系统能力。';
+  String get privacyPolicyIntro => 'Classmate 是一个以本地优先为主的应用。课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动发起对应操作时，应用才会读取本地文件、提交网页内容用于解析、打开外部链接或调用系统分享。';
 
   @override
   String get privacyPolicyLocalStorageTitle => '本地存储';
 
   @override
-  String get privacyPolicyLocalStorageBody => '在 Android、iOS、Windows、macOS 和 Linux 等平台，应用会将课表数据和相关设置保存到应用文档目录中的本地文件 classmate_data.json。在 Web 端，应用会将同类数据保存在浏览器本地存储中。应用当前不会默认把这些数据上传到开发者服务器。';
+  String get privacyPolicyLocalStorageBody => '在 Android、iOS、Windows、macOS 和 Linux 等平台，课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。在 Web 端，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。';
 
   @override
   String get privacyPolicyImportExportTitle => '导入与导出';
 
   @override
-  String get privacyPolicyImportExportBody => '只有在你主动选择文件或主动执行导出时，应用才会读取或写出 JSON 课表文件与节次模板文件。导入的文件内容仅用于在本地生成或更新课表数据。';
+  String get privacyPolicyImportExportBody => '只有在你主动选择文件或主动执行导出时，应用才会读取或写出 JSON 课表文件、学校站点 JSON 文件和节次模板文件。这些文件的导入导出本身属于本地操作；只有当你进一步选择网页解析时，相关页面内容才会被发送到你配置的解析接口。';
 
   @override
   String get privacyPolicySharingTitle => '分享功能';
 
   @override
-  String get privacyPolicySharingBody => '当你主动使用分享功能时，应用会把你选中的导出文件交给系统分享面板或目标应用。后续如何处理该文件，由你选择的目标应用自行决定。';
+  String get privacyPolicySharingBody => '当你主动使用分享功能时，应用会把你选中的导出文件交给系统分享面板或目标应用。后续如何处理该文件，由你选择的目标应用或服务自行决定。';
 
   @override
   String get privacyPolicyExternalLinksTitle => '外部链接';
@@ -465,39 +477,192 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyPolicyExternalLinksBody => '当你主动打开 GitHub 仓库等外部链接时，应用会调用系统浏览器或其他外部应用。离开应用后的数据处理将受对应第三方的政策约束。';
 
   @override
-  String get privacyPolicyNoCollectionTitle => '当前不采集的内容';
+  String get privacyPolicyNoCollectionTitle => '默认不收集的内容';
 
   @override
-  String get privacyPolicyNoCollectionBody => '在当前版本中，应用不要求你注册账号，也不会默认收集学校账号密码、云端备份数据、广告标识符或分析统计数据。';
+  String get privacyPolicyNoCollectionBody => '应用不要求你注册 Classmate 账号，也不会默认启用分析统计、广告标识符或云端备份。应用本身也没有专门采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。';
 
   @override
-  String get privacyPolicyFutureFeatureTitle => '未来功能说明';
+  String get privacyPolicyFutureFeatureTitle => '网页解析';
 
   @override
-  String get privacyPolicyFutureFeatureBody => '未来版本可能支持由用户主动发起的学校课程表网页导入功能。如果该功能引入新的数据处理方式、网络请求或需要额外提供的信息，应用会在功能上线前更新本隐私政策。';
+  String get privacyPolicyFutureFeatureBody => '当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。在课表正式保存前，应用会先展示解析结果，并允许你手动修改课表名称和开学日期。';
 
   @override
   String get privacyPolicyUpdatesTitle => '政策更新';
 
   @override
   String privacyPolicyUpdatesBody(Object version) {
-    return '当前隐私政策版本为 $version。如果未来版本调整了数据处理方式，应用可能会要求你重新阅读并同意更新后的隐私政策。';
+    return '当前隐私政策版本为 $version。如果后续版本调整了数据处理方式，应用可能会要求你重新阅读并同意更新后的隐私政策。';
   }
 
   @override
   String get privacyGateTitle => '使用前请先同意隐私政策';
 
   @override
-  String get privacyGateSummaryStorage => '课表和设置默认保存在本地，不会自动上传到开发者服务器。';
+  String get privacyGateSummaryStorage => '课表、节次时间集和学校站点配置默认保存在本地，不会自动上传到开发者服务器。';
 
   @override
-  String get privacyGateSummaryImportExport => '导入、导出和分享仅在你主动操作时触发。';
+  String get privacyGateSummaryImportExport => '导入、导出和分享仅在你主动操作时触发；网页解析只会发送你主动提交的压缩后内容，并在保存前让你预览解析结果。';
 
   @override
   String get privacyGateSummaryExternal => '打开 GitHub 等外部链接会交给系统浏览器或其他应用处理。';
 
   @override
-  String get privacyGateSummaryUpdates => '如果未来新增网页导入等功能并改变数据处理方式，会先更新隐私政策。';
+  String get privacyGateSummaryUpdates => '如果后续版本调整了数据处理方式，应用可能会要求你重新查看更新后的隐私政策。';
+
+  @override
+  String get schoolWebImportEntry => '从学校网页导入';
+
+  @override
+  String get schoolWebImportEntryDesc => '在应用内打开学校网站，进入课表页后导入当前页面。';
+
+  @override
+  String get schoolSitesManageEntry => '学校站点管理';
+
+  @override
+  String get schoolSitesManageEntryDesc => '新增、编辑、删除学校登录地址，并支持 JSON 导入导出。';
+
+  @override
+  String get schoolSitesPageTitle => '学校站点管理';
+
+  @override
+  String get schoolSitesImportJson => '导入学校 JSON';
+
+  @override
+  String get schoolSitesShareJson => '分享学校 JSON';
+
+  @override
+  String get schoolSitesSaveJson => '保存学校 JSON';
+
+  @override
+  String get schoolSitesSaved => '学校站点已保存';
+
+  @override
+  String get schoolSitesImported => '学校站点已导入';
+
+  @override
+  String get schoolSitesEmpty => '当前还没有学校站点配置。';
+
+  @override
+  String get schoolSitesNameLabel => '学校名称';
+
+  @override
+  String get schoolSitesLoginUrlLabel => '登录页链接';
+
+  @override
+  String get schoolSitesAdd => '新增学校';
+
+  @override
+  String get schoolSitesEdit => '编辑学校';
+
+  @override
+  String get schoolSitesDeleteTitle => '删除学校';
+
+  @override
+  String schoolSitesDeleteMessage(Object name) {
+    return '确认删除“$name”吗？';
+  }
+
+  @override
+  String get schoolSitesFormInvalid => '请完整填写学校名称和登录页链接。';
+
+  @override
+  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+
+  @override
+  String get schoolHtmlImportEntry => '粘贴课程表网页 HTML 导入';
+
+  @override
+  String get schoolHtmlImportEntryDesc => '手动粘贴课程表网页源码，适用于 Windows 和 Web 端。';
+
+  @override
+  String get schoolHtmlImportPageTitle => 'HTML 导入课表';
+
+  @override
+  String get schoolHtmlImportUrlLabel => '来源 URL（可选）';
+
+  @override
+  String get schoolHtmlImportTitleLabel => '页面标题（可选）';
+
+  @override
+  String get schoolHtmlImportHtmlLabel => '网页 HTML';
+
+  @override
+  String get schoolHtmlImportHtmlHint => '请粘贴完整课程表页面 HTML。';
+
+  @override
+  String get schoolHtmlImportCompress => '压缩内容';
+
+  @override
+  String get schoolHtmlImportCompressed => '内容已压缩';
+
+  @override
+  String get schoolHtmlImportCompressFirst => '请先压缩内容。';
+
+  @override
+  String get schoolHtmlImportSubmit => '解析并导入';
+
+  @override
+  String get schoolHtmlImportEmpty => '请先粘贴网页 HTML。';
+
+  @override
+  String get schoolWebImportPageTitle => '学校网页导入';
+
+  @override
+  String get schoolWebImportPreview => '导入预览';
+
+  @override
+  String schoolWebImportCourseCount(int count) {
+    return '$count 门课程';
+  }
+
+  @override
+  String schoolWebImportPeriodCount(int count) {
+    return '$count 节';
+  }
+
+  @override
+  String get schoolWebImportPageTitleLabel => '页面标题';
+
+  @override
+  String get schoolWebImportParserUsed => '解析器';
+
+  @override
+  String get schoolWebImportWarnings => '导入提示';
+
+  @override
+  String get schoolWebImportOpenPageHint => '请在应用内登录学校网站，并手动切换到课表页。';
+
+  @override
+  String get schoolWebImportConfigMissing => '尚未配置网页导入后端接口地址。';
+
+  @override
+  String get schoolWebImportUnsupportedPlatform => '当前平台暂不支持内嵌网页登录，请在支持 WebView 的平台上使用。';
+
+  @override
+  String get schoolWebImportSelectSchool => '选择学校';
+
+  @override
+  String get schoolWebImportNoSchools => '当前没有可用学校配置，请先检查 school_sites.json。';
+
+  @override
+  String get schoolWebImportSchoolLoadFailed => '学校配置加载失败，请检查 JSON 文件格式。';
+
+  @override
+  String get schoolWebImportImportCurrentPage => '导入当前页';
+
+  @override
+  String get schoolWebImportLoadingPage => '页面加载中…';
+
+  @override
+  String get schoolWebImportParsing => '正在解析当前页面…';
+
+  @override
+  String get schoolWebImportEmptyPage => '当前页面内容为空，暂时无法导入。';
+
+  @override
+  String get schoolWebImportSuccess => '网页课表已导入';
 
   @override
   String get privacyViewFullPolicy => '查看完整隐私政策';
