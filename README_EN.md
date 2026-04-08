@@ -26,10 +26,10 @@ Welcome to submit PRs to expand `assets/school_sites.json` with more school site
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/s1.png" alt="Home" width="240"></td>
-    <td align="center"><img src="docs/screenshots/s2.png" alt="Course details" width="240"></td>
-    <td align="center"><img src="docs/screenshots/s3.png" alt="Settings" width="240"></td>
-    <td align="center"><img src="docs/screenshots/s4.png" alt="Edit period time set" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s1.jpg" alt="Home" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s2.jpg" alt="Course details" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s3.jpg" alt="Settings" width="240"></td>
+    <td align="center"><img src="docs/screenshots/s4.jpg" alt="Edit period time set" width="240"></td>
   </tr>
   <tr>
     <td align="center">Home</td>
