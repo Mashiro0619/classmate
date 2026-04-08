@@ -475,7 +475,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ? l10n.currentVersionLabel
         : '${l10n.currentVersionLabel} $_currentVersion';
     final availableUpdateVersion = provider.availableUpdateVersion;
-    if (availableUpdateVersion == null || availableUpdateVersion.isEmpty) {
+    if (availableUpdateVersion == null ||
+        availableUpdateVersion.isEmpty ||
+        !_isNewerThanCurrentVersion(availableUpdateVersion)) {
       return versionLabel;
     }
     return '$versionLabel · ${l10n.newVersionAvailable}';
@@ -486,7 +488,15 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) {
       return;
     }
-    setState(() => _currentVersion = info.version);
+    final currentVersion = info.version;
+    setState(() => _currentVersion = currentVersion);
+    final provider = context.read<TimetableProvider>();
+    final availableUpdateVersion = provider.availableUpdateVersion;
+    if (availableUpdateVersion != null &&
+        availableUpdateVersion.isNotEmpty &&
+        _compareVersions(availableUpdateVersion, currentVersion) <= 0) {
+      await provider.updateAvailableUpdateVersion(null);
+    }
   }
 
   Future<void> _checkForUpdates() {
@@ -495,6 +505,44 @@ class _SettingsPageState extends State<SettingsPage> {
       provider: context.read<TimetableProvider>(),
       source: UpdateCheckSource.manual,
     );
+  }
+
+  bool _isNewerThanCurrentVersion(String version) {
+    if (_currentVersion.isEmpty) {
+      return true;
+    }
+    return _compareVersions(version, _currentVersion) > 0;
+  }
+
+  int _compareVersions(String a, String b) {
+    final aParts = _normalizeVersion(a)
+        .split('.')
+        .map((item) => int.tryParse(item) ?? 0)
+        .toList();
+    final bParts = _normalizeVersion(b)
+        .split('.')
+        .map((item) => int.tryParse(item) ?? 0)
+        .toList();
+    final maxLength = aParts.length > bParts.length ? aParts.length : bParts.length;
+    for (var index = 0; index < maxLength; index++) {
+      final left = index < aParts.length ? aParts[index] : 0;
+      final right = index < bParts.length ? bParts[index] : 0;
+      if (left != right) {
+        return left.compareTo(right);
+      }
+    }
+    return 0;
+  }
+
+  String _normalizeVersion(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    final withoutPrefix = trimmed.startsWith('v') || trimmed.startsWith('V')
+        ? trimmed.substring(1)
+        : trimmed;
+    return withoutPrefix.split('+').first.trim();
   }
 
   Future<void> _openGithubRepo() async {
