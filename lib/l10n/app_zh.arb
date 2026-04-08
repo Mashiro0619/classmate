@@ -131,6 +131,7 @@
     }
   },
   "currentVersionLabel": "当前版本",
+  "newVersionAvailable": "有新版本",
   "latestVersionLabel": "最新版本",
   "updateContentLabel": "更新内容",
   "officialWebsite": "官网",
@@ -259,7 +260,7 @@
       "version": {}
     }
   },
-  "privacyPolicyIntro": "Classmate 是一个以本地优先为主的应用。课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动发起对应操作时，应用才会读取本地文件、提交网页内容用于解析、打开外部链接或调用系统分享。",
+  "privacyPolicyIntro": "课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。",
   "privacyPolicyLocalStorageTitle": "本地存储",
   "privacyPolicyLocalStorageBody": "在 Android、iOS、Windows、macOS 和 Linux 等平台，课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。在 Web 端，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。",
   "privacyPolicyImportExportTitle": "导入与导出",
@@ -271,7 +272,7 @@
   "privacyPolicyNoCollectionTitle": "默认不收集的内容",
   "privacyPolicyNoCollectionBody": "应用不要求你注册 Classmate 账号，也不会默认启用分析统计、广告标识符或云端备份。应用本身也没有专门采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。",
   "privacyPolicyFutureFeatureTitle": "网页解析",
-  "privacyPolicyFutureFeatureBody": "当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。在课表正式保存前，应用会先展示解析结果，并允许你手动修改课表名称和开学日期。",
+  "privacyPolicyFutureFeatureBody": "当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。",
   "privacyPolicyUpdatesTitle": "政策更新",
   "privacyPolicyUpdatesBody": "当前隐私政策版本为 {version}。如果后续版本调整了数据处理方式，应用可能会要求你重新阅读并同意更新后的隐私政策。",
   "@privacyPolicyUpdatesBody": {
@@ -352,6 +353,8 @@
   "schoolWebImportGoBack": "上一页",
   "schoolWebImportLoadingPage": "页面加载中…",
   "schoolWebImportParsing": "正在解析当前页面…",
+  "schoolWebImportLoadFailed": "页面加载失败，请刷新后重试。",
+  "schoolWebImportLoadTimedOut": "页面加载超时，请刷新后重试。",
   "schoolWebImportEmptyPage": "当前页面内容为空，暂时无法导入。",
   "schoolWebImportSuccess": "网页课表已导入",
   "privacyViewFullPolicy": "查看完整隐私政策",

@@ -131,6 +131,7 @@
     }
   },
   "currentVersionLabel": "Current version",
+  "newVersionAvailable": "Update available",
   "latestVersionLabel": "Latest version",
   "updateContentLabel": "Update details",
   "officialWebsite": "Official website",
@@ -271,7 +272,7 @@
   "privacyPolicyNoCollectionTitle": "What the app does not collect by default",
   "privacyPolicyNoCollectionBody": "The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup by default. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.",
   "privacyPolicyFutureFeatureTitle": "Webpage parsing",
-  "privacyPolicyFutureFeatureBody": "When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day. Before the parsed timetable is saved, the app shows a preview and lets you edit the timetable name and semester start date.",
+  "privacyPolicyFutureFeatureBody": "When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.",
   "privacyPolicyUpdatesTitle": "Policy updates",
   "privacyPolicyUpdatesBody": "The current privacy policy version is {version}. If a later version changes how data is handled, the app may ask you to read and agree to the updated policy again.",
   "@privacyPolicyUpdatesBody": {
@@ -352,6 +353,8 @@
   "schoolWebImportGoBack": "Previous page",
   "schoolWebImportLoadingPage": "Loading page…",
   "schoolWebImportParsing": "Parsing current page…",
+  "schoolWebImportLoadFailed": "Page load failed. Please refresh or try again later.",
+  "schoolWebImportLoadTimedOut": "Page loading timed out. Please refresh and try again.",
   "schoolWebImportEmptyPage": "The current page content is empty and cannot be imported yet.",
   "schoolWebImportSuccess": "Web timetable imported",
   "privacyViewFullPolicy": "View full privacy policy",

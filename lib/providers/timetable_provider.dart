@@ -36,6 +36,7 @@ class TimetableProvider extends ChangeNotifier {
   String get themeMode => _appData.themeMode;
   int get themeSeedColorValue => _appData.themeSeedColorValue;
   String? get ignoredUpdateVersion => _appData.ignoredUpdateVersion;
+  String? get availableUpdateVersion => _appData.availableUpdateVersion;
   String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
   String? get acceptedPrivacyPolicyVersion => _appData.privacyPolicyAcceptedVersion;
   DateTime? get privacyPolicyAcceptedAt {
@@ -805,6 +806,16 @@ class TimetableProvider extends ChangeNotifier {
       return;
     }
     _appData = _appData.copyWith(ignoredUpdateVersion: normalized);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateAvailableUpdateVersion(String? version) async {
+    final normalized = version?.trim();
+    final nextValue = normalized == null || normalized.isEmpty ? null : normalized;
+    if (_appData.availableUpdateVersion == nextValue) {
+      return;
+    }
+    _appData = _appData.copyWith(availableUpdateVersion: nextValue);
     await _saveAndNotify();
   }
 

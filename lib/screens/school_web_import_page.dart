@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -30,16 +32,20 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
   return cloned.outerHTML;
 })()
 ''';
+  static const _pageLoadTimeout = Duration(seconds: 15);
 
   final SchoolSiteService _siteService = const SchoolSiteService();
 
   InAppWebViewController? _controller;
+  Timer? _pageLoadWatchdog;
   bool _isLoadingPage = false;
   bool _isParsing = false;
   bool _isLoadingSchools = true;
   bool _canGoBack = false;
+  bool _hasStartedInitialLoad = false;
   String _currentUrl = '';
   String _currentTitle = '';
+  String _entryUrl = '';
   List<SchoolSite> _sites = const [];
   SchoolSite? _selectedSite;
   String? _schoolLoadError;
@@ -55,6 +61,12 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
   void initState() {
     super.initState();
     _loadSchools();
+  }
+
+  @override
+  void dispose() {
+    _cancelPageLoadWatchdog();
+    super.dispose();
   }
 
   @override
@@ -120,44 +132,75 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
                             javaScriptEnabled: true,
                             javaScriptCanOpenWindowsAutomatically: true,
                           ),
-                          onWebViewCreated: (controller) async {
+                          onWebViewCreated: (controller) {
                             _controller = controller;
-                            await _updateCanGoBackState(controller);
-                            if (_selectedSite != null) {
-                              await _openSelectedSchool();
-                            }
+                            _scheduleInitialSchoolOpen();
                           },
-                          onLoadStart: (controller, url) async {
-                            await _updateCanGoBackState(controller);
+                          onLoadStart: (_, url) {
+                            _startPageLoadWatchdog();
                             if (!mounted) {
                               return;
                             }
                             setState(() {
                               _isLoadingPage = true;
-                              _currentUrl = url?.toString() ?? '';
+                              _currentUrl = url?.toString() ?? _currentUrl;
                             });
                           },
-                          onLoadStop: (controller, url) async {
-                            final title = await _safeGetTitle(controller);
-                            final canGoBack = await controller.canGoBack();
+                          onLoadStop: (_, url) {
+                            _cancelPageLoadWatchdog();
+                            final nextUrl = url?.toString() ?? _currentUrl;
+                            final entryUrl = _entryUrl.isEmpty && nextUrl.isNotEmpty
+                                ? nextUrl
+                                : _entryUrl;
                             if (!mounted) {
                               return;
                             }
                             setState(() {
                               _isLoadingPage = false;
-                              _canGoBack = canGoBack;
-                              _currentUrl = url?.toString() ?? '';
-                              _currentTitle = title;
+                              _currentUrl = nextUrl;
+                              _entryUrl = entryUrl;
+                              _canGoBack =
+                                  entryUrl.isNotEmpty && nextUrl != entryUrl;
                             });
                           },
-                          onUpdateVisitedHistory: (controller, url, _) async {
-                            await _updateCanGoBackState(controller);
+                          onUpdateVisitedHistory: (_, url, _) {
+                            final nextUrl = url?.toString() ?? _currentUrl;
+                            final entryUrl = _entryUrl.isEmpty && nextUrl.isNotEmpty
+                                ? nextUrl
+                                : _entryUrl;
                             if (!mounted) {
                               return;
                             }
                             setState(() {
-                              _currentUrl = url?.toString() ?? _currentUrl;
+                              _currentUrl = nextUrl;
+                              _entryUrl = entryUrl;
+                              _canGoBack =
+                                  entryUrl.isNotEmpty && nextUrl != entryUrl;
                             });
+                          },
+                          onTitleChanged: (_, title) {
+                            if (!mounted || title == null || title == _currentTitle) {
+                              return;
+                            }
+                            setState(() => _currentTitle = title);
+                          },
+                          onReceivedError: (_, request, error) {
+                            if (request.isForMainFrame == false) {
+                              return;
+                            }
+                            _handlePageLoadFailure(
+                              AppLocalizations.of(context)!
+                                  .schoolWebImportLoadFailed,
+                            );
+                          },
+                          onReceivedHttpError: (_, request, _) {
+                            if (request.isForMainFrame == false) {
+                              return;
+                            }
+                            _handlePageLoadFailure(
+                              AppLocalizations.of(context)!
+                                  .schoolWebImportLoadFailed,
+                            );
                           },
                         ),
                 ),
@@ -182,13 +225,15 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       if (!mounted) {
         return;
       }
-      final selected = sites.where((item) => item.loginUrl == widget.site.loginUrl).firstOrNull;
+      final selected =
+          sites.where((item) => item.loginUrl == widget.site.loginUrl).firstOrNull;
       setState(() {
         _sites = sites;
         _selectedSite = selected ?? widget.site;
         _isLoadingSchools = false;
       });
       await _ensureController();
+      _scheduleInitialSchoolOpen();
     } catch (_) {
       if (!mounted) {
         return;
@@ -211,15 +256,43 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     }
   }
 
+  void _scheduleInitialSchoolOpen() {
+    if (_hasStartedInitialLoad) {
+      return;
+    }
+    if (_controller == null || _selectedSite == null) {
+      return;
+    }
+    _hasStartedInitialLoad = true;
+    unawaited(_openSelectedSchool());
+  }
+
   Future<void> _openSelectedSchool() async {
     final site = _selectedSite;
     final controller = _controller;
     if (site == null || controller == null) {
+      _hasStartedInitialLoad = false;
       return;
     }
-    await controller.loadUrl(
-      urlRequest: URLRequest(url: WebUri(site.loginUrl)),
-    );
+    final loadFailedMessage =
+        AppLocalizations.of(context)!.schoolWebImportLoadFailed;
+    _startPageLoadWatchdog();
+    if (mounted) {
+      setState(() {
+        _isLoadingPage = true;
+        _currentUrl = site.loginUrl;
+        _entryUrl = '';
+        _canGoBack = false;
+      });
+    }
+    try {
+      await controller.loadUrl(
+        urlRequest: URLRequest(url: WebUri(site.loginUrl)),
+      );
+    } catch (_) {
+      _hasStartedInitialLoad = false;
+      _handlePageLoadFailure(loadFailedMessage);
+    }
   }
 
   Future<void> _reload() async {
@@ -227,30 +300,56 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     if (controller == null) {
       return;
     }
+    _startPageLoadWatchdog();
+    if (mounted) {
+      setState(() => _isLoadingPage = true);
+    }
     await controller.reload();
   }
 
   Future<void> _goBackInWebView() async {
     final controller = _controller;
-    if (controller == null) {
+    if (controller == null || !_canGoBack) {
       return;
     }
-    if (!await controller.canGoBack()) {
-      if (mounted) {
-        setState(() => _canGoBack = false);
-      }
-      return;
-    }
+    _startPageLoadWatchdog();
     await controller.goBack();
-    await _updateCanGoBackState(controller);
   }
 
-  Future<void> _updateCanGoBackState(InAppWebViewController controller) async {
-    final canGoBack = await controller.canGoBack();
-    if (!mounted || _canGoBack == canGoBack) {
+  void _startPageLoadWatchdog() {
+    _cancelPageLoadWatchdog();
+    _pageLoadWatchdog = Timer(_pageLoadTimeout, () {
+      if (!mounted || !_isLoadingPage) {
+        return;
+      }
+      setState(() => _isLoadingPage = false);
+      _showMessage(AppLocalizations.of(context)!.schoolWebImportLoadTimedOut);
+    });
+  }
+
+  void _cancelPageLoadWatchdog() {
+    _pageLoadWatchdog?.cancel();
+    _pageLoadWatchdog = null;
+  }
+
+  void _handlePageLoadFailure(String message) {
+    _cancelPageLoadWatchdog();
+    if (!mounted) {
       return;
     }
-    setState(() => _canGoBack = canGoBack);
+    if (_isLoadingPage) {
+      setState(() => _isLoadingPage = false);
+    }
+    _showMessage(message);
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _importCurrentPage() async {

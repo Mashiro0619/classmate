@@ -587,6 +587,12 @@ abstract class AppLocalizations {
   /// **'Current version'**
   String get currentVersionLabel;
 
+  /// No description provided for @newVersionAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get newVersionAvailable;
+
   /// No description provided for @latestVersionLabel.
   ///
   /// In en, this message translates to:
@@ -1088,7 +1094,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyFutureFeatureBody.
   ///
   /// In en, this message translates to:
-  /// **'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day. Before the parsed timetable is saved, the app shows a preview and lets you edit the timetable name and semester start date.'**
+  /// **'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.'**
   String get privacyPolicyFutureFeatureBody;
 
   /// No description provided for @privacyPolicyUpdatesTitle.
@@ -1426,6 +1432,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parsing current page…'**
   String get schoolWebImportParsing;
+
+  /// No description provided for @schoolWebImportLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Page load failed. Please refresh or try again later.'**
+  String get schoolWebImportLoadFailed;
+
+  /// No description provided for @schoolWebImportLoadTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Page loading timed out. Please refresh and try again.'**
+  String get schoolWebImportLoadTimedOut;
 
   /// No description provided for @schoolWebImportEmptyPage.
   ///

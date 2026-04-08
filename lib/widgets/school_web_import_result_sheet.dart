@@ -49,7 +49,7 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
     super.initState();
     _nameController = TextEditingController(text: widget.response.timetable.name)
       ..addListener(_handleNameChanged);
-    _startDate = widget.response.timetable.startDate;
+    _startDate = DateTime(2026, 3, 2);
     _selectedPeriodTimeSetId = widget.periodTimeSets.any(
           (item) => item.id == widget.initialPeriodTimeSetId,
         )

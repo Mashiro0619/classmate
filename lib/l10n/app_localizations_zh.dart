@@ -269,6 +269,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get currentVersionLabel => '当前版本';
 
   @override
+  String get newVersionAvailable => '有新版本';
+
+  @override
   String get latestVersionLabel => '最新版本';
 
   @override
@@ -500,7 +503,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => 'Classmate 是一个以本地优先为主的应用。课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动发起对应操作时，应用才会读取本地文件、提交网页内容用于解析、打开外部链接或调用系统分享。';
+  String get privacyPolicyIntro => '课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。';
 
   @override
   String get privacyPolicyLocalStorageTitle => '本地存储';
@@ -536,7 +539,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyPolicyFutureFeatureTitle => '网页解析';
 
   @override
-  String get privacyPolicyFutureFeatureBody => '当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。在课表正式保存前，应用会先展示解析结果，并允许你手动修改课表名称和开学日期。';
+  String get privacyPolicyFutureFeatureBody => '当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。';
 
   @override
   String get privacyPolicyUpdatesTitle => '政策更新';
@@ -713,6 +716,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get schoolWebImportParsing => '正在解析当前页面…';
+
+  @override
+  String get schoolWebImportLoadFailed => '页面加载失败，请刷新后重试。';
+
+  @override
+  String get schoolWebImportLoadTimedOut => '页面加载超时，请刷新后重试。';
 
   @override
   String get schoolWebImportEmptyPage => '当前页面内容为空，暂时无法导入。';

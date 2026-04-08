@@ -643,15 +643,16 @@ class _CourseCard extends StatelessWidget {
                           color: textColor,
                           fontWeight: FontWeight.w600,
                         );
-                final contentRightPadding = layout.isFullConflict
-                    ? (compact ? 18.0 : 22.0)
-                    : 0.0;
 
                 return Stack(
                   children: [
                     Positioned.fill(
                       child: Padding(
-                        padding: EdgeInsets.only(right: contentRightPadding),
+                        padding: EdgeInsets.only(
+                          bottom: layout.isFullConflict
+                              ? (compact ? 18.0 : 22.0)
+                              : 0.0,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,

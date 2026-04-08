@@ -38,10 +38,19 @@ class AppUpdateCoordinator {
       if (!context.mounted) {
         return;
       }
+      final latestMessage = l10n.alreadyLatestVersion(result.localVersion);
       if (!result.hasUpdate) {
-        if (source == UpdateCheckSource.manual) {
-          _showMessage(context, l10n.alreadyLatestVersion(result.localVersion));
+        await provider.updateAvailableUpdateVersion(null);
+        if (!context.mounted) {
+          return;
         }
+        if (source == UpdateCheckSource.manual) {
+          _showMessage(context, latestMessage);
+        }
+        return;
+      }
+      await provider.updateAvailableUpdateVersion(result.remoteVersion);
+      if (!context.mounted) {
         return;
       }
       if (source == UpdateCheckSource.startup &&
@@ -342,11 +351,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.update_outlined),
                 title: Text(l10n.checkForUpdates),
-                subtitle: Text(
-                  _currentVersion.isEmpty
-                      ? l10n.currentVersionLabel
-                      : '${l10n.currentVersionLabel} $_currentVersion',
-                ),
+                subtitle: Text(_buildUpdateSubtitle(provider, l10n)),
                 onTap: _checkForUpdates,
               ),
               ListTile(
@@ -460,6 +465,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _openLicensesPage() {
     showLicensePage(context: context, applicationName: 'Classmate');
+  }
+
+  String _buildUpdateSubtitle(
+    TimetableProvider provider,
+    AppLocalizations l10n,
+  ) {
+    final versionLabel = _currentVersion.isEmpty
+        ? l10n.currentVersionLabel
+        : '${l10n.currentVersionLabel} $_currentVersion';
+    final availableUpdateVersion = provider.availableUpdateVersion;
+    if (availableUpdateVersion == null || availableUpdateVersion.isEmpty) {
+      return versionLabel;
+    }
+    return '$versionLabel · ${l10n.newVersionAvailable}';
   }
 
   Future<void> _loadCurrentVersion() async {

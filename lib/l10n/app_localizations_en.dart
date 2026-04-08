@@ -269,6 +269,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currentVersionLabel => 'Current version';
 
   @override
+  String get newVersionAvailable => 'Update available';
+
+  @override
   String get latestVersionLabel => 'Latest version';
 
   @override
@@ -536,7 +539,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicyFutureFeatureTitle => 'Webpage parsing';
 
   @override
-  String get privacyPolicyFutureFeatureBody => 'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day. Before the parsed timetable is saved, the app shows a preview and lets you edit the timetable name and semester start date.';
+  String get privacyPolicyFutureFeatureBody => 'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.';
 
   @override
   String get privacyPolicyUpdatesTitle => 'Policy updates';
@@ -713,6 +716,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get schoolWebImportParsing => 'Parsing current page…';
+
+  @override
+  String get schoolWebImportLoadFailed => 'Page load failed. Please refresh or try again later.';
+
+  @override
+  String get schoolWebImportLoadTimedOut => 'Page loading timed out. Please refresh and try again.';
 
   @override
   String get schoolWebImportEmptyPage => 'The current page content is empty and cannot be imported yet.';

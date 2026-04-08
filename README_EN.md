@@ -7,16 +7,18 @@
 
 [中文 README](README.md)
 
-Classmate is a Flutter timetable app focused on timetable management, reusable period-time sets, course editing, and timetable import from school webpages or pasted HTML source.
+Classmate is a Flutter timetable app that currently supports multi-timetable management, reusable period-time sets, theme settings, school site management, and timetable import from school webpages or pasted HTML source.
 
 ## Features
 
-- Multi-timetable and course management
-- Reusable period-time sets
-- School site management
-- School webpage / HTML import
-- Import preview with editable timetable info
-- Timetable, period-template, and school-site JSON import/export
+- Multi-timetable management: create, switch, edit, and delete timetables
+- Course editing: edit course name, location, teacher, weeks, time, and linked periods
+- Period-time sets: reuse, edit, import, export, and share them across multiple timetables
+- Theme settings: light / dark / follow system, preset theme colors, and custom colors
+- School site management: add, edit, delete, and import or export school-site JSON entries
+- School webpage / HTML import: open the school site in-app and import the current page, or paste HTML manually
+- Import preview: review parsed results before import and choose the period-time set and import mode
+- Data import/export: import, export, and share timetable, period-template, and school-site JSON files
 
 Welcome to submit PRs to expand `assets/school_sites.json` with more school site entries.
 
@@ -39,11 +41,11 @@ Welcome to submit PRs to expand `assets/school_sites.json` with more school site
 
 ## School import backend
 
-The project includes a single-file PHP relay endpoint: [web/api.php](web/api.php) , Configure your API address in [lib/config/app_config.dart](lib/config/app_config.dart).
+The project includes a PHP relay endpoint: [web/api.php](web/api.php). The in-app school webpage import endpoint is read from [lib/config/app_config.dart](lib/config/app_config.dart), and can be overridden with `--dart-define=SCHOOL_IMPORT_API_BASE_URL=your-endpoint`.
 
 ### Backend configuration
 
-Only the configuration block at the top of `web/api.php` needs to be edited:
+You need to edit the configuration block at the top of `web/api.php`:
 
 - `$relayUrl`: upstream AI API endpoint
 - `$relayToken`: your API key
@@ -54,10 +56,11 @@ Only the configuration block at the top of `web/api.php` needs to be edited:
 
 ### Current backend behavior
 
-- Uses your configured API key through your own PHP relay service
-- Returns structured JSON so the client can show the real error directly
+- Forwards parsing requests through your own PHP service instead of exposing the upstream key in the client
+- Returns a unified JSON response so the client can show parsed results and error messages directly
 - Enforces submitted-content size limits and per-IP daily parsing limits
-- Supports webpage-source import and does not require strictly valid HTML input
+- Supports both school webpage import and pasted HTML import
+- Submits page content, optional page title, page URL, and the current app language to the parsing endpoint
 
 ## Project structure
 
@@ -76,8 +79,8 @@ web/
 
 ## Privacy policy
 
-The app currently follows a local-first design. Timetables, period times, and school-site configuration are stored locally by default.
-Only actions you explicitly trigger — such as import, export, sharing, or submitting current webpage / pasted HTML content for parsing — will process the corresponding data.
+Timetables, timetable settings, period-time sets, and school-site configuration are stored locally on your device or in the browser by default, and are not automatically uploaded to the developer's server.
+Only when you actively use features such as import, webpage parsing, external links, or sharing will the app read related content or hand the corresponding operation off to the system.
 
 The full privacy policy can be viewed in the app under `Settings → Privacy Policy`.
 

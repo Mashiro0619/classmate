@@ -305,7 +305,12 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
     _minutesFromTimeOfDay(_endTime),
   );
 
+  void _dismissActiveInputFocus() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   Future<void> _pickDayOfWeek() async {
+    _dismissActiveInputFocus();
     final result = await showDialog<int>(
       context: context,
       builder: (context) {
@@ -340,6 +345,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   }
 
   Future<void> _pickSemesterWeeks() async {
+    _dismissActiveInputFocus();
     final draft = {..._selectedSemesterWeeks};
     final result = await showDialog<List<int>>(
       context: context,
@@ -457,6 +463,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   }
 
   Future<void> _pickTime({required bool isStart}) async {
+    _dismissActiveInputFocus();
     final initialTime = isStart ? _startTime : _endTime;
     final picked = await showTimePicker(
       context: context,
@@ -482,6 +489,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
   }
 
   Future<void> _pickPeriods() async {
+    _dismissActiveInputFocus();
     final draft = List<int>.from(_selectedPeriods);
     final result = await showDialog<List<int>>(
       context: context,

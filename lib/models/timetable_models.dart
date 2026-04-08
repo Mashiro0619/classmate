@@ -515,6 +515,7 @@ class AppData {
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
     this.ignoredUpdateVersion,
+    this.availableUpdateVersion,
   });
 
   final String activeTimetableId;
@@ -530,6 +531,7 @@ class AppData {
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
   final String? ignoredUpdateVersion;
+  final String? availableUpdateVersion;
 
   Map<String, dynamic> toJson() => {
     'activeTimetableId': activeTimetableId,
@@ -545,6 +547,7 @@ class AppData {
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
     'ignoredUpdateVersion': ignoredUpdateVersion,
+    'availableUpdateVersion': availableUpdateVersion,
   };
 
   factory AppData.fromJson(Map<String, dynamic> json) {
@@ -641,6 +644,7 @@ class AppData {
           json['privacyPolicyAcceptedVersion'] as String?,
       privacyPolicyAcceptedAtIso: json['privacyPolicyAcceptedAtIso'] as String?,
       ignoredUpdateVersion: json['ignoredUpdateVersion'] as String?,
+      availableUpdateVersion: json['availableUpdateVersion'] as String?,
     );
   }
 
@@ -658,6 +662,7 @@ class AppData {
     String? privacyPolicyAcceptedVersion,
     String? privacyPolicyAcceptedAtIso,
     String? ignoredUpdateVersion,
+    String? availableUpdateVersion,
   }) {
     return AppData(
       activeTimetableId: activeTimetableId ?? this.activeTimetableId,
@@ -680,6 +685,8 @@ class AppData {
           privacyPolicyAcceptedAtIso ?? this.privacyPolicyAcceptedAtIso,
       ignoredUpdateVersion:
           ignoredUpdateVersion ?? this.ignoredUpdateVersion,
+      availableUpdateVersion:
+          availableUpdateVersion ?? this.availableUpdateVersion,
     );
   }
 
