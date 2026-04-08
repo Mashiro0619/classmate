@@ -3,6 +3,8 @@ import 'dart:convert';
 const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
 const defaultLocaleCode = 'zh';
+const defaultThemeMode = 'light';
+const defaultThemeSeedColorValue = 0xFF6750A4;
 const maxTimetableWeeks = 100;
 const currentPrivacyPolicyVersion = '2026-04-08';
 
@@ -505,10 +507,14 @@ class AppData {
     required this.periodTimeSets,
     this.conflictDisplayCourseIds = const {},
     this.closeCoursePopupOnOutsideTap = true,
-    this.preserveTimetableGaps = true,
+    this.preserveTimetableGaps = false,
+    this.showPastEndedCourses = false,
     this.localeCode = defaultLocaleCode,
+    this.themeMode = defaultThemeMode,
+    this.themeSeedColorValue = defaultThemeSeedColorValue,
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
+    this.ignoredUpdateVersion,
   });
 
   final String activeTimetableId;
@@ -517,9 +523,13 @@ class AppData {
   final Map<String, String> conflictDisplayCourseIds;
   final bool closeCoursePopupOnOutsideTap;
   final bool preserveTimetableGaps;
+  final bool showPastEndedCourses;
   final String localeCode;
+  final String themeMode;
+  final int themeSeedColorValue;
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
+  final String? ignoredUpdateVersion;
 
   Map<String, dynamic> toJson() => {
     'activeTimetableId': activeTimetableId,
@@ -528,9 +538,13 @@ class AppData {
     'conflictDisplayCourseIds': conflictDisplayCourseIds,
     'closeCoursePopupOnOutsideTap': closeCoursePopupOnOutsideTap,
     'preserveTimetableGaps': preserveTimetableGaps,
+    'showPastEndedCourses': showPastEndedCourses,
     'localeCode': normalizeLocaleCode(localeCode),
+    'themeMode': normalizeThemeMode(themeMode),
+    'themeSeedColorValue': themeSeedColorValue,
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
+    'ignoredUpdateVersion': ignoredUpdateVersion,
   };
 
   factory AppData.fromJson(Map<String, dynamic> json) {
@@ -614,11 +628,19 @@ class AppData {
       ),
       closeCoursePopupOnOutsideTap:
           json['closeCoursePopupOnOutsideTap'] as bool? ?? true,
-      preserveTimetableGaps: json['preserveTimetableGaps'] as bool? ?? true,
+      preserveTimetableGaps: json['preserveTimetableGaps'] as bool? ?? false,
+      showPastEndedCourses: json['showPastEndedCourses'] as bool? ?? false,
       localeCode: localeCode,
+      themeMode: normalizeThemeMode(
+        json['themeMode'] as String? ?? defaultThemeMode,
+      ),
+      themeSeedColorValue:
+          (json['themeSeedColorValue'] as num?)?.toInt() ??
+          defaultThemeSeedColorValue,
       privacyPolicyAcceptedVersion:
           json['privacyPolicyAcceptedVersion'] as String?,
       privacyPolicyAcceptedAtIso: json['privacyPolicyAcceptedAtIso'] as String?,
+      ignoredUpdateVersion: json['ignoredUpdateVersion'] as String?,
     );
   }
 
@@ -629,9 +651,13 @@ class AppData {
     Map<String, String>? conflictDisplayCourseIds,
     bool? closeCoursePopupOnOutsideTap,
     bool? preserveTimetableGaps,
+    bool? showPastEndedCourses,
     String? localeCode,
+    String? themeMode,
+    int? themeSeedColorValue,
     String? privacyPolicyAcceptedVersion,
     String? privacyPolicyAcceptedAtIso,
+    String? ignoredUpdateVersion,
   }) {
     return AppData(
       activeTimetableId: activeTimetableId ?? this.activeTimetableId,
@@ -643,11 +669,17 @@ class AppData {
           closeCoursePopupOnOutsideTap ?? this.closeCoursePopupOnOutsideTap,
       preserveTimetableGaps:
           preserveTimetableGaps ?? this.preserveTimetableGaps,
+      showPastEndedCourses:
+          showPastEndedCourses ?? this.showPastEndedCourses,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
+      themeMode: normalizeThemeMode(themeMode ?? this.themeMode),
+      themeSeedColorValue: themeSeedColorValue ?? this.themeSeedColorValue,
       privacyPolicyAcceptedVersion:
           privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
       privacyPolicyAcceptedAtIso:
           privacyPolicyAcceptedAtIso ?? this.privacyPolicyAcceptedAtIso,
+      ignoredUpdateVersion:
+          ignoredUpdateVersion ?? this.ignoredUpdateVersion,
     );
   }
 
@@ -896,6 +928,18 @@ int normalizeDayOfWeek(int? dayOfWeek) {
 
 String normalizeLocaleCode(String? localeCode) {
   return localeCode == 'en' ? 'en' : defaultLocaleCode;
+}
+
+String normalizeThemeMode(String? themeMode) {
+  switch (themeMode) {
+    case 'dark':
+      return 'dark';
+    case 'system':
+      return 'system';
+    case 'light':
+    default:
+      return defaultThemeMode;
+  }
 }
 
 /// 这里保留空列表语义，后面会把它当成“整学期都生效”，不用强行补满所有周。

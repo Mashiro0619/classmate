@@ -36,6 +36,35 @@ void _registerLicenses() {
   });
 }
 
+ThemeMode _themeModeFromValue(String value) {
+  switch (value) {
+    case 'dark':
+      return ThemeMode.dark;
+    case 'system':
+      return ThemeMode.system;
+    case 'light':
+    default:
+      return ThemeMode.light;
+  }
+}
+
+
+
+
+ThemeData _buildTheme({
+  required Color seedColor,
+  required Brightness brightness,
+}) {
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    ),
+    cardTheme: const CardThemeData(margin: EdgeInsets.zero),
+  );
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.provider});
 
@@ -59,12 +88,14 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF6750A4),
-              ),
-              cardTheme: const CardThemeData(margin: EdgeInsets.zero),
+            themeMode: _themeModeFromValue(timetableProvider.themeMode),
+            theme: _buildTheme(
+              seedColor: Color(timetableProvider.themeSeedColorValue),
+              brightness: Brightness.light,
+            ),
+            darkTheme: _buildTheme(
+              seedColor: Color(timetableProvider.themeSeedColorValue),
+              brightness: Brightness.dark,
             ),
             home: const HomeScreen(),
           );

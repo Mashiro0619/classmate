@@ -43,7 +43,8 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   bool get _supportsWebImport =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.windows);
 
   @override
   void initState() {

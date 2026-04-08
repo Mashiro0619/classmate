@@ -207,6 +207,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preserveTimetableGapsHint => 'When off, lunch and break gaps are collapsed so later classes move upward.';
 
   @override
+  String get showPastEndedCourses => 'Show past-ended courses';
+
+  @override
+  String get showPastEndedCoursesHint => 'Show courses that have already finished by the real current week with a lighter gray style.';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -214,6 +220,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeFollowSystem => 'Follow system';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeColor => 'Theme color';
+
+  @override
+  String get themeCustomColor => 'Custom color';
+
+  @override
+  String get themeApplyCustomColor => 'Apply color';
 
   @override
   String get dataImportExport => 'Import and export data';
@@ -231,7 +258,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkForUpdates => 'Check for updates';
 
   @override
-  String get openUpdatesFailed => 'Unable to open the releases page';
+  String get checkForUpdatesDesc => 'GitHub / Official website';
+
+  @override
+  String alreadyLatestVersion(Object version) {
+    return 'Already on the latest version ($version)';
+  }
+
+  @override
+  String get currentVersionLabel => 'Current version';
+
+  @override
+  String get latestVersionLabel => 'Latest version';
+
+  @override
+  String get updateContentLabel => 'Update details';
+
+  @override
+  String get officialWebsite => 'Official website';
+
+  @override
+  String get ignoreThisVersion => 'Ignore this version';
+
+  @override
+  String get openUpdatesFailed => 'Unable to open the update link';
 
   @override
   String get githubRepository => 'GitHub repository';
@@ -607,6 +657,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolHtmlImportEmpty => 'Paste the page HTML first.';
 
   @override
+  String get schoolHtmlImportReturnToWebPage => 'Back to webpage';
+
+  @override
   String get schoolWebImportPageTitle => 'School webpage import';
 
   @override
@@ -651,6 +704,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get schoolWebImportImportCurrentPage => 'Import current page';
+
+  @override
+  String get schoolWebImportGoBack => 'Previous page';
 
   @override
   String get schoolWebImportLoadingPage => 'Loading page…';

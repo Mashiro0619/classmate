@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../config/app_config.dart';
 import '../l10n/app_localizations.dart';
 import '../models/school_site_models.dart';
 import '../screens/school_html_import_page.dart';
+import '../services/school_import_content_sanitizer.dart';
 import '../services/school_site_service.dart';
 
 class SchoolWebImportPage extends StatefulWidget {
@@ -18,12 +19,25 @@ class SchoolWebImportPage extends StatefulWidget {
 }
 
 class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
+  static const _extractImportHtmlScript = '''
+(() => {
+  const root = document.documentElement;
+  if (!root) {
+    return '';
+  }
+  const cloned = root.cloneNode(true);
+  cloned.querySelectorAll('script,style,noscript,svg,canvas,iframe,template').forEach((node) => node.remove());
+  return cloned.outerHTML;
+})()
+''';
+
   final SchoolSiteService _siteService = const SchoolSiteService();
 
-  WebViewController? _controller;
+  InAppWebViewController? _controller;
   bool _isLoadingPage = false;
   bool _isParsing = false;
   bool _isLoadingSchools = true;
+  bool _canGoBack = false;
   String _currentUrl = '';
   String _currentTitle = '';
   List<SchoolSite> _sites = const [];
@@ -34,7 +48,8 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
   bool get _supportsWebView =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.windows);
 
   @override
   void initState() {
@@ -49,6 +64,10 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       appBar: AppBar(
         title: Text(_selectedSite?.name ?? widget.site.name),
         actions: [
+          TextButton(
+            onPressed: _canGoBack && !_isParsing ? _goBackInWebView : null,
+            child: Text(l10n.schoolWebImportGoBack),
+          ),
           IconButton(
             onPressed: _controller == null || _isParsing ? null : _reload,
             icon: const Icon(Icons.refresh),
@@ -94,9 +113,53 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
                   ),
                 ),
                 Expanded(
-                  child: _controller == null || _isLoadingSchools
+                  child: _isLoadingSchools
                       ? const Center(child: CircularProgressIndicator())
-                      : WebViewWidget(controller: _controller!),
+                      : InAppWebView(
+                          initialSettings: InAppWebViewSettings(
+                            javaScriptEnabled: true,
+                            javaScriptCanOpenWindowsAutomatically: true,
+                          ),
+                          onWebViewCreated: (controller) async {
+                            _controller = controller;
+                            await _updateCanGoBackState(controller);
+                            if (_selectedSite != null) {
+                              await _openSelectedSchool();
+                            }
+                          },
+                          onLoadStart: (controller, url) async {
+                            await _updateCanGoBackState(controller);
+                            if (!mounted) {
+                              return;
+                            }
+                            setState(() {
+                              _isLoadingPage = true;
+                              _currentUrl = url?.toString() ?? '';
+                            });
+                          },
+                          onLoadStop: (controller, url) async {
+                            final title = await _safeGetTitle(controller);
+                            final canGoBack = await controller.canGoBack();
+                            if (!mounted) {
+                              return;
+                            }
+                            setState(() {
+                              _isLoadingPage = false;
+                              _canGoBack = canGoBack;
+                              _currentUrl = url?.toString() ?? '';
+                              _currentTitle = title;
+                            });
+                          },
+                          onUpdateVisitedHistory: (controller, url, _) async {
+                            await _updateCanGoBackState(controller);
+                            if (!mounted) {
+                              return;
+                            }
+                            setState(() {
+                              _currentUrl = url?.toString() ?? _currentUrl;
+                            });
+                          },
+                        ),
                 ),
               ],
             ),
@@ -126,7 +189,6 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
         _isLoadingSchools = false;
       });
       await _ensureController();
-      await _openSelectedSchool();
     } catch (_) {
       if (!mounted) {
         return;
@@ -142,37 +204,11 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     if (_controller != null || !_supportsWebView) {
       return;
     }
-    late final WebViewController controller;
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (url) {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _isLoadingPage = true;
-              _currentUrl = url;
-            });
-          },
-          onPageFinished: (url) async {
-            final title = await _safeGetTitle(controller);
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _isLoadingPage = false;
-              _currentUrl = url;
-              _currentTitle = title;
-            });
-          },
-        ),
-      );
-    setState(() {
-      _controller = controller;
-      _isLoadingPage = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingPage = true;
+      });
+    }
   }
 
   Future<void> _openSelectedSchool() async {
@@ -181,7 +217,9 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     if (site == null || controller == null) {
       return;
     }
-    await controller.loadRequest(Uri.parse(site.loginUrl));
+    await controller.loadUrl(
+      urlRequest: URLRequest(url: WebUri(site.loginUrl)),
+    );
   }
 
   Future<void> _reload() async {
@@ -190,6 +228,29 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       return;
     }
     await controller.reload();
+  }
+
+  Future<void> _goBackInWebView() async {
+    final controller = _controller;
+    if (controller == null) {
+      return;
+    }
+    if (!await controller.canGoBack()) {
+      if (mounted) {
+        setState(() => _canGoBack = false);
+      }
+      return;
+    }
+    await controller.goBack();
+    await _updateCanGoBackState(controller);
+  }
+
+  Future<void> _updateCanGoBackState(InAppWebViewController controller) async {
+    final canGoBack = await controller.canGoBack();
+    if (!mounted || _canGoBack == canGoBack) {
+      return;
+    }
+    setState(() => _canGoBack = canGoBack);
   }
 
   Future<void> _importCurrentPage() async {
@@ -201,12 +262,14 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     }
     setState(() => _isParsing = true);
     try {
-      final html = await controller.runJavaScriptReturningResult(
-        'document.documentElement.outerHTML',
+      final html = await controller.evaluateJavascript(
+        source: _extractImportHtmlScript,
       );
       final title = await _safeGetTitle(controller);
-      final currentUrl = await controller.currentUrl() ?? _currentUrl;
-      final normalizedHtml = _normalizeJavaScriptResult(html).trim();
+      final currentUrl = (await controller.getUrl())?.toString() ?? _currentUrl;
+      final normalizedHtml = SchoolImportContentSanitizer.sanitize(
+        _normalizeJavaScriptResult(html).trim(),
+      );
       if (normalizedHtml.isEmpty) {
         throw FormatException(l10n.schoolWebImportEmptyPage);
       }
@@ -219,6 +282,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
             initialContent: normalizedHtml,
             initialUrl: currentUrl,
             initialTitle: title,
+            showReturnToWebPageButton: true,
           ),
         ),
       );
@@ -243,7 +307,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     }
   }
 
-  Future<String> _safeGetTitle(WebViewController controller) async {
+  Future<String> _safeGetTitle(InAppWebViewController controller) async {
     try {
       return await controller.getTitle() ?? _currentTitle;
     } catch (_) {

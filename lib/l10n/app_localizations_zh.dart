@@ -207,6 +207,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preserveTimetableGapsHint => '关闭后会折叠午休、下课等非上课时间，让后续课程向上拼接。';
 
   @override
+  String get showPastEndedCourses => '显示已结束课程';
+
+  @override
+  String get showPastEndedCoursesHint => '显示按真实当前周已结束的课程，并用更浅的灰色区分。';
+
+  @override
   String get language => '语言';
 
   @override
@@ -214,6 +220,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get theme => '主题';
+
+  @override
+  String get themeFollowSystem => '跟随系统';
+
+  @override
+  String get themeLight => '浅色';
+
+  @override
+  String get themeDark => '暗黑';
+
+  @override
+  String get themeColor => '主题色';
+
+  @override
+  String get themeCustomColor => '自定义颜色';
+
+  @override
+  String get themeApplyCustomColor => '应用颜色';
 
   @override
   String get dataImportExport => '导入导出数据';
@@ -231,7 +258,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkForUpdates => '检测更新';
 
   @override
-  String get openUpdatesFailed => '无法打开更新发布页';
+  String get checkForUpdatesDesc => 'GitHub / 官网';
+
+  @override
+  String alreadyLatestVersion(Object version) {
+    return '当前已是最新版本（$version）';
+  }
+
+  @override
+  String get currentVersionLabel => '当前版本';
+
+  @override
+  String get latestVersionLabel => '最新版本';
+
+  @override
+  String get updateContentLabel => '更新内容';
+
+  @override
+  String get officialWebsite => '官网';
+
+  @override
+  String get ignoreThisVersion => '忽略此版本';
+
+  @override
+  String get openUpdatesFailed => '无法打开更新链接';
 
   @override
   String get githubRepository => 'GitHub 仓库';
@@ -607,6 +657,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolHtmlImportEmpty => '请先粘贴网页 HTML。';
 
   @override
+  String get schoolHtmlImportReturnToWebPage => '返回网页';
+
+  @override
   String get schoolWebImportPageTitle => '学校网页导入';
 
   @override
@@ -651,6 +704,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get schoolWebImportImportCurrentPage => '导入当前页';
+
+  @override
+  String get schoolWebImportGoBack => '上一页';
 
   @override
   String get schoolWebImportLoadingPage => '页面加载中…';

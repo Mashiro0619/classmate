@@ -58,8 +58,10 @@ class TimetableGrid extends StatelessWidget {
     required this.periodTimes,
     required this.weekDateStart,
     required this.selectedWeek,
+    required this.realCurrentWeek,
     required this.localeCode,
     required this.preserveGaps,
+    required this.showPastEndedCourses,
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
@@ -69,8 +71,10 @@ class TimetableGrid extends StatelessWidget {
   final List<CoursePeriodTime> periodTimes;
   final DateTime weekDateStart;
   final int selectedWeek;
+  final int realCurrentWeek;
   final String localeCode;
   final bool preserveGaps;
+  final bool showPastEndedCourses;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
@@ -181,76 +185,69 @@ class TimetableGrid extends StatelessWidget {
                           ),
                         ),
                         for (var weekday = 1; weekday <= 7; weekday++)
-                          Container(
+                          _DayColumn(
                             width: metrics.dayColumnWidth,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(
-                                  color: colors.outlineVariant.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
-                              ),
+                            borderColor: colors.outlineVariant.withValues(
+                              alpha: 0.25,
                             ),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onLongPressStart: (details) {
-                                final matchedPeriod = layout.slotForY(
-                                  details.localPosition.dy,
-                                );
-                                onEmptySlotTap(
-                                  TimetableEmptySlotTapInfo(
-                                    weekday: weekday,
-                                    startMinutes: matchedPeriod.startMinutes,
-                                    endMinutes: matchedPeriod.endMinutes,
-                                    periods: [matchedPeriod.index],
-                                  ),
-                                );
-                              },
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  for (final slot in slots)
-                                    Positioned(
-                                      top: layout.slotTop(slot),
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        height: layout.slotHeight(slot),
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                            top: BorderSide(
-                                              color: colors.outlineVariant
-                                                  .withValues(alpha: 0.18),
-                                            ),
+                            onLongPressAt: (localPosition) {
+                              final matchedPeriod = layout.slotForY(
+                                localPosition.dy,
+                              );
+                              onEmptySlotTap(
+                                TimetableEmptySlotTapInfo(
+                                  weekday: weekday,
+                                  startMinutes: matchedPeriod.startMinutes,
+                                  endMinutes: matchedPeriod.endMinutes,
+                                  periods: [matchedPeriod.index],
+                                ),
+                              );
+                            },
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                for (final slot in slots)
+                                  Positioned(
+                                    top: layout.slotTop(slot),
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: layout.slotHeight(slot),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: colors.outlineVariant
+                                                .withValues(alpha: 0.18),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ..._buildDayLayouts(
-                                    timetable: timetable,
-                                    courses: timetable.courses,
-                                    weekday: weekday,
-                                    selectedWeek: selectedWeek,
-                                    displayedCourseIdForConflict:
-                                        displayedCourseIdForConflict,
-                                  ).map(
-                                    (item) => _CourseCard(
-                                      layout: item,
-                                      verticalLayout: layout,
-                                      metrics: metrics,
-                                      onTap: () => onCourseTap(
-                                        TimetableCourseTapInfo(
-                                          course: item.course,
-                                          courses: item.conflictCourses,
-                                          isFullConflict: item.isFullConflict,
-                                          conflictKey: item.conflictKey,
-                                        ),
+                                  ),
+                                ..._buildDayLayouts(
+                                  timetable: timetable,
+                                  courses: timetable.courses,
+                                  weekday: weekday,
+                                  selectedWeek: selectedWeek,
+                                  realCurrentWeek: realCurrentWeek,
+                                  showPastEndedCourses: showPastEndedCourses,
+                                  displayedCourseIdForConflict:
+                                      displayedCourseIdForConflict,
+                                ).map(
+                                  (item) => _CourseCard(
+                                    layout: item,
+                                    verticalLayout: layout,
+                                    metrics: metrics,
+                                    onTap: () => onCourseTap(
+                                      TimetableCourseTapInfo(
+                                        course: item.course,
+                                        courses: item.conflictCourses,
+                                        isFullConflict: item.isFullConflict,
+                                        conflictKey: item.conflictKey,
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                       ],
@@ -267,6 +264,35 @@ class TimetableGrid extends StatelessWidget {
 }
 
 /// 这些阈值先保证整周能塞进当前宽度，再去调留白和可读性。
+class _DayColumn extends StatelessWidget {
+  const _DayColumn({
+    required this.width,
+    required this.borderColor,
+    required this.onLongPressAt,
+    required this.child,
+  });
+
+  final double width;
+  final Color borderColor;
+  final ValueChanged<Offset> onLongPressAt;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(color: borderColor)),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPressStart: (details) => onLongPressAt(details.localPosition),
+        child: Material(color: Colors.transparent, child: child),
+      ),
+    );
+  }
+}
+
 class _TimetableMetrics {
   const _TimetableMetrics({
     required this.timeLabelWidth,
@@ -515,6 +541,8 @@ class _TimetableVerticalLayout {
   }
 }
 
+enum _CourseDisplayState { active, futureInactive, pastEnded }
+
 class _CourseCard extends StatelessWidget {
   const _CourseCard({
     required this.layout,
@@ -528,6 +556,11 @@ class _CourseCard extends StatelessWidget {
   final _TimetableMetrics metrics;
   final VoidCallback onTap;
 
+  bool get _isInactiveForCurrentWeek =>
+      layout.displayState != _CourseDisplayState.active;
+
+  bool get _isPastEnded => layout.displayState == _CourseDisplayState.pastEnded;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -539,13 +572,26 @@ class _CourseCard extends StatelessWidget {
       metrics.dayColumnWidth - (metrics.courseGap * 2),
     );
     final compact = width < 96 || height < 112;
-    final baseColor = Color.lerp(
+    final activeBaseColor = Color.lerp(
       colorScheme.secondaryContainer,
       colorScheme.primaryContainer,
       0.18 + (layout.priorityDepth * 0.18),
     );
-    final color = (baseColor ?? colorScheme.secondaryContainer).withValues(
-      alpha: layout.isFullConflict
+    final futureInactiveColor =
+        Color.lerp(colorScheme.surfaceContainerHighest, colorScheme.outlineVariant, 0.34) ??
+        colorScheme.surfaceContainerHighest;
+    final pastEndedColor =
+        Color.lerp(colorScheme.surface, colorScheme.surfaceContainerHighest, 0.72) ??
+        colorScheme.surfaceContainerHighest;
+    final baseColor = switch (layout.displayState) {
+      _CourseDisplayState.active => activeBaseColor ?? colorScheme.secondaryContainer,
+      _CourseDisplayState.futureInactive => futureInactiveColor,
+      _CourseDisplayState.pastEnded => pastEndedColor,
+    };
+    final color = baseColor.withValues(
+      alpha: _isInactiveForCurrentWeek
+          ? (_isPastEnded ? 0.92 : 0.96)
+          : layout.isFullConflict
           ? 0.94
           : layout.priorityDepth == 0
           ? 0.92
@@ -570,9 +616,16 @@ class _CourseCard extends StatelessWidget {
             padding: EdgeInsets.all(metrics.cardPadding),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final textColor = colorScheme.onSecondaryContainer.withValues(
-                  alpha: layout.priorityDepth == 0 ? 0.96 : 0.92,
-                );
+                final textColor = (_isInactiveForCurrentWeek
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.onSecondaryContainer)
+                    .withValues(
+                      alpha: _isInactiveForCurrentWeek
+                          ? 0.9
+                          : layout.priorityDepth == 0
+                          ? 0.96
+                          : 0.92,
+                    );
                 final titleStyle =
                     (compact ? textTheme.titleSmall : textTheme.titleMedium)
                         ?.copyWith(
@@ -590,63 +643,42 @@ class _CourseCard extends StatelessWidget {
                           color: textColor,
                           fontWeight: FontWeight.w600,
                         );
-                final dense = height < 110;
-                final medium = height < 150;
-                final titleLines = dense
-                    ? 3
-                    : medium
-                    ? (compact ? 3 : 4)
-                    : (compact ? 4 : 5);
-                final locationLines = dense
-                    ? 2
-                    : medium
-                    ? 2
-                    : (compact ? 2 : 3);
-                final teacherLines = dense
-                    ? 0
-                    : medium
-                    ? 1
-                    : 2;
+                final contentRightPadding = layout.isFullConflict
+                    ? (compact ? 18.0 : 22.0)
+                    : 0.0;
 
                 return Stack(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          layout.course.name,
-                          maxLines: titleLines,
-                          overflow: TextOverflow.ellipsis,
-                          style: titleStyle,
+                    Positioned.fill(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: contentRightPadding),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              layout.course.name,
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
+                              style: titleStyle,
+                            ),
+                            if (layout.course.location.isNotEmpty)
+                              Text(
+                                layout.course.location,
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                                style: bodyStyle,
+                              ),
+                            if (layout.course.teacher.isNotEmpty)
+                              Text(
+                                layout.course.teacher,
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                                style: teacherStyle,
+                              ),
+                          ],
                         ),
-                        SizedBox(height: compact ? 2 : 4),
-                        if (layout.course.location.isNotEmpty)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom:
-                                  teacherLines > 0 &&
-                                      layout.course.teacher.isNotEmpty
-                                  ? (compact ? 2 : 3)
-                                  : 0,
-                            ),
-                            child: Text(
-                              layout.course.location,
-                              maxLines: locationLines,
-                              overflow: TextOverflow.ellipsis,
-                              style: bodyStyle,
-                            ),
-                          ),
-                        if (teacherLines > 0 &&
-                            layout.course.teacher.isNotEmpty)
-                          Text(
-                            layout.course.teacher,
-                            maxLines: teacherLines,
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                            style: teacherStyle,
-                          ),
-                      ],
+                      ),
                     ),
                     if (layout.isFullConflict)
                       Positioned(
@@ -682,6 +714,7 @@ class _CourseLayout {
     required this.priorityDepth,
     required this.isFullConflict,
     required this.conflictCourses,
+    required this.displayState,
     this.conflictKey,
   });
 
@@ -689,6 +722,7 @@ class _CourseLayout {
   final int priorityDepth;
   final bool isFullConflict;
   final List<CourseItem> conflictCourses;
+  final _CourseDisplayState displayState;
   final String? conflictKey;
 }
 
@@ -703,16 +737,20 @@ List<_CourseLayout> _buildDayLayouts({
   required List<CourseItem> courses,
   required int weekday,
   required int selectedWeek,
+  required int realCurrentWeek,
+  required bool showPastEndedCourses,
   required String? Function(String conflictKey)? displayedCourseIdForConflict,
 }) {
   final dayCourses =
-      courses
-          .where(
-            (item) =>
-                item.dayOfWeek == weekday &&
-                matchesSemesterWeek(item, selectedWeek),
-          )
-          .toList()
+      courses.where((item) => item.dayOfWeek == weekday).where((item) {
+        return _displayStateForCourse(
+              item,
+              selectedWeek: selectedWeek,
+              realCurrentWeek: realCurrentWeek,
+              showPastEndedCourses: showPastEndedCourses,
+            ) !=
+            null;
+      }).toList()
         ..sort((a, b) {
           final startCompare = a.startMinutes.compareTo(b.startMinutes);
           if (startCompare != 0) {
@@ -740,12 +778,21 @@ List<_CourseLayout> _buildDayLayouts({
       );
       final sortedCourses = [...group.courses]
         ..sort(_compareDisplayedCourseChoice);
+      final displayState =
+          _displayStateForCourse(
+            displayedCourse,
+            selectedWeek: selectedWeek,
+            realCurrentWeek: realCurrentWeek,
+            showPastEndedCourses: showPastEndedCourses,
+          ) ??
+          _CourseDisplayState.active;
       layouts.add(
         _CourseLayout(
           course: displayedCourse,
           priorityDepth: 0,
           isFullConflict: true,
           conflictCourses: sortedCourses,
+          displayState: displayState,
           conflictKey: conflictKey,
         ),
       );
@@ -754,17 +801,70 @@ List<_CourseLayout> _buildDayLayouts({
 
     final sortedCourses = [...group.courses]..sort(_comparePaintPriority);
     for (var index = 0; index < sortedCourses.length; index++) {
+      final course = sortedCourses[index];
+      final displayState =
+          _displayStateForCourse(
+            course,
+            selectedWeek: selectedWeek,
+            realCurrentWeek: realCurrentWeek,
+            showPastEndedCourses: showPastEndedCourses,
+          ) ??
+          _CourseDisplayState.active;
       layouts.add(
         _CourseLayout(
-          course: sortedCourses[index],
+          course: course,
           priorityDepth: index,
           isFullConflict: false,
-          conflictCourses: [sortedCourses[index]],
+          conflictCourses: [course],
+          displayState: displayState,
         ),
       );
     }
   }
   return layouts;
+}
+
+_CourseDisplayState? _displayStateForCourse(
+  CourseItem course, {
+  required int selectedWeek,
+  required int realCurrentWeek,
+  required bool showPastEndedCourses,
+}) {
+  if (matchesSemesterWeek(course, selectedWeek)) {
+    return _CourseDisplayState.active;
+  }
+  if (course.semesterWeeks.isEmpty) {
+    return _CourseDisplayState.active;
+  }
+  final normalizedWeeks = normalizeSemesterWeeks(course.semesterWeeks);
+  if (normalizedWeeks.isEmpty) {
+    return _CourseDisplayState.active;
+  }
+  if (selectedWeek < realCurrentWeek) {
+    final nextWeek = normalizedWeeks.firstWhere(
+      (week) => week > selectedWeek,
+      orElse: () => -1,
+    );
+    if (nextWeek != -1) {
+      return _CourseDisplayState.futureInactive;
+    }
+    return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
+  }
+  if (selectedWeek > realCurrentWeek) {
+    final lastWeek = normalizedWeeks.lastWhere(
+      (week) => week < selectedWeek,
+      orElse: () => -1,
+    );
+    if (lastWeek != -1) {
+      return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
+    }
+    return _CourseDisplayState.futureInactive;
+  }
+  final hasFutureWeek = normalizedWeeks.any((week) => week > realCurrentWeek);
+  if (hasFutureWeek) {
+    return _CourseDisplayState.futureInactive;
+  }
+  return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
 }
 
 List<_OverlapGroup> _buildOverlapGroups(List<CourseItem> courses) {

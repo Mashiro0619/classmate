@@ -25,11 +25,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   PageController? _pageController;
+  bool _hasScheduledStartupUpdateCheck = false;
 
   @override
   void dispose() {
     _pageController?.dispose();
     super.dispose();
+  }
+
+  void _scheduleStartupUpdateCheck(TimetableProvider provider) {
+    if (_hasScheduledStartupUpdateCheck) {
+      return;
+    }
+    _hasScheduledStartupUpdateCheck = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted ||
+          !provider.isLoaded ||
+          !provider.hasAcceptedCurrentPrivacyPolicy) {
+        return;
+      }
+      await AppUpdateCoordinator.checkForUpdates(
+        context,
+        provider: provider,
+        source: UpdateCheckSource.startup,
+      );
+    });
   }
 
   @override
@@ -54,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
+        _scheduleStartupUpdateCheck(provider);
+
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
           return Scaffold(
@@ -75,8 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
             titleSpacing: 12,
             title: InkWell(
               borderRadius: BorderRadius.circular(24),
-              onTap: () =>
-                  _showWeekPicker(context, provider, config.totalWeeks),
+              onTap: () => _showWeekPicker(
+                context,
+                provider,
+                config.totalWeeks,
+                currentWeekFor(config),
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: Column(
@@ -222,8 +248,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         weekDateStart: weekStart,
                         selectedWeek: pageWeek,
+                        realCurrentWeek: currentWeekFor(config),
                         localeCode: provider.localeCode,
                         preserveGaps: provider.preserveTimetableGaps,
+                        showPastEndedCourses: provider.showPastEndedCourses,
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
                         onCourseTap: (info) =>
@@ -391,6 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     TimetableProvider provider,
     int totalWeeks,
+    int realCurrentWeek,
   ) async {
     // 这里直接给一个轻量选择框，比再进设置页改周数顺手很多。
     final week = await showDialog<int>(
@@ -436,34 +465,47 @@ class _HomeScreenState extends State<HomeScreen> {
                       runSpacing: spacing,
                       children: [
                         for (var index = 0; index < totalWeeks; index++)
-                          SizedBox(
-                            width: chipWidth,
-                            height: chipHeight,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () => Navigator.of(context).pop(index + 1),
-                                child: Ink(
-                                  decoration: BoxDecoration(
-                                    color: index + 1 == provider.selectedWeek
-                                        ? theme.colorScheme.secondaryContainer
-                                        : theme.colorScheme.surface,
+                          Builder(
+                            builder: (context) {
+                              final weekNumber = index + 1;
+                              final isSelected = weekNumber == provider.selectedWeek;
+                              final isRealCurrentWeek =
+                                  weekNumber == realCurrentWeek;
+                              final backgroundColor = isSelected
+                                  ? theme.colorScheme.secondaryContainer
+                                  : isRealCurrentWeek
+                                  ? theme.colorScheme.surfaceContainerHighest
+                                  : theme.colorScheme.surface;
+                              return SizedBox(
+                                width: chipWidth,
+                                height: chipHeight,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: theme.colorScheme.outlineVariant,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${index + 1}',
-                                      style: theme.textTheme.titleMedium,
-                                      textAlign: TextAlign.center,
+                                    onTap: () => Navigator.of(context).pop(weekNumber),
+                                    child: Ink(
+                                      decoration: BoxDecoration(
+                                        color: backgroundColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? theme.colorScheme.secondary
+                                              : theme.colorScheme.outlineVariant,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '$weekNumber',
+                                          style: theme.textTheme.titleMedium,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                       ],
                     ),

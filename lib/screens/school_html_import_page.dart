@@ -15,11 +15,13 @@ class SchoolHtmlImportPage extends StatefulWidget {
     this.initialContent = '',
     this.initialUrl = '',
     this.initialTitle = '',
+    this.showReturnToWebPageButton = false,
   });
 
   final String initialContent;
   final String initialUrl;
   final String initialTitle;
+  final bool showReturnToWebPageButton;
 
   @override
   State<SchoolHtmlImportPage> createState() => _SchoolHtmlImportPageState();
@@ -52,7 +54,16 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.schoolHtmlImportPageTitle)),
+      appBar: AppBar(
+        title: Text(l10n.schoolHtmlImportPageTitle),
+        actions: [
+          if (widget.showReturnToWebPageButton)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.schoolHtmlImportReturnToWebPage),
+            ),
+        ],
+      ),
       body: !_isConfigured
           ? _buildMessage(l10n.schoolWebImportConfigMissing)
           : ListView(

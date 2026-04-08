@@ -31,7 +31,11 @@ class TimetableProvider extends ChangeNotifier {
   bool get closeCoursePopupOnOutsideTap =>
       _appData.closeCoursePopupOnOutsideTap;
   bool get preserveTimetableGaps => _appData.preserveTimetableGaps;
+  bool get showPastEndedCourses => _appData.showPastEndedCourses;
   String get localeCode => _appData.localeCode;
+  String get themeMode => _appData.themeMode;
+  int get themeSeedColorValue => _appData.themeSeedColorValue;
+  String? get ignoredUpdateVersion => _appData.ignoredUpdateVersion;
   String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
   String? get acceptedPrivacyPolicyVersion => _appData.privacyPolicyAcceptedVersion;
   DateTime? get privacyPolicyAcceptedAt {
@@ -307,9 +311,14 @@ class TimetableProvider extends ChangeNotifier {
   }) async {
     final existingIds = _appData.periodTimeSets.map((item) => item.id).toSet();
     final nextId = _nextPeriodTimeSetId(existingIds);
+    final defaultPeriodTimes = await _loadDefaultPeriodTimes();
     final normalizedTimes = buildPeriodTimesForCount(
-      periodTimes == null || periodTimes.isEmpty ? 10 : periodTimes.length,
-      source: periodTimes,
+      periodTimes == null || periodTimes.isEmpty
+          ? defaultPeriodTimes.length
+          : periodTimes.length,
+      source: periodTimes == null || periodTimes.isEmpty
+          ? defaultPeriodTimes
+          : periodTimes,
     );
     final nextSet = PeriodTimeSet(
       id: nextId,
@@ -713,21 +722,20 @@ class TimetableProvider extends ChangeNotifier {
     );
   }
 
-  Future<AppData> _buildDefaultAppData() async {
+  Future<List<CoursePeriodTime>> _loadDefaultPeriodTimes() async {
     try {
       final source = await rootBundle.loadString(defaultPeriodTimesAssetPath);
-      final periodTimes = importPeriodTimesJson(source);
-      return _normalizeImportedAppData(
-        buildInitialAppData(periodTimes, localeCode: _appData.localeCode),
-      );
+      return importPeriodTimesJson(source);
     } catch (_) {
-      return _normalizeImportedAppData(
-        buildInitialAppData(
-          buildDefaultPeriodTimes(),
-          localeCode: _appData.localeCode,
-        ),
-      );
+      return buildDefaultPeriodTimes();
     }
+  }
+
+  Future<AppData> _buildDefaultAppData() async {
+    final periodTimes = await _loadDefaultPeriodTimes();
+    return _normalizeImportedAppData(
+      buildInitialAppData(periodTimes, localeCode: _appData.localeCode),
+    );
   }
 
   Future<void> updateCloseCoursePopupOnOutsideTap(bool value) async {
@@ -746,12 +754,37 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  Future<void> updateShowPastEndedCourses(bool value) async {
+    if (_appData.showPastEndedCourses == value) {
+      return;
+    }
+    _appData = _appData.copyWith(showPastEndedCourses: value);
+    await _saveAndNotify();
+  }
+
   Future<void> updateLocaleCode(String localeCode) async {
     final normalized = normalizeLocaleCode(localeCode);
     if (_appData.localeCode == normalized) {
       return;
     }
     _appData = _appData.copyWith(localeCode: normalized);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateThemeMode(String themeMode) async {
+    final normalized = normalizeThemeMode(themeMode);
+    if (_appData.themeMode == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(themeMode: normalized);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateThemeSeedColorValue(int colorValue) async {
+    if (_appData.themeSeedColorValue == colorValue) {
+      return;
+    }
+    _appData = _appData.copyWith(themeSeedColorValue: colorValue);
     await _saveAndNotify();
   }
 
@@ -763,6 +796,15 @@ class TimetableProvider extends ChangeNotifier {
       privacyPolicyAcceptedVersion: activePrivacyPolicyVersion,
       privacyPolicyAcceptedAtIso: DateTime.now().toIso8601String(),
     );
+    await _saveAndNotify();
+  }
+
+  Future<void> ignoreUpdateVersion(String version) async {
+    final normalized = version.trim();
+    if (normalized.isEmpty || _appData.ignoredUpdateVersion == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(ignoredUpdateVersion: normalized);
     await _saveAndNotify();
   }
 

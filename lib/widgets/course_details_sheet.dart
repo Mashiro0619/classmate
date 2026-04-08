@@ -153,6 +153,9 @@ String _formatPeriodsLabel(AppLocalizations l10n, List<int> periods) {
     return '';
   }
   final sorted = [...periods]..sort();
+  if (sorted.first == sorted.last) {
+    return l10n.periodNumberLabel(sorted.first);
+  }
   return l10n.periodRangeLabel(sorted.first, sorted.last);
 }
 

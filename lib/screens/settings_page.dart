@@ -1,5 +1,6 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,14 +8,160 @@ import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
+import '../services/update_service.dart';
 import '../widgets/period_time_set_picker_dialog.dart';
 import 'privacy_policy_page.dart';
+import 'theme_settings_page.dart';
 import 'timetable_import_flow.dart';
 
 enum _DataAction {
   importTimetables,
   exportTimetablesShare,
   exportTimetablesSave,
+}
+
+enum UpdateCheckSource { manual, startup }
+
+enum _UpdateAction { github, website, ignore, cancel }
+
+class AppUpdateCoordinator {
+  static const _updateService = UpdateService();
+
+  static Future<void> checkForUpdates(
+    BuildContext context, {
+    required TimetableProvider provider,
+    required UpdateCheckSource source,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final result = await _updateService.checkForUpdates();
+      if (!context.mounted) {
+        return;
+      }
+      if (!result.hasUpdate) {
+        if (source == UpdateCheckSource.manual) {
+          _showMessage(context, l10n.alreadyLatestVersion(result.localVersion));
+        }
+        return;
+      }
+      if (source == UpdateCheckSource.startup &&
+          provider.ignoredUpdateVersion == result.remoteVersion) {
+        return;
+      }
+      final action = await _showUpdateDialog(
+        context,
+        result,
+        showIgnoreButton: source == UpdateCheckSource.startup,
+      );
+      if (!context.mounted) {
+        return;
+      }
+      switch (action) {
+        case _UpdateAction.github:
+          await _openReleasesPage(context, result.releaseUrl);
+          return;
+        case _UpdateAction.website:
+          await _openWebsitePage(context, result.officialWebsiteUrl);
+          return;
+        case _UpdateAction.ignore:
+          if (source == UpdateCheckSource.startup) {
+            await provider.ignoreUpdateVersion(result.remoteVersion);
+          }
+          return;
+        case _UpdateAction.cancel:
+        case null:
+          return;
+      }
+    } catch (_) {
+      if (context.mounted && source == UpdateCheckSource.manual) {
+        _showMessage(context, l10n.openUpdatesFailed);
+      }
+    }
+  }
+
+  static Future<_UpdateAction?> _showUpdateDialog(
+    BuildContext context,
+    UpdateCheckResult result, {
+    required bool showIgnoreButton,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final updateContent = result.updateContent.trim();
+    return showDialog<_UpdateAction>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.checkForUpdates),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${l10n.currentVersionLabel} ${result.localVersion}'),
+                const SizedBox(height: 8),
+                Text('${l10n.latestVersionLabel} ${result.remoteVersion}'),
+                if (updateContent.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.updateContentLabel,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText(updateContent),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(_UpdateAction.cancel),
+              child: Text(l10n.cancel),
+            ),
+            if (showIgnoreButton)
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(_UpdateAction.ignore),
+                child: Text(l10n.ignoreThisVersion),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(_UpdateAction.website),
+              child: Text(l10n.officialWebsite),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(_UpdateAction.github),
+              child: const Text('GitHub'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<void> _openReleasesPage(
+    BuildContext context, [
+    String? releaseUrl,
+  ]) async {
+    final uri = Uri.parse(
+      releaseUrl ?? 'https://github.com/Mashiro0619/classmate/releases/latest',
+    );
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      _showMessage(context, AppLocalizations.of(context)!.openUpdatesFailed);
+    }
+  }
+
+  static Future<void> _openWebsitePage(
+    BuildContext context,
+    String websiteUrl,
+  ) async {
+    final uri = Uri.parse(websiteUrl);
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      _showMessage(context, AppLocalizations.of(context)!.openUpdatesFailed);
+    }
+  }
+
+  static void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 }
 
 class SettingsPage extends StatefulWidget {
@@ -28,8 +175,15 @@ class _SettingsPageState extends State<SettingsPage> {
   static const _exportService = ExportService();
 
   String? _editingTimetableId;
+  String _currentVersion = '';
   late DateTime _selectedDate;
   late String _selectedPeriodTimeSetId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentVersion();
+  }
 
   @override
   void didChangeDependencies() {
@@ -65,10 +219,10 @@ class _SettingsPageState extends State<SettingsPage> {
         return Scaffold(
           appBar: AppBar(title: Text(l10n.settingsTitle)),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.semesterStartDate),
                 subtitle: Text(
                   '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
@@ -82,7 +236,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ).colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.periodTimeSets),
                 subtitle: Text(
                   selectedSet == null
@@ -101,21 +255,28 @@ class _SettingsPageState extends State<SettingsPage> {
                 ).colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
               SwitchListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 value: provider.closeCoursePopupOnOutsideTap,
                 title: Text(l10n.coursePopupDismissSetting),
                 subtitle: Text(l10n.coursePopupDismissSettingHint),
                 onChanged: provider.updateCloseCoursePopupOnOutsideTap,
               ),
               SwitchListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 value: provider.preserveTimetableGaps,
                 title: Text(l10n.preserveTimetableGaps),
                 subtitle: Text(l10n.preserveTimetableGapsHint),
                 onChanged: provider.updatePreserveTimetableGaps,
               ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                value: provider.showPastEndedCourses,
+                title: Text(l10n.showPastEndedCourses),
+                subtitle: Text(l10n.showPastEndedCoursesHint),
+                onChanged: provider.updateShowPastEndedCourses,
+              ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.language),
                 subtitle: Text(
                   provider.localeCode == 'en'
@@ -125,27 +286,40 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickLanguage(provider),
               ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: Text(l10n.theme),
+                subtitle: Text(
+                  switch (provider.themeMode) {
+                    'dark' => l10n.themeDark,
+                    'system' => l10n.themeFollowSystem,
+                    _ => l10n.themeLight,
+                  },
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () => _openThemeSettingsPage(provider),
+              ),
               Divider(
                 color: Theme.of(
                   context,
                 ).colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.import_export),
                 title: Text(l10n.dataImportExport),
                 subtitle: Text(l10n.dataImportExportDesc),
                 onTap: () => _showDataActions(provider),
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.language_outlined),
                 title: Text(l10n.schoolWebImportEntry),
                 subtitle: Text(l10n.schoolWebImportEntryDesc),
                 onTap: () => _openSchoolSitesPage(provider),
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.privacy_tip_outlined),
                 title: Text(l10n.privacyPolicyTitle),
                 subtitle: Text(
@@ -158,23 +332,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: _openPrivacyPolicyPage,
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.description_outlined),
                 title: Text(l10n.openSourceLicenses),
                 subtitle: Text(l10n.openSourceLicensesDesc),
                 onTap: _openLicensesPage,
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.update_outlined),
                 title: Text(l10n.checkForUpdates),
-                subtitle: const Text(
-                  'github.com/Mashiro0619/classmate/releases/latest',
+                subtitle: Text(
+                  _currentVersion.isEmpty
+                      ? l10n.currentVersionLabel
+                      : '${l10n.currentVersionLabel} $_currentVersion',
                 ),
-                onTap: _openReleasesPage,
+                onTap: _checkForUpdates,
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const FaIcon(FontAwesomeIcons.github),
                 title: Text(l10n.githubRepository),
                 subtitle: const Text('github.com/Mashiro0619/classmate'),
@@ -184,6 +360,17 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _openThemeSettingsPage(TimetableProvider provider) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const ThemeSettingsPage(),
+        ),
+      ),
     );
   }
 
@@ -198,7 +385,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.languageChinese),
                 trailing: provider.localeCode == 'zh'
                     ? const Icon(Icons.check)
@@ -206,7 +393,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: () => Navigator.of(context).pop('zh'),
               ),
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 title: Text(l10n.languageEnglish),
                 trailing: provider.localeCode == 'en'
                     ? const Icon(Icons.check)
@@ -275,14 +462,20 @@ class _SettingsPageState extends State<SettingsPage> {
     showLicensePage(context: context, applicationName: 'Classmate');
   }
 
-  Future<void> _openReleasesPage() async {
-    final uri = Uri.parse(
-      'https://github.com/Mashiro0619/classmate/releases/latest',
-    );
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && mounted) {
-      _showMessage(AppLocalizations.of(context)!.openUpdatesFailed);
+  Future<void> _loadCurrentVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (!mounted) {
+      return;
     }
+    setState(() => _currentVersion = info.version);
+  }
+
+  Future<void> _checkForUpdates() {
+    return AppUpdateCoordinator.checkForUpdates(
+      context,
+      provider: context.read<TimetableProvider>(),
+      source: UpdateCheckSource.manual,
+    );
   }
 
   Future<void> _openGithubRepo() async {

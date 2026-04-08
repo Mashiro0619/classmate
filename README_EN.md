@@ -7,7 +7,7 @@
 
 [中文 README](README.md)
 
-Classmate is a local-first Flutter timetable app focused on timetable management, reusable period-time sets, course editing, and timetable import from school webpages or pasted HTML source.
+Classmate is a Flutter timetable app focused on timetable management, reusable period-time sets, course editing, and timetable import from school webpages or pasted HTML source.
 
 ## Features
 
@@ -39,7 +39,7 @@ Welcome to submit PRs to expand `assets/school_sites.json` with more school site
 
 ## School import backend
 
-The project includes a single-file PHP relay endpoint: [web/api.php](web/api.php)
+The project includes a single-file PHP relay endpoint: [web/api.php](web/api.php) , Configure your API address in [lib/config/app_config.dart](lib/config/app_config.dart).
 
 ### Backend configuration
 

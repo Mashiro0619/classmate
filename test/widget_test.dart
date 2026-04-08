@@ -135,6 +135,7 @@ AppData _buildTestAppData() {
     activeTimetableId: primaryTimetable.id,
     timetables: [primaryTimetable, backupTimetable],
     periodTimeSets: [defaultSet, shortSet],
+    privacyPolicyAcceptedVersion: currentPrivacyPolicyVersion,
   );
 }
 
@@ -213,18 +214,15 @@ void main() {
       await firstProvider.load();
 
       expect(await file.exists(), isTrue);
-      expect(firstProvider.activeTimetable.config.name, '空白课表');
+      expect(firstProvider.activeTimetable.config.name, '空课表');
 
       final secondProvider = TimetableProvider(
         storage: TestTimetableStorage(file),
       );
       await secondProvider.load();
 
-      expect(secondProvider.timetables.isNotEmpty, isTrue);
-      expect(
-        secondProvider.activeTimetable.id,
-        firstProvider.activeTimetable.id,
-      );
+      expect(secondProvider.timetables, isEmpty);
+      expect(secondProvider.activeTimetable.config.name, '空课表');
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
@@ -474,6 +472,7 @@ void main() {
                 ],
               ),
             ],
+            privacyPolicyAcceptedVersion: currentPrivacyPolicyVersion,
           ),
         ),
       );
@@ -548,8 +547,10 @@ void main() {
                 periodTimes: periodTimes,
                 weekDateStart: DateTime(2026, 2, 23),
                 selectedWeek: 1,
+                realCurrentWeek: 1,
                 localeCode: 'zh',
                 preserveGaps: true,
+                showPastEndedCourses: false,
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
               ),
@@ -625,8 +626,10 @@ void main() {
                 periodTimes: periodTimes,
                 weekDateStart: DateTime(2026, 2, 23),
                 selectedWeek: 1,
+                realCurrentWeek: 1,
                 localeCode: 'zh',
                 preserveGaps: true,
+                showPastEndedCourses: false,
                 displayedCourseIdForConflict: (_) => 'b_short',
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},

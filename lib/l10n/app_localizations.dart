@@ -467,6 +467,18 @@ abstract class AppLocalizations {
   /// **'When off, lunch and break gaps are collapsed so later classes move upward.'**
   String get preserveTimetableGapsHint;
 
+  /// No description provided for @showPastEndedCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Show past-ended courses'**
+  String get showPastEndedCourses;
+
+  /// No description provided for @showPastEndedCoursesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show courses that have already finished by the real current week with a lighter gray style.'**
+  String get showPastEndedCoursesHint;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
@@ -484,6 +496,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'English'**
   String get languageEnglish;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeFollowSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get themeFollowSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme color'**
+  String get themeColor;
+
+  /// No description provided for @themeCustomColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get themeCustomColor;
+
+  /// No description provided for @themeApplyCustomColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply color'**
+  String get themeApplyCustomColor;
 
   /// No description provided for @dataImportExport.
   ///
@@ -515,10 +569,52 @@ abstract class AppLocalizations {
   /// **'Check for updates'**
   String get checkForUpdates;
 
+  /// No description provided for @checkForUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub / Official website'**
+  String get checkForUpdatesDesc;
+
+  /// No description provided for @alreadyLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on the latest version ({version})'**
+  String alreadyLatestVersion(Object version);
+
+  /// No description provided for @currentVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current version'**
+  String get currentVersionLabel;
+
+  /// No description provided for @latestVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest version'**
+  String get latestVersionLabel;
+
+  /// No description provided for @updateContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Update details'**
+  String get updateContentLabel;
+
+  /// No description provided for @officialWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Official website'**
+  String get officialWebsite;
+
+  /// No description provided for @ignoreThisVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore this version'**
+  String get ignoreThisVersion;
+
   /// No description provided for @openUpdatesFailed.
   ///
   /// In en, this message translates to:
-  /// **'Unable to open the releases page'**
+  /// **'Unable to open the update link'**
   String get openUpdatesFailed;
 
   /// No description provided for @githubRepository.
@@ -1223,6 +1319,12 @@ abstract class AppLocalizations {
   /// **'Paste the page HTML first.'**
   String get schoolHtmlImportEmpty;
 
+  /// No description provided for @schoolHtmlImportReturnToWebPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to webpage'**
+  String get schoolHtmlImportReturnToWebPage;
+
   /// No description provided for @schoolWebImportPageTitle.
   ///
   /// In en, this message translates to:
@@ -1306,6 +1408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import current page'**
   String get schoolWebImportImportCurrentPage;
+
+  /// No description provided for @schoolWebImportGoBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get schoolWebImportGoBack;
 
   /// No description provided for @schoolWebImportLoadingPage.
   ///
