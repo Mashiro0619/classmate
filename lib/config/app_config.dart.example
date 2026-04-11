@@ -1,0 +1,21 @@
+class AppConfig {
+  const AppConfig._();
+
+  static const schoolImportApiBaseUrl = String.fromEnvironment(
+    'SCHOOL_IMPORT_API_BASE_URL',
+    defaultValue: '',
+    // 你的处理网页课表的ai接口
+  );
+
+  static const updateVersionUrl = String.fromEnvironment(
+    'CLASSMATE_UPDATE_VERSION_URL',
+    defaultValue: '', //更新文档接口，参数version（v1.6.1）、updateContent
+  );
+
+  static const officialWebsiteUrl = '; //官网页
+
+  static bool get hasSchoolImportApiBaseUrl =>
+      schoolImportApiBaseUrl.trim().isNotEmpty;
+
+  static bool get hasUpdateVersionUrl => updateVersionUrl.trim().isNotEmpty;
+}
