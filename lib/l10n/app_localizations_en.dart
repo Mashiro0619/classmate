@@ -213,6 +213,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showPastEndedCoursesHint => 'Show courses that have already finished by the real current week with a lighter gray style.';
 
   @override
+  String get showFutureCourses => 'Show future courses';
+
+  @override
+  String get showFutureCoursesHint => 'Show courses that are not active this week but will appear in later weeks with a gray style.';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -568,7 +574,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolWebImportEntry => 'Import from school webpage';
 
   @override
-  String get schoolWebImportEntryDesc => 'Open the school site in-app and import the current page after you reach the timetable.';
+  String get schoolWebImportEntryDesc => 'Import the current timetable page from the school site.';
 
   @override
   String get schoolSitesManageEntry => 'Manage school sites';

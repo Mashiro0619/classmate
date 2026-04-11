@@ -252,6 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         localeCode: provider.localeCode,
                         preserveGaps: provider.preserveTimetableGaps,
                         showPastEndedCourses: provider.showPastEndedCourses,
+                        showFutureCourses: provider.showFutureCourses,
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
                         onCourseTap: (info) =>
@@ -342,7 +343,6 @@ class _HomeScreenState extends State<HomeScreen> {
           course: info.course,
           conflictCourses: info.isFullConflict ? info.courses : const [],
           onEdit: () {
-            Navigator.of(sheetContext).pop();
             _openEditor(context, provider, course: info.course);
           },
           onSelectDisplayedCourse:
@@ -360,7 +360,6 @@ class _HomeScreenState extends State<HomeScreen> {
           onEditConflictCourse: !info.isFullConflict
               ? null
               : (course) {
-                  Navigator.of(sheetContext).pop();
                   _openEditor(context, provider, course: course);
                 },
         ),

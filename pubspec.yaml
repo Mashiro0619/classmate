@@ -78,6 +78,7 @@ flutter:
   assets:
     - assets/default_period_times.json
     - assets/school_sites.json
+    - NOTICE
 
   # To add assets to your application, add an assets section, like this:
   # assets:

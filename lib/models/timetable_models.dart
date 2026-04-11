@@ -3,7 +3,7 @@ import 'dart:convert';
 const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
 const defaultLocaleCode = 'zh';
-const defaultThemeMode = 'light';
+const defaultThemeMode = 'system';
 const defaultThemeSeedColorValue = 0xFF6750A4;
 const maxTimetableWeeks = 100;
 const currentPrivacyPolicyVersion = '2026-04-08';
@@ -509,6 +509,7 @@ class AppData {
     this.closeCoursePopupOnOutsideTap = true,
     this.preserveTimetableGaps = false,
     this.showPastEndedCourses = false,
+    this.showFutureCourses = true,
     this.localeCode = defaultLocaleCode,
     this.themeMode = defaultThemeMode,
     this.themeSeedColorValue = defaultThemeSeedColorValue,
@@ -525,6 +526,7 @@ class AppData {
   final bool closeCoursePopupOnOutsideTap;
   final bool preserveTimetableGaps;
   final bool showPastEndedCourses;
+  final bool showFutureCourses;
   final String localeCode;
   final String themeMode;
   final int themeSeedColorValue;
@@ -541,6 +543,7 @@ class AppData {
     'closeCoursePopupOnOutsideTap': closeCoursePopupOnOutsideTap,
     'preserveTimetableGaps': preserveTimetableGaps,
     'showPastEndedCourses': showPastEndedCourses,
+    'showFutureCourses': showFutureCourses,
     'localeCode': normalizeLocaleCode(localeCode),
     'themeMode': normalizeThemeMode(themeMode),
     'themeSeedColorValue': themeSeedColorValue,
@@ -633,6 +636,7 @@ class AppData {
           json['closeCoursePopupOnOutsideTap'] as bool? ?? true,
       preserveTimetableGaps: json['preserveTimetableGaps'] as bool? ?? false,
       showPastEndedCourses: json['showPastEndedCourses'] as bool? ?? false,
+      showFutureCourses: json['showFutureCourses'] as bool? ?? true,
       localeCode: localeCode,
       themeMode: normalizeThemeMode(
         json['themeMode'] as String? ?? defaultThemeMode,
@@ -656,6 +660,7 @@ class AppData {
     bool? closeCoursePopupOnOutsideTap,
     bool? preserveTimetableGaps,
     bool? showPastEndedCourses,
+    bool? showFutureCourses,
     String? localeCode,
     String? themeMode,
     int? themeSeedColorValue,
@@ -676,6 +681,8 @@ class AppData {
           preserveTimetableGaps ?? this.preserveTimetableGaps,
       showPastEndedCourses:
           showPastEndedCourses ?? this.showPastEndedCourses,
+      showFutureCourses:
+          showFutureCourses ?? this.showFutureCourses,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
       themeMode: normalizeThemeMode(themeMode ?? this.themeMode),
       themeSeedColorValue: themeSeedColorValue ?? this.themeSeedColorValue,

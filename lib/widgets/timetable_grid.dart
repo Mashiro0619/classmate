@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/timetable_models.dart';
 
 const _minuteHeight = 1.4;
+const _courseVerticalGap = 4.0;
 const _compactHeaderHeight = 56.0;
 const _regularHeaderHeight = 64.0;
 
@@ -62,6 +63,7 @@ class TimetableGrid extends StatelessWidget {
     required this.localeCode,
     required this.preserveGaps,
     required this.showPastEndedCourses,
+    required this.showFutureCourses,
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
@@ -75,6 +77,7 @@ class TimetableGrid extends StatelessWidget {
   final String localeCode;
   final bool preserveGaps;
   final bool showPastEndedCourses;
+  final bool showFutureCourses;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
@@ -230,6 +233,7 @@ class TimetableGrid extends StatelessWidget {
                                   selectedWeek: selectedWeek,
                                   realCurrentWeek: realCurrentWeek,
                                   showPastEndedCourses: showPastEndedCourses,
+                                  showFutureCourses: showFutureCourses,
                                   displayedCourseIdForConflict:
                                       displayedCourseIdForConflict,
                                 ).map(
@@ -521,7 +525,7 @@ class _TimetableVerticalLayout {
 
   double courseHeight(CourseItem course) {
     final visualHeight = minuteToY(course.endMinutes) - minuteToY(course.startMinutes);
-    return math.max(92.0, visualHeight);
+    return math.max(88.0, visualHeight - _courseVerticalGap);
   }
 
   CoursePeriodTime slotForY(double y) {
@@ -740,6 +744,7 @@ List<_CourseLayout> _buildDayLayouts({
   required int selectedWeek,
   required int realCurrentWeek,
   required bool showPastEndedCourses,
+  required bool showFutureCourses,
   required String? Function(String conflictKey)? displayedCourseIdForConflict,
 }) {
   final dayCourses =
@@ -749,6 +754,7 @@ List<_CourseLayout> _buildDayLayouts({
               selectedWeek: selectedWeek,
               realCurrentWeek: realCurrentWeek,
               showPastEndedCourses: showPastEndedCourses,
+              showFutureCourses: showFutureCourses,
             ) !=
             null;
       }).toList()
@@ -785,6 +791,7 @@ List<_CourseLayout> _buildDayLayouts({
             selectedWeek: selectedWeek,
             realCurrentWeek: realCurrentWeek,
             showPastEndedCourses: showPastEndedCourses,
+            showFutureCourses: showFutureCourses,
           ) ??
           _CourseDisplayState.active;
       layouts.add(
@@ -809,6 +816,7 @@ List<_CourseLayout> _buildDayLayouts({
             selectedWeek: selectedWeek,
             realCurrentWeek: realCurrentWeek,
             showPastEndedCourses: showPastEndedCourses,
+            showFutureCourses: showFutureCourses,
           ) ??
           _CourseDisplayState.active;
       layouts.add(
@@ -830,6 +838,7 @@ _CourseDisplayState? _displayStateForCourse(
   required int selectedWeek,
   required int realCurrentWeek,
   required bool showPastEndedCourses,
+  required bool showFutureCourses,
 }) {
   if (matchesSemesterWeek(course, selectedWeek)) {
     return _CourseDisplayState.active;
@@ -847,7 +856,7 @@ _CourseDisplayState? _displayStateForCourse(
       orElse: () => -1,
     );
     if (nextWeek != -1) {
-      return _CourseDisplayState.futureInactive;
+      return showFutureCourses ? _CourseDisplayState.futureInactive : null;
     }
     return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
   }
@@ -859,11 +868,11 @@ _CourseDisplayState? _displayStateForCourse(
     if (lastWeek != -1) {
       return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
     }
-    return _CourseDisplayState.futureInactive;
+    return showFutureCourses ? _CourseDisplayState.futureInactive : null;
   }
   final hasFutureWeek = normalizedWeeks.any((week) => week > realCurrentWeek);
   if (hasFutureWeek) {
-    return _CourseDisplayState.futureInactive;
+    return showFutureCourses ? _CourseDisplayState.futureInactive : null;
   }
   return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
 }

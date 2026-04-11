@@ -213,6 +213,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showPastEndedCoursesHint => '显示按真实当前周已结束的课程，并用更浅的灰色区分。';
 
   @override
+  String get showFutureCourses => '显示之后的课程';
+
+  @override
+  String get showFutureCoursesHint => '显示当前周不上、但之后周次还会上的课程，并用灰色区分。';
+
+  @override
   String get language => '语言';
 
   @override
@@ -568,7 +574,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolWebImportEntry => '从学校网页导入';
 
   @override
-  String get schoolWebImportEntryDesc => '在应用内打开学校网站，进入课表页后导入当前页面。';
+  String get schoolWebImportEntryDesc => '进入学校网站后导入当前课表页。';
 
   @override
   String get schoolSitesManageEntry => '学校站点管理';

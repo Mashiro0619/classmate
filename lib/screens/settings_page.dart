@@ -232,6 +232,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.calendar_month_outlined),
                 title: Text(l10n.semesterStartDate),
                 subtitle: Text(
                   '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
@@ -246,6 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.schedule_outlined),
                 title: Text(l10n.periodTimeSets),
                 subtitle: Text(
                   selectedSet == null
@@ -257,6 +259,37 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickPeriodTimeSet(provider, timetable.config),
+              ),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.language_outlined),
+                title: Text(l10n.schoolWebImportEntry),
+                subtitle: Text(l10n.schoolWebImportEntryDesc),
+                onTap: () => _openSchoolSitesPage(provider),
+              ),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.palette_outlined),
+                title: Text(l10n.theme),
+                subtitle: Text(
+                  switch (provider.themeMode) {
+                    'dark' => l10n.themeDark,
+                    'system' => l10n.themeFollowSystem,
+                    _ => l10n.themeLight,
+                  },
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () => _openThemeSettingsPage(provider),
               ),
               Divider(
                 color: Theme.of(
@@ -284,8 +317,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: Text(l10n.showPastEndedCoursesHint),
                 onChanged: provider.updateShowPastEndedCourses,
               ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                value: provider.showFutureCourses,
+                title: Text(l10n.showFutureCourses),
+                subtitle: Text(l10n.showFutureCoursesHint),
+                onChanged: provider.updateShowFutureCourses,
+              ),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.translate_outlined),
                 title: Text(l10n.language),
                 subtitle: Text(
                   provider.localeCode == 'en'
@@ -297,35 +343,10 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.theme),
-                subtitle: Text(
-                  switch (provider.themeMode) {
-                    'dark' => l10n.themeDark,
-                    'system' => l10n.themeFollowSystem,
-                    _ => l10n.themeLight,
-                  },
-                ),
-                trailing: const Icon(Icons.keyboard_arrow_right),
-                onTap: () => _openThemeSettingsPage(provider),
-              ),
-              Divider(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.import_export),
                 title: Text(l10n.dataImportExport),
                 subtitle: Text(l10n.dataImportExportDesc),
                 onTap: () => _showDataActions(provider),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                leading: const Icon(Icons.language_outlined),
-                title: Text(l10n.schoolWebImportEntry),
-                subtitle: Text(l10n.schoolWebImportEntryDesc),
-                onTap: () => _openSchoolSitesPage(provider),
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),

@@ -479,6 +479,18 @@ abstract class AppLocalizations {
   /// **'Show courses that have already finished by the real current week with a lighter gray style.'**
   String get showPastEndedCoursesHint;
 
+  /// No description provided for @showFutureCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Show future courses'**
+  String get showFutureCourses;
+
+  /// No description provided for @showFutureCoursesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show courses that are not active this week but will appear in later weeks with a gray style.'**
+  String get showFutureCoursesHint;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
