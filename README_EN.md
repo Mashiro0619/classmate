@@ -7,7 +7,7 @@
 
 [中文 README](README.md)
 
-Classmate is a Flutter timetable app that currently supports multi-timetable management, reusable period-time sets, theme settings, school site management, and timetable import from school webpages or pasted HTML source.
+Classmate is a Flutter timetable app that supports multi-timetable management, reusable period-time sets, theme settings, timetable display and interaction settings, school site management, and timetable import from school webpages or pasted HTML source.
 
 ## Features
 
@@ -15,12 +15,13 @@ Classmate is a Flutter timetable app that currently supports multi-timetable man
 - Course editing: edit course name, location, teacher, weeks, time, and linked periods
 - Period-time sets: reuse, edit, import, export, and share them across multiple timetables
 - Theme settings: light / dark / follow system, preset theme colors, and custom colors
+- Timetable display and interaction: control course popup dismissal, preserve timetable gaps, show past-ended / upcoming courses, and toggle timetable grid lines
 - School site management: add, edit, delete, and import or export school-site JSON entries
 - School webpage / HTML import: open the school site in-app and import the current page, or paste HTML manually
 - Import preview: review parsed results before import and choose the period-time set and import mode
 - Data import/export: import, export, and share timetable, period-template, and school-site JSON files
 
-Welcome to submit PRs to expand `assets/school_sites.json` with more school site entries.
+Everyone is welcome to submit PRs to expand `assets/school_sites.json` with more school site entries.
 
 ## Screenshots
 
@@ -41,7 +42,7 @@ Welcome to submit PRs to expand `assets/school_sites.json` with more school site
 
 ## School import backend
 
-The project includes a PHP relay endpoint: [web/api.php](web/api.php). The in-app school webpage import endpoint is read from [lib/config/app_config.dart](lib/config/app_config.dart), and can be overridden with `--dart-define=SCHOOL_IMPORT_API_BASE_URL=your-endpoint`.
+The project includes a PHP relay endpoint: [web/api.php](web/api.php). The in-app school webpage import endpoint is read from [lib/config/app_config.dart](lib/config/app_config.dart).
 
 ### Backend configuration
 
