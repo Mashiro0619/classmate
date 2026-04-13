@@ -951,6 +951,7 @@ String normalizeThemeMode(String? themeMode) {
     case 'system':
       return 'system';
     case 'light':
+      return 'light';
     default:
       return defaultThemeMode;
   }
