@@ -219,6 +219,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFutureCoursesHint => 'Show courses that are not active this week but will appear in later weeks with a gray style.';
 
   @override
+  String get timetableDisplaySettings => 'Timetable display and interaction';
+
+  @override
+  String get timetableDisplaySettingsDesc => 'Popup dismissal, gaps, gray courses, and grid lines';
+
+  @override
+  String get showTimetableGridLines => 'Show timetable grid lines';
+
+  @override
+  String get showTimetableGridLinesHint => 'Control whether horizontal and vertical grid lines are visible in the timetable.';
+
+  @override
   String get language => 'Language';
 
   @override

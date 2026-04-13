@@ -510,6 +510,7 @@ class AppData {
     this.preserveTimetableGaps = false,
     this.showPastEndedCourses = false,
     this.showFutureCourses = true,
+    this.showTimetableGridLines = true,
     this.localeCode = defaultLocaleCode,
     this.themeMode = defaultThemeMode,
     this.themeSeedColorValue = defaultThemeSeedColorValue,
@@ -527,6 +528,7 @@ class AppData {
   final bool preserveTimetableGaps;
   final bool showPastEndedCourses;
   final bool showFutureCourses;
+  final bool showTimetableGridLines;
   final String localeCode;
   final String themeMode;
   final int themeSeedColorValue;
@@ -544,6 +546,7 @@ class AppData {
     'preserveTimetableGaps': preserveTimetableGaps,
     'showPastEndedCourses': showPastEndedCourses,
     'showFutureCourses': showFutureCourses,
+    'showTimetableGridLines': showTimetableGridLines,
     'localeCode': normalizeLocaleCode(localeCode),
     'themeMode': normalizeThemeMode(themeMode),
     'themeSeedColorValue': themeSeedColorValue,
@@ -637,6 +640,8 @@ class AppData {
       preserveTimetableGaps: json['preserveTimetableGaps'] as bool? ?? false,
       showPastEndedCourses: json['showPastEndedCourses'] as bool? ?? false,
       showFutureCourses: json['showFutureCourses'] as bool? ?? true,
+      showTimetableGridLines:
+          json['showTimetableGridLines'] as bool? ?? true,
       localeCode: localeCode,
       themeMode: normalizeThemeMode(
         json['themeMode'] as String? ?? defaultThemeMode,
@@ -661,6 +666,7 @@ class AppData {
     bool? preserveTimetableGaps,
     bool? showPastEndedCourses,
     bool? showFutureCourses,
+    bool? showTimetableGridLines,
     String? localeCode,
     String? themeMode,
     int? themeSeedColorValue,
@@ -683,6 +689,8 @@ class AppData {
           showPastEndedCourses ?? this.showPastEndedCourses,
       showFutureCourses:
           showFutureCourses ?? this.showFutureCourses,
+      showTimetableGridLines:
+          showTimetableGridLines ?? this.showTimetableGridLines,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
       themeMode: normalizeThemeMode(themeMode ?? this.themeMode),
       themeSeedColorValue: themeSeedColorValue ?? this.themeSeedColorValue,

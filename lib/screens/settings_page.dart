@@ -12,6 +12,7 @@ import '../services/update_service.dart';
 import '../widgets/period_time_set_picker_dialog.dart';
 import 'privacy_policy_page.dart';
 import 'theme_settings_page.dart';
+import 'timetable_display_settings_page.dart';
 import 'timetable_import_flow.dart';
 
 enum _DataAction {
@@ -296,33 +297,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   context,
                 ).colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                value: provider.closeCoursePopupOnOutsideTap,
-                title: Text(l10n.coursePopupDismissSetting),
-                subtitle: Text(l10n.coursePopupDismissSettingHint),
-                onChanged: provider.updateCloseCoursePopupOnOutsideTap,
-              ),
-              SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                value: provider.preserveTimetableGaps,
-                title: Text(l10n.preserveTimetableGaps),
-                subtitle: Text(l10n.preserveTimetableGapsHint),
-                onChanged: provider.updatePreserveTimetableGaps,
-              ),
-              SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                value: provider.showPastEndedCourses,
-                title: Text(l10n.showPastEndedCourses),
-                subtitle: Text(l10n.showPastEndedCoursesHint),
-                onChanged: provider.updateShowPastEndedCourses,
-              ),
-              SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                value: provider.showFutureCourses,
-                title: Text(l10n.showFutureCourses),
-                subtitle: Text(l10n.showFutureCoursesHint),
-                onChanged: provider.updateShowFutureCourses,
+                leading: const Icon(Icons.grid_view_outlined),
+                title: Text(l10n.timetableDisplaySettings),
+                subtitle: Text(l10n.timetableDisplaySettingsDesc),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () => _openTimetableDisplaySettingsPage(provider),
               ),
               Divider(
                 color: Theme.of(
@@ -395,6 +376,19 @@ class _SettingsPageState extends State<SettingsPage> {
         builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
           value: provider,
           child: const ThemeSettingsPage(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openTimetableDisplaySettingsPage(
+    TimetableProvider provider,
+  ) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const TimetableDisplaySettingsPage(),
         ),
       ),
     );

@@ -33,6 +33,7 @@ class TimetableProvider extends ChangeNotifier {
   bool get preserveTimetableGaps => _appData.preserveTimetableGaps;
   bool get showPastEndedCourses => _appData.showPastEndedCourses;
   bool get showFutureCourses => _appData.showFutureCourses;
+  bool get showTimetableGridLines => _appData.showTimetableGridLines;
   String get localeCode => _appData.localeCode;
   String get themeMode => _appData.themeMode;
   int get themeSeedColorValue => _appData.themeSeedColorValue;
@@ -769,6 +770,14 @@ class TimetableProvider extends ChangeNotifier {
       return;
     }
     _appData = _appData.copyWith(showFutureCourses: value);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateShowTimetableGridLines(bool value) async {
+    if (_appData.showTimetableGridLines == value) {
+      return;
+    }
+    _appData = _appData.copyWith(showTimetableGridLines: value);
     await _saveAndNotify();
   }
 

@@ -253,6 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         preserveGaps: provider.preserveTimetableGaps,
                         showPastEndedCourses: provider.showPastEndedCourses,
                         showFutureCourses: provider.showFutureCourses,
+                        showGridLines: provider.showTimetableGridLines,
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
                         onCourseTap: (info) =>

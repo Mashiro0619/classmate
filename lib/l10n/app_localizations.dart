@@ -491,6 +491,30 @@ abstract class AppLocalizations {
   /// **'Show courses that are not active this week but will appear in later weeks with a gray style.'**
   String get showFutureCoursesHint;
 
+  /// No description provided for @timetableDisplaySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable display and interaction'**
+  String get timetableDisplaySettings;
+
+  /// No description provided for @timetableDisplaySettingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Popup dismissal, gaps, gray courses, and grid lines'**
+  String get timetableDisplaySettingsDesc;
+
+  /// No description provided for @showTimetableGridLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Show timetable grid lines'**
+  String get showTimetableGridLines;
+
+  /// No description provided for @showTimetableGridLinesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Control whether horizontal and vertical grid lines are visible in the timetable.'**
+  String get showTimetableGridLinesHint;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:

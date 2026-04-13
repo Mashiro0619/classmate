@@ -219,6 +219,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showFutureCoursesHint => '显示当前周不上、但之后周次还会上的课程，并用灰色区分。';
 
   @override
+  String get timetableDisplaySettings => '课表显示与交互';
+
+  @override
+  String get timetableDisplaySettingsDesc => '课程弹窗、空白时间、灰色课程与网格线';
+
+  @override
+  String get showTimetableGridLines => '显示课表网格线';
+
+  @override
+  String get showTimetableGridLinesHint => '控制课表中的横向与纵向网格线是否显示。';
+
+  @override
   String get language => '语言';
 
   @override

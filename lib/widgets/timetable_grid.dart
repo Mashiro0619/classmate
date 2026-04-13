@@ -64,6 +64,7 @@ class TimetableGrid extends StatelessWidget {
     required this.preserveGaps,
     required this.showPastEndedCourses,
     required this.showFutureCourses,
+    required this.showGridLines,
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
@@ -78,6 +79,7 @@ class TimetableGrid extends StatelessWidget {
   final bool preserveGaps;
   final bool showPastEndedCourses;
   final bool showFutureCourses;
+  final bool showGridLines;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
@@ -190,9 +192,9 @@ class TimetableGrid extends StatelessWidget {
                         for (var weekday = 1; weekday <= 7; weekday++)
                           _DayColumn(
                             width: metrics.dayColumnWidth,
-                            borderColor: colors.outlineVariant.withValues(
-                              alpha: 0.25,
-                            ),
+                            borderColor: showGridLines
+                                ? colors.outlineVariant.withValues(alpha: 0.25)
+                                : Colors.transparent,
                             onLongPressAt: (localPosition) {
                               final matchedPeriod = layout.slotForY(
                                 localPosition.dy,
@@ -209,23 +211,24 @@ class TimetableGrid extends StatelessWidget {
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                for (final slot in slots)
-                                  Positioned(
-                                    top: layout.slotTop(slot),
-                                    left: 0,
-                                    right: 0,
-                                    child: Container(
-                                      height: layout.slotHeight(slot),
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          top: BorderSide(
-                                            color: colors.outlineVariant
-                                                .withValues(alpha: 0.18),
+                                if (showGridLines)
+                                  for (final slot in slots)
+                                    Positioned(
+                                      top: layout.slotTop(slot),
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        height: layout.slotHeight(slot),
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            top: BorderSide(
+                                              color: colors.outlineVariant
+                                                  .withValues(alpha: 0.18),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
                                 ..._buildDayLayouts(
                                   timetable: timetable,
                                   courses: timetable.courses,
