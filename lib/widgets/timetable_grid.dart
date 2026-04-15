@@ -68,6 +68,9 @@ class TimetableGrid extends StatelessWidget {
     required this.onCourseTap,
     required this.onEmptySlotTap,
     this.displayedCourseIdForConflict,
+    this.liveCourseTarget,
+    required this.liveCourseOutlineEnabled,
+    required this.liveCourseOutlineColorValue,
   });
 
   final TimetableData timetable;
@@ -83,6 +86,9 @@ class TimetableGrid extends StatelessWidget {
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
+  final TimetableLiveCourseTarget? liveCourseTarget;
+  final bool liveCourseOutlineEnabled;
+  final int liveCourseOutlineColorValue;
 
   @override
   Widget build(BuildContext context) {
@@ -239,11 +245,17 @@ class TimetableGrid extends StatelessWidget {
                                   showFutureCourses: showFutureCourses,
                                   displayedCourseIdForConflict:
                                       displayedCourseIdForConflict,
+                                  liveCourseTarget: liveCourseTarget,
+                                  liveCourseOutlineEnabled:
+                                      liveCourseOutlineEnabled,
                                 ).map(
                                   (item) => _CourseCard(
                                     layout: item,
                                     verticalLayout: layout,
                                     metrics: metrics,
+                                    outlineColor: Color(
+                                      liveCourseOutlineColorValue,
+                                    ),
                                     onTap: () => onCourseTap(
                                       TimetableCourseTapInfo(
                                         course: item.course,
@@ -555,12 +567,14 @@ class _CourseCard extends StatelessWidget {
     required this.layout,
     required this.verticalLayout,
     required this.metrics,
+    required this.outlineColor,
     required this.onTap,
   });
 
   final _CourseLayout layout;
   final _TimetableVerticalLayout verticalLayout;
   final _TimetableMetrics metrics;
+  final Color outlineColor;
   final VoidCallback onTap;
 
   bool get _isInactiveForCurrentWeek =>
@@ -616,6 +630,12 @@ class _CourseCard extends StatelessWidget {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(compact ? 8 : 10),
+          side: layout.isLiveHighlighted
+              ? BorderSide(
+                  color: outlineColor,
+                  width: compact ? 2 : 2.5,
+                )
+              : BorderSide.none,
         ),
         child: InkWell(
           onTap: onTap,
@@ -723,6 +743,7 @@ class _CourseLayout {
     required this.isFullConflict,
     required this.conflictCourses,
     required this.displayState,
+    required this.isLiveHighlighted,
     this.conflictKey,
   });
 
@@ -731,6 +752,7 @@ class _CourseLayout {
   final bool isFullConflict;
   final List<CourseItem> conflictCourses;
   final _CourseDisplayState displayState;
+  final bool isLiveHighlighted;
   final String? conflictKey;
 }
 
@@ -749,6 +771,8 @@ List<_CourseLayout> _buildDayLayouts({
   required bool showPastEndedCourses,
   required bool showFutureCourses,
   required String? Function(String conflictKey)? displayedCourseIdForConflict,
+  required TimetableLiveCourseTarget? liveCourseTarget,
+  required bool liveCourseOutlineEnabled,
 }) {
   final dayCourses =
       courses.where((item) => item.dayOfWeek == weekday).where((item) {
@@ -804,6 +828,11 @@ List<_CourseLayout> _buildDayLayouts({
           isFullConflict: true,
           conflictCourses: sortedCourses,
           displayState: displayState,
+          isLiveHighlighted:
+              liveCourseOutlineEnabled &&
+              liveCourseTarget?.week == selectedWeek &&
+              liveCourseTarget?.weekday == weekday &&
+              liveCourseTarget?.courseId == displayedCourse.id,
           conflictKey: conflictKey,
         ),
       );
@@ -829,6 +858,11 @@ List<_CourseLayout> _buildDayLayouts({
           isFullConflict: false,
           conflictCourses: [course],
           displayState: displayState,
+          isLiveHighlighted:
+              liveCourseOutlineEnabled &&
+              liveCourseTarget?.week == selectedWeek &&
+              liveCourseTarget?.weekday == weekday &&
+              liveCourseTarget?.courseId == course.id,
         ),
       );
     }

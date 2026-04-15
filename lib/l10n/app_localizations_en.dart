@@ -231,6 +231,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showTimetableGridLinesHint => 'Control whether horizontal and vertical grid lines are visible in the timetable.';
 
   @override
+  String get liveCourseOutlineColor => 'Current/next course outline color';
+
+  @override
+  String get liveCourseOutlineColorHint => 'Outline the current course during class time, the next upcoming course later today, or tomorrow\'s first course after today\'s classes are over.';
+
+  @override
+  String get liveCourseOutlineSettings => 'Current/next course outline';
+
+  @override
+  String get liveCourseOutlineSettingsHint => 'Configure whether the outline is enabled, whether it follows the theme color, and the effective outline color.';
+
+  @override
+  String get liveCourseOutlineEnabled => 'Enable outline';
+
+  @override
+  String get liveCourseOutlineFollowTheme => 'Follow theme color';
+
+  @override
+  String get liveCourseOutlineEffectiveColor => 'Effective color';
+
+  @override
+  String get liveCourseOutlineCustomColor => 'Custom outline color';
+
+  @override
   String get language => 'Language';
 
   @override

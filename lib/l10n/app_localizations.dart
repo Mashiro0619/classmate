@@ -515,6 +515,54 @@ abstract class AppLocalizations {
   /// **'Control whether horizontal and vertical grid lines are visible in the timetable.'**
   String get showTimetableGridLinesHint;
 
+  /// No description provided for @liveCourseOutlineColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Current/next course outline color'**
+  String get liveCourseOutlineColor;
+
+  /// No description provided for @liveCourseOutlineColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Outline the current course during class time, the next upcoming course later today, or tomorrow's first course after today's classes are over.'**
+  String get liveCourseOutlineColorHint;
+
+  /// No description provided for @liveCourseOutlineSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Current/next course outline'**
+  String get liveCourseOutlineSettings;
+
+  /// No description provided for @liveCourseOutlineSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure whether the outline is enabled, whether it follows the theme color, and the effective outline color.'**
+  String get liveCourseOutlineSettingsHint;
+
+  /// No description provided for @liveCourseOutlineEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable outline'**
+  String get liveCourseOutlineEnabled;
+
+  /// No description provided for @liveCourseOutlineFollowTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow theme color'**
+  String get liveCourseOutlineFollowTheme;
+
+  /// No description provided for @liveCourseOutlineEffectiveColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective color'**
+  String get liveCourseOutlineEffectiveColor;
+
+  /// No description provided for @liveCourseOutlineCustomColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom outline color'**
+  String get liveCourseOutlineCustomColor;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:

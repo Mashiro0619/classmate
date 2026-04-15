@@ -1,15 +1,28 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
 const defaultLocaleCode = 'zh';
 const defaultThemeMode = 'system';
 const defaultThemeSeedColorValue = 0xFF6750A4;
+const defaultLiveCourseOutlineColorValue = 0xFFEF6C00;
+const defaultLiveCourseOutlineEnabled = true;
+const defaultLiveCourseOutlineFollowTheme = true;
+const defaultLiveCourseOutlineCustomColorInitialized = false;
 const maxTimetableWeeks = 100;
 const currentPrivacyPolicyVersion = '2026-04-08';
 
 bool _isEnglishLocale(String localeCode) =>
     normalizeLocaleCode(localeCode) == 'en';
+
+Color deriveLiveCourseOutlineColorFromSeed(Color seedColor) {
+  final hsl = HSLColor.fromColor(seedColor);
+  final lightness = (hsl.lightness - 0.16).clamp(0.18, 0.72).toDouble();
+  final saturation = (hsl.saturation + 0.08).clamp(0.12, 1.0).toDouble();
+  return hsl.withLightness(lightness).withSaturation(saturation).toColor();
+}
 
 String defaultPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
   return _isEnglishLocale(localeCode) ? 'Default periods' : '默认节次';
@@ -411,6 +424,18 @@ class TimetableData {
   }
 }
 
+class TimetableLiveCourseTarget {
+  const TimetableLiveCourseTarget({
+    required this.week,
+    required this.weekday,
+    required this.courseId,
+  });
+
+  final int week;
+  final int weekday;
+  final String courseId;
+}
+
 class TimetableExportData {
   const TimetableExportData({
     required this.timetables,
@@ -514,6 +539,11 @@ class AppData {
     this.localeCode = defaultLocaleCode,
     this.themeMode = defaultThemeMode,
     this.themeSeedColorValue = defaultThemeSeedColorValue,
+    this.liveCourseOutlineColorValue = defaultLiveCourseOutlineColorValue,
+    this.liveCourseOutlineEnabled = defaultLiveCourseOutlineEnabled,
+    this.liveCourseOutlineFollowTheme = defaultLiveCourseOutlineFollowTheme,
+    this.liveCourseOutlineCustomColorInitialized =
+        defaultLiveCourseOutlineCustomColorInitialized,
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
     this.ignoredUpdateVersion,
@@ -532,6 +562,10 @@ class AppData {
   final String localeCode;
   final String themeMode;
   final int themeSeedColorValue;
+  final int liveCourseOutlineColorValue;
+  final bool liveCourseOutlineEnabled;
+  final bool liveCourseOutlineFollowTheme;
+  final bool liveCourseOutlineCustomColorInitialized;
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
   final String? ignoredUpdateVersion;
@@ -550,6 +584,11 @@ class AppData {
     'localeCode': normalizeLocaleCode(localeCode),
     'themeMode': normalizeThemeMode(themeMode),
     'themeSeedColorValue': themeSeedColorValue,
+    'liveCourseOutlineColorValue': liveCourseOutlineColorValue,
+    'liveCourseOutlineEnabled': liveCourseOutlineEnabled,
+    'liveCourseOutlineFollowTheme': liveCourseOutlineFollowTheme,
+    'liveCourseOutlineCustomColorInitialized':
+        liveCourseOutlineCustomColorInitialized,
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
     'ignoredUpdateVersion': ignoredUpdateVersion,
@@ -649,6 +688,18 @@ class AppData {
       themeSeedColorValue:
           (json['themeSeedColorValue'] as num?)?.toInt() ??
           defaultThemeSeedColorValue,
+      liveCourseOutlineColorValue:
+          (json['liveCourseOutlineColorValue'] as num?)?.toInt() ??
+          defaultLiveCourseOutlineColorValue,
+      liveCourseOutlineEnabled:
+          json['liveCourseOutlineEnabled'] as bool? ??
+          defaultLiveCourseOutlineEnabled,
+      liveCourseOutlineFollowTheme:
+          json['liveCourseOutlineFollowTheme'] as bool? ??
+          defaultLiveCourseOutlineFollowTheme,
+      liveCourseOutlineCustomColorInitialized:
+          json['liveCourseOutlineCustomColorInitialized'] as bool? ??
+          defaultLiveCourseOutlineCustomColorInitialized,
       privacyPolicyAcceptedVersion:
           json['privacyPolicyAcceptedVersion'] as String?,
       privacyPolicyAcceptedAtIso: json['privacyPolicyAcceptedAtIso'] as String?,
@@ -670,6 +721,10 @@ class AppData {
     String? localeCode,
     String? themeMode,
     int? themeSeedColorValue,
+    int? liveCourseOutlineColorValue,
+    bool? liveCourseOutlineEnabled,
+    bool? liveCourseOutlineFollowTheme,
+    bool? liveCourseOutlineCustomColorInitialized,
     String? privacyPolicyAcceptedVersion,
     String? privacyPolicyAcceptedAtIso,
     String? ignoredUpdateVersion,
@@ -694,6 +749,15 @@ class AppData {
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
       themeMode: normalizeThemeMode(themeMode ?? this.themeMode),
       themeSeedColorValue: themeSeedColorValue ?? this.themeSeedColorValue,
+      liveCourseOutlineColorValue:
+          liveCourseOutlineColorValue ?? this.liveCourseOutlineColorValue,
+      liveCourseOutlineEnabled:
+          liveCourseOutlineEnabled ?? this.liveCourseOutlineEnabled,
+      liveCourseOutlineFollowTheme:
+          liveCourseOutlineFollowTheme ?? this.liveCourseOutlineFollowTheme,
+      liveCourseOutlineCustomColorInitialized:
+          liveCourseOutlineCustomColorInitialized ??
+          this.liveCourseOutlineCustomColorInitialized,
       privacyPolicyAcceptedVersion:
           privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
       privacyPolicyAcceptedAtIso:
@@ -1172,6 +1236,248 @@ DateTime startOfWeekFor(TimetableConfig config, int week) {
   return startOfWeekMonday(
     normalizeDateOnly(config.startDate).add(Duration(days: (week - 1) * 7)),
   );
+}
+
+TimetableLiveCourseTarget? currentOrNextCourseTargetFor({
+  required TimetableData timetable,
+  required int selectedWeek,
+  required int realCurrentWeek,
+  required DateTime now,
+  String? Function(String conflictKey)? displayedCourseIdForConflict,
+}) {
+  final today = normalizeDateOnly(now);
+  final weekday = normalizeDayOfWeek(today.weekday);
+  final nowMinutes = (now.hour * 60) + now.minute;
+  final todayTarget = _courseTargetForDay(
+    timetable: timetable,
+    targetWeek: realCurrentWeek,
+    weekday: weekday,
+    displayedCourseIdForConflict: displayedCourseIdForConflict,
+    nowMinutes: nowMinutes,
+  );
+  if (todayTarget != null) {
+    return todayTarget.week == selectedWeek ? todayTarget : null;
+  }
+
+  final tomorrow = today.add(const Duration(days: 1));
+  if (!_isDateWithinTimetableRange(timetable.config, tomorrow)) {
+    return null;
+  }
+  final tomorrowWeek = currentWeekFor(timetable.config, now: tomorrow);
+  final tomorrowWeekday = normalizeDayOfWeek(tomorrow.weekday);
+  final tomorrowTarget = _courseTargetForDay(
+    timetable: timetable,
+    targetWeek: tomorrowWeek,
+    weekday: tomorrowWeekday,
+    displayedCourseIdForConflict: displayedCourseIdForConflict,
+  );
+  if (tomorrowTarget == null) {
+    return null;
+  }
+  return tomorrowTarget.week == selectedWeek ? tomorrowTarget : null;
+}
+
+TimetableLiveCourseTarget? _courseTargetForDay({
+  required TimetableData timetable,
+  required int targetWeek,
+  required int weekday,
+  required String? Function(String conflictKey)? displayedCourseIdForConflict,
+  int? nowMinutes,
+}) {
+  final dayCourses = timetable.courses
+      .where(
+        (course) =>
+            course.dayOfWeek == weekday && matchesSemesterWeek(course, targetWeek),
+      )
+      .toList()
+    ..sort(_compareCoursesByStart);
+  if (dayCourses.isEmpty) {
+    return null;
+  }
+
+  if (nowMinutes != null) {
+    final currentCourses = dayCourses
+        .where(
+          (course) =>
+              course.startMinutes <= nowMinutes && nowMinutes < course.endMinutes,
+        )
+        .toList();
+    if (currentCourses.isNotEmpty) {
+      return TimetableLiveCourseTarget(
+        week: targetWeek,
+        weekday: weekday,
+        courseId: _resolveDisplayedCourseId(
+          timetable.id,
+          weekday,
+          currentCourses,
+          displayedCourseIdForConflict,
+        ),
+      );
+    }
+
+    final nextStartMinutes = dayCourses
+        .where((course) => course.startMinutes > nowMinutes)
+        .map((course) => course.startMinutes)
+        .fold<int?>(
+          null,
+          (best, value) => best == null || value < best ? value : best,
+        );
+    if (nextStartMinutes != null) {
+      final nextCourses = dayCourses
+          .where((course) => course.startMinutes == nextStartMinutes)
+          .toList();
+      if (nextCourses.isNotEmpty) {
+        return TimetableLiveCourseTarget(
+          week: targetWeek,
+          weekday: weekday,
+          courseId: _resolveDisplayedCourseId(
+            timetable.id,
+            weekday,
+            nextCourses,
+            displayedCourseIdForConflict,
+          ),
+        );
+      }
+    }
+    return null;
+  }
+
+  final firstStartMinutes = dayCourses.first.startMinutes;
+  final firstCourses = dayCourses
+      .where((course) => course.startMinutes == firstStartMinutes)
+      .toList();
+  return TimetableLiveCourseTarget(
+    week: targetWeek,
+    weekday: weekday,
+    courseId: _resolveDisplayedCourseId(
+      timetable.id,
+      weekday,
+      firstCourses,
+      displayedCourseIdForConflict,
+    ),
+  );
+}
+
+bool _isDateWithinTimetableRange(TimetableConfig config, DateTime date) {
+  final normalizedDate = normalizeDateOnly(date);
+  final lastWeekStart = startOfWeekFor(config, config.totalWeeks);
+  final lastWeekEnd = lastWeekStart.add(const Duration(days: 6));
+  return !normalizedDate.isAfter(lastWeekEnd);
+}
+
+String _resolveDisplayedCourseId(
+  String timetableId,
+  int weekday,
+  List<CourseItem> courses,
+  String? Function(String conflictKey)? displayedCourseIdForConflict,
+) {
+  final sortedCourses = [...courses]..sort(_compareCoursesByStart);
+  if (isFullConflictGroup(sortedCourses)) {
+    final conflictKey = buildConflictKeyForCourses(
+      timetableId,
+      weekday,
+      sortedCourses,
+    );
+    return pickDisplayedCourseForConflict(
+      sortedCourses,
+      displayedCourseIdForConflict?.call(conflictKey),
+    ).id;
+  }
+  final prioritizedCourses = [...sortedCourses]..sort(compareCoursePaintPriority);
+  return prioritizedCourses.first.id;
+}
+
+int _compareCoursesByStart(CourseItem a, CourseItem b) {
+  final startCompare = a.startMinutes.compareTo(b.startMinutes);
+  if (startCompare != 0) {
+    return startCompare;
+  }
+  final endCompare = a.endMinutes.compareTo(b.endMinutes);
+  if (endCompare != 0) {
+    return endCompare;
+  }
+  return a.id.compareTo(b.id);
+}
+
+bool isFullConflictGroup(List<CourseItem> courses) {
+  if (courses.length < 2) {
+    return false;
+  }
+  final first = courses.first;
+  final allSameRange = courses.every(
+    (item) =>
+        item.startMinutes == first.startMinutes &&
+        item.endMinutes == first.endMinutes,
+  );
+  if (allSameRange) {
+    return true;
+  }
+  if (courses.length == 2) {
+    return _courseContains(courses[0], courses[1]) ||
+        _courseContains(courses[1], courses[0]);
+  }
+  return false;
+}
+
+bool _courseContains(CourseItem outer, CourseItem inner) {
+  return outer.startMinutes <= inner.startMinutes &&
+      outer.endMinutes >= inner.endMinutes;
+}
+
+CourseItem pickDisplayedCourseForConflict(
+  List<CourseItem> courses,
+  String? displayedCourseId,
+) {
+  for (final course in courses) {
+    if (course.id == displayedCourseId) {
+      return course;
+    }
+  }
+  final sorted = [...courses]..sort(_compareDisplayedCourseChoice);
+  return sorted.first;
+}
+
+int _compareDisplayedCourseChoice(CourseItem a, CourseItem b) {
+  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(
+    a.endMinutes - a.startMinutes,
+  );
+  if (durationCompare != 0) {
+    return durationCompare;
+  }
+  final startCompare = b.startMinutes.compareTo(a.startMinutes);
+  if (startCompare != 0) {
+    return startCompare;
+  }
+  return a.id.compareTo(b.id);
+}
+
+String buildConflictKeyForCourses(
+  String timetableId,
+  int weekday,
+  List<CourseItem> courses,
+) {
+  final courseIds = courses.map((item) => item.id).toList()..sort();
+  final startMinutes = courses
+      .map((item) => item.startMinutes)
+      .reduce((a, b) => a < b ? a : b);
+  final endMinutes = courses
+      .map((item) => item.endMinutes)
+      .reduce((a, b) => a > b ? a : b);
+  return '$timetableId|$weekday|$startMinutes|$endMinutes|${courseIds.join(',')}';
+}
+
+int compareCoursePaintPriority(CourseItem a, CourseItem b) {
+  final startCompare = a.startMinutes.compareTo(b.startMinutes);
+  if (startCompare != 0) {
+    return startCompare;
+  }
+  final durationCompare = (b.endMinutes - b.startMinutes).compareTo(
+    a.endMinutes - a.startMinutes,
+  );
+  if (durationCompare != 0) {
+    return durationCompare;
+  }
+  return a.id.compareTo(b.id);
 }
 
 AppData buildInitialAppData(

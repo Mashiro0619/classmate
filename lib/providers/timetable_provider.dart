@@ -37,6 +37,11 @@ class TimetableProvider extends ChangeNotifier {
   String get localeCode => _appData.localeCode;
   String get themeMode => _appData.themeMode;
   int get themeSeedColorValue => _appData.themeSeedColorValue;
+  int get liveCourseOutlineColorValue => _appData.liveCourseOutlineColorValue;
+  bool get liveCourseOutlineEnabled => _appData.liveCourseOutlineEnabled;
+  bool get liveCourseOutlineFollowTheme => _appData.liveCourseOutlineFollowTheme;
+  bool get liveCourseOutlineCustomColorInitialized =>
+      _appData.liveCourseOutlineCustomColorInitialized;
   String? get ignoredUpdateVersion => _appData.ignoredUpdateVersion;
   String? get availableUpdateVersion => _appData.availableUpdateVersion;
   String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
@@ -804,6 +809,55 @@ class TimetableProvider extends ChangeNotifier {
       return;
     }
     _appData = _appData.copyWith(themeSeedColorValue: colorValue);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateLiveCourseOutlineColorValue(int colorValue) async {
+    if (_appData.liveCourseOutlineColorValue == colorValue) {
+      return;
+    }
+    _appData = _appData.copyWith(liveCourseOutlineColorValue: colorValue);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateLiveCourseOutlineEnabled(bool value) async {
+    if (_appData.liveCourseOutlineEnabled == value) {
+      return;
+    }
+    _appData = _appData.copyWith(liveCourseOutlineEnabled: value);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateLiveCourseOutlineFollowTheme(bool value) async {
+    if (_appData.liveCourseOutlineFollowTheme == value) {
+      return;
+    }
+    _appData = _appData.copyWith(liveCourseOutlineFollowTheme: value);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateLiveCourseOutlineSettings({
+    required bool enabled,
+    required bool followTheme,
+    required int colorValue,
+    required bool customColorInitialized,
+  }) async {
+    final nextData = _appData.copyWith(
+      liveCourseOutlineEnabled: enabled,
+      liveCourseOutlineFollowTheme: followTheme,
+      liveCourseOutlineColorValue: colorValue,
+      liveCourseOutlineCustomColorInitialized: customColorInitialized,
+    );
+    if (nextData.liveCourseOutlineEnabled == _appData.liveCourseOutlineEnabled &&
+        nextData.liveCourseOutlineFollowTheme ==
+            _appData.liveCourseOutlineFollowTheme &&
+        nextData.liveCourseOutlineColorValue ==
+            _appData.liveCourseOutlineColorValue &&
+        nextData.liveCourseOutlineCustomColorInitialized ==
+            _appData.liveCourseOutlineCustomColorInitialized) {
+      return;
+    }
+    _appData = nextData;
     await _saveAndNotify();
   }
 

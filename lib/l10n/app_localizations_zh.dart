@@ -231,6 +231,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showTimetableGridLinesHint => '控制课表中的横向与纵向网格线是否显示。';
 
   @override
+  String get liveCourseOutlineColor => '当前/下一节课程描边颜色';
+
+  @override
+  String get liveCourseOutlineColorHint => '当前上课时描边当前课程；当前不在上课时描边今天下一节即将开始的课程；如果当天课程已结束，则描边第二天第一节课。';
+
+  @override
+  String get liveCourseOutlineSettings => '当前/下一节课程描边';
+
+  @override
+  String get liveCourseOutlineSettingsHint => '可设置是否开启描边、是否跟随主题色，以及当前实际生效的描边颜色。';
+
+  @override
+  String get liveCourseOutlineEnabled => '开启课程描边';
+
+  @override
+  String get liveCourseOutlineFollowTheme => '跟随主题色';
+
+  @override
+  String get liveCourseOutlineEffectiveColor => '当前生效颜色';
+
+  @override
+  String get liveCourseOutlineCustomColor => '自定义描边颜色';
+
+  @override
   String get language => '语言';
 
   @override

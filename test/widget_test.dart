@@ -7,6 +7,7 @@ import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
+import 'package:classmate/screens/timetable_display_settings_page.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
@@ -372,6 +373,232 @@ void main() {
         greaterThan(periodTimes[11].endMinutes),
       );
     });
+
+    test('当天课程结束后会命中第二天第一节课', () {
+      final periodTimes = buildDefaultPeriodTimes();
+      final timetable = TimetableData(
+        id: 'table_next_day',
+        config: TimetableConfig(
+          name: '测试课表',
+          startDate: DateTime(2026, 2, 23),
+          totalWeeks: 18,
+          periodTimeSetId: 'set1',
+        ),
+        courses: [
+          CourseItem(
+            id: 'today_course',
+            name: '今天的课',
+            teacher: '',
+            location: '',
+            dayOfWeek: 1,
+            semesterWeeks: const [1],
+            periods: const [1, 2],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[1].endMinutes,
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[1].endMinutes,
+            ),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+          CourseItem(
+            id: 'tomorrow_first',
+            name: '明天第一节',
+            teacher: '',
+            location: '',
+            dayOfWeek: 2,
+            semesterWeeks: const [1],
+            periods: const [1],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[0].endMinutes,
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[0].endMinutes,
+            ),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+        ],
+      );
+
+      final target = currentOrNextCourseTargetFor(
+        timetable: timetable,
+        selectedWeek: 1,
+        realCurrentWeek: 1,
+        now: DateTime(2026, 2, 23, 22, 30),
+      );
+
+      expect(target?.week, 1);
+      expect(target?.weekday, 2);
+      expect(target?.courseId, 'tomorrow_first');
+    });
+
+    test('周日课程结束后会命中下周一第一节课', () {
+      final periodTimes = buildDefaultPeriodTimes();
+      final timetable = TimetableData(
+        id: 'table_cross_week',
+        config: TimetableConfig(
+          name: '测试课表',
+          startDate: DateTime(2026, 2, 23),
+          totalWeeks: 18,
+          periodTimeSetId: 'set1',
+        ),
+        courses: [
+          CourseItem(
+            id: 'next_week_monday',
+            name: '下周一第一节',
+            teacher: '',
+            location: '',
+            dayOfWeek: 1,
+            semesterWeeks: const [2],
+            periods: const [1],
+            startMinutes: periodTimes[0].startMinutes,
+            endMinutes: periodTimes[0].endMinutes,
+            timeRange: buildTimeRange(
+              periodTimes[0].startMinutes,
+              periodTimes[0].endMinutes,
+            ),
+            credit: 0,
+            remarks: '',
+            customFields: const {},
+          ),
+        ],
+      );
+
+      final target = currentOrNextCourseTargetFor(
+        timetable: timetable,
+        selectedWeek: 2,
+        realCurrentWeek: 1,
+        now: DateTime(2026, 3, 1, 22, 30),
+      );
+
+      expect(target?.week, 2);
+      expect(target?.weekday, 1);
+      expect(target?.courseId, 'next_week_monday');
+    });
+
+    test('描边设置字段可以正确编码解码并兼容旧数据默认值', () {
+      final customized = _buildTestAppData().copyWith(
+        liveCourseOutlineEnabled: false,
+        liveCourseOutlineFollowTheme: false,
+        liveCourseOutlineCustomColorInitialized: true,
+        liveCourseOutlineColorValue: 0xFF123456,
+      );
+      final decodedCustomized = AppData.decode(customized.encode());
+
+      expect(decodedCustomized.liveCourseOutlineEnabled, isFalse);
+      expect(decodedCustomized.liveCourseOutlineFollowTheme, isFalse);
+      expect(decodedCustomized.liveCourseOutlineCustomColorInitialized, isTrue);
+      expect(decodedCustomized.liveCourseOutlineColorValue, 0xFF123456);
+
+      final legacy = AppData.decode(
+        jsonEncode({
+          'activeTimetableId': '',
+          'timetables': const [],
+          'periodTimeSets': [
+            {
+              'id': 'set1',
+              'name': '默认节次',
+              'periodTimes': [
+                {
+                  'index': 1,
+                  'startMinutes': 480,
+                  'endMinutes': 525,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+
+      expect(legacy.liveCourseOutlineEnabled, isTrue);
+      expect(legacy.liveCourseOutlineFollowTheme, isTrue);
+      expect(legacy.liveCourseOutlineCustomColorInitialized, isFalse);
+    });
+  });
+
+  group('课表显示设置', () {
+    testWidgets('关闭跟随主题色时会初始化自定义描边颜色', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: TimetableDisplaySettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('当前/下一节课程描边'));
+      await tester.pumpAndSettle();
+
+      expect(provider.liveCourseOutlineFollowTheme, isTrue);
+      expect(provider.liveCourseOutlineCustomColorInitialized, isFalse);
+
+      await tester.tap(find.text('跟随主题色'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('应用颜色'));
+      await tester.pumpAndSettle();
+
+      expect(provider.liveCourseOutlineFollowTheme, isFalse);
+      expect(provider.liveCourseOutlineCustomColorInitialized, isTrue);
+      expect(
+        provider.liveCourseOutlineColorValue,
+        deriveLiveCourseOutlineColorFromSeed(
+          Color(provider.themeSeedColorValue),
+        ).toARGB32(),
+      );
+    });
+
+    testWidgets('关闭课程描边后 provider 会保存设置', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: TimetableDisplaySettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('当前/下一节课程描边'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('开启课程描边'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('应用颜色'));
+      await tester.pumpAndSettle();
+
+      expect(provider.liveCourseOutlineEnabled, isFalse);
+    });
   });
 
   group('主页与编辑器', () {
@@ -553,8 +780,10 @@ void main() {
                 showPastEndedCourses: false,
                 showFutureCourses: true,
                 showGridLines: true,
+                liveCourseOutlineEnabled: true,
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
+                liveCourseOutlineColorValue: defaultLiveCourseOutlineColorValue,
               ),
             ),
           ),
@@ -635,8 +864,10 @@ void main() {
                 showFutureCourses: true,
                 showGridLines: true,
                 displayedCourseIdForConflict: (_) => 'b_short',
+                liveCourseOutlineEnabled: true,
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
+                liveCourseOutlineColorValue: defaultLiveCourseOutlineColorValue,
               ),
             ),
           ),

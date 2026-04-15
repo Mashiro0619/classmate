@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show PointerDeviceKind;
 
@@ -26,9 +27,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   PageController? _pageController;
   bool _hasScheduledStartupUpdateCheck = false;
+  Timer? _liveCourseTimer;
 
   @override
   void dispose() {
+    _liveCourseTimer?.cancel();
     _pageController?.dispose();
     super.dispose();
   }
@@ -49,6 +52,23 @@ class _HomeScreenState extends State<HomeScreen> {
         provider: provider,
         source: UpdateCheckSource.startup,
       );
+    });
+  }
+
+  void _ensureLiveCourseTimer(TimetableProvider provider) {
+    if (!provider.isLoaded || provider.activeTimetableOrNull == null) {
+      _liveCourseTimer?.cancel();
+      _liveCourseTimer = null;
+      return;
+    }
+    if (_liveCourseTimer != null) {
+      return;
+    }
+    _liveCourseTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
     });
   }
 
@@ -75,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         _scheduleStartupUpdateCheck(provider);
+        _ensureLiveCourseTimer(provider);
 
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
@@ -174,17 +195,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               tooltip: l10n.editTimetable,
                               icon: const Icon(Icons.edit_outlined),
                               onPressed: () {
-                                Navigator.of(context).pop();
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  _openTimetableItemDialog(
-                                    this.context,
-                                    provider,
-                                    item,
-                                  );
-                                });
+                                _openTimetableItemDialog(
+                                  this.context,
+                                  provider,
+                                  item,
+                                );
                               },
                             ),
                             onTap: () async {
@@ -239,6 +254,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final pageWeek = index + 1;
                     final weekStart = startOfWeekFor(config, pageWeek);
+                    final realCurrentWeek = currentWeekFor(config);
+                    final liveCourseTarget = currentOrNextCourseTargetFor(
+                      timetable: timetable,
+                      selectedWeek: pageWeek,
+                      realCurrentWeek: realCurrentWeek,
+                      now: DateTime.now(),
+                      displayedCourseIdForConflict:
+                          provider.displayedCourseIdForConflict,
+                    );
+                    final liveCourseOutlineColorValue =
+                        provider.liveCourseOutlineFollowTheme
+                        ? deriveLiveCourseOutlineColorFromSeed(
+                            Color(provider.themeSeedColorValue),
+                          ).toARGB32()
+                        : provider.liveCourseOutlineColorValue;
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(2, 8, 0, 12),
                       child: TimetableGrid(
@@ -256,6 +286,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         showGridLines: provider.showTimetableGridLines,
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
+                        liveCourseTarget: liveCourseTarget,
+                        liveCourseOutlineEnabled:
+                            provider.liveCourseOutlineEnabled,
+                        liveCourseOutlineColorValue:
+                            liveCourseOutlineColorValue,
                         onCourseTap: (info) =>
                             _openDetails(context, provider, info),
                         onEmptySlotTap: (slotInfo) => _openEditor(
