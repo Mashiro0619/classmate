@@ -11,6 +11,10 @@ String _formatOutlineColorHex(int colorValue) {
   return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
 }
 
+String _formatOutlineWidthValue(double width) {
+  return width.toStringAsFixed(width % 1 == 0 ? 0 : 1);
+}
+
 int _derivedOutlineColorValue(int themeSeedColorValue) {
   return deriveLiveCourseOutlineColorFromSeed(
     Color(themeSeedColorValue),
@@ -28,6 +32,7 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
         final effectiveOutlineColorValue = provider.liveCourseOutlineFollowTheme
             ? _derivedOutlineColorValue(provider.themeSeedColorValue)
             : provider.liveCourseOutlineColorValue;
+        final outlineWidth = provider.liveCourseOutlineWidth;
         return Scaffold(
           appBar: AppBar(title: Text(l10n.timetableDisplaySettings)),
           body: ListView(
@@ -72,10 +77,11 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: _OutlineColorPreview(
                   colorValue: effectiveOutlineColorValue,
+                  borderWidth: outlineWidth,
                 ),
                 title: Text(l10n.liveCourseOutlineSettings),
                 subtitle: Text(
-                  '${l10n.liveCourseOutlineSettingsHint}\n${_formatOutlineColorHex(effectiveOutlineColorValue)}',
+                  '${l10n.liveCourseOutlineSettingsHint}\n${_formatOutlineColorHex(effectiveOutlineColorValue)} · ${_formatOutlineWidthValue(outlineWidth)}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _openOutlineSettingsDialog(context, provider),
@@ -100,6 +106,7 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
     var customColorValue = provider.liveCourseOutlineColorValue;
     var customColorInitialized =
         provider.liveCourseOutlineCustomColorInitialized;
+    var outlineWidth = provider.liveCourseOutlineWidth;
     await showDialog<void>(
       context: context,
       builder: (context) {
@@ -148,6 +155,21 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
                     _OutlineColorSummaryRow(
                       label: l10n.liveCourseOutlineEffectiveColor,
                       colorValue: effectiveColorValue,
+                      borderWidth: outlineWidth,
+                    ),
+                    const SizedBox(height: 16),
+                    _OutlineWidthSummaryRow(
+                      width: outlineWidth,
+                    ),
+                    Slider.adaptive(
+                      value: outlineWidth,
+                      min: minLiveCourseOutlineWidth,
+                      max: maxLiveCourseOutlineWidth,
+                      divisions: 6,
+                      label: _formatOutlineWidthValue(outlineWidth),
+                      onChanged: (value) => setState(() {
+                        outlineWidth = value;
+                      }),
                     ),
                     const SizedBox(height: 16),
                     Opacity(
@@ -160,6 +182,7 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
                             _OutlineColorSummaryRow(
                               label: l10n.liveCourseOutlineCustomColor,
                               colorValue: customColorValue,
+                              borderWidth: outlineWidth,
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -200,6 +223,7 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
                       followTheme: followTheme,
                       colorValue: customColorValue,
                       customColorInitialized: customColorInitialized,
+                      width: outlineWidth,
                     );
                     if (context.mounted) {
                       Navigator.of(context).pop();
@@ -220,10 +244,12 @@ class _OutlineColorSummaryRow extends StatelessWidget {
   const _OutlineColorSummaryRow({
     required this.label,
     required this.colorValue,
+    required this.borderWidth,
   });
 
   final String label;
   final int colorValue;
+  final double borderWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +262,10 @@ class _OutlineColorSummaryRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        _OutlineColorPreview(colorValue: colorValue),
+        _OutlineColorPreview(
+          colorValue: colorValue,
+          borderWidth: borderWidth,
+        ),
         const SizedBox(width: 12),
         Text(_formatOutlineColorHex(colorValue)),
       ],
@@ -244,10 +273,35 @@ class _OutlineColorSummaryRow extends StatelessWidget {
   }
 }
 
+class _OutlineWidthSummaryRow extends StatelessWidget {
+  const _OutlineWidthSummaryRow({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            AppLocalizations.of(context)!.liveCourseOutlineWidth,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        Text(_formatOutlineWidthValue(width)),
+      ],
+    );
+  }
+}
+
 class _OutlineColorPreview extends StatelessWidget {
-  const _OutlineColorPreview({required this.colorValue});
+  const _OutlineColorPreview({
+    required this.colorValue,
+    required this.borderWidth,
+  });
 
   final int colorValue;
+  final double borderWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +312,7 @@ class _OutlineColorPreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         shape: BoxShape.circle,
-        border: Border.all(color: color, width: 3),
+        border: Border.all(color: color, width: borderWidth),
       ),
     );
   }

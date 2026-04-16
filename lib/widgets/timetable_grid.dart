@@ -71,6 +71,7 @@ class TimetableGrid extends StatelessWidget {
     this.liveCourseTarget,
     required this.liveCourseOutlineEnabled,
     required this.liveCourseOutlineColorValue,
+    required this.liveCourseOutlineWidth,
   });
 
   final TimetableData timetable;
@@ -89,6 +90,7 @@ class TimetableGrid extends StatelessWidget {
   final TimetableLiveCourseTarget? liveCourseTarget;
   final bool liveCourseOutlineEnabled;
   final int liveCourseOutlineColorValue;
+  final double liveCourseOutlineWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +258,7 @@ class TimetableGrid extends StatelessWidget {
                                     outlineColor: Color(
                                       liveCourseOutlineColorValue,
                                     ),
+                                    outlineWidth: liveCourseOutlineWidth,
                                     onTap: () => onCourseTap(
                                       TimetableCourseTapInfo(
                                         course: item.course,
@@ -568,6 +571,7 @@ class _CourseCard extends StatelessWidget {
     required this.verticalLayout,
     required this.metrics,
     required this.outlineColor,
+    required this.outlineWidth,
     required this.onTap,
   });
 
@@ -575,6 +579,7 @@ class _CourseCard extends StatelessWidget {
   final _TimetableVerticalLayout verticalLayout;
   final _TimetableMetrics metrics;
   final Color outlineColor;
+  final double outlineWidth;
   final VoidCallback onTap;
 
   bool get _isInactiveForCurrentWeek =>
@@ -619,6 +624,10 @@ class _CourseCard extends StatelessWidget {
           : math.max(0.48, 0.82 - (layout.priorityDepth * 0.10)),
     );
 
+    final effectiveOutlineWidth = compact
+        ? math.max(minLiveCourseOutlineWidth, outlineWidth - 0.5)
+        : outlineWidth;
+
     return Positioned(
       top: top,
       left: metrics.courseGap,
@@ -633,7 +642,7 @@ class _CourseCard extends StatelessWidget {
           side: layout.isLiveHighlighted
               ? BorderSide(
                   color: outlineColor,
-                  width: compact ? 2 : 2.5,
+                  width: effectiveOutlineWidth,
                 )
               : BorderSide.none,
         ),

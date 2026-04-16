@@ -9,11 +9,24 @@ enum AppImportMode { replaceAll, addAll }
 
 enum TimetableImportMode { addAsNew, replaceActive }
 
+String _defaultSystemLocaleCodeResolver() {
+  final locales = PlatformDispatcher.instance.locales;
+  if (locales.isEmpty) {
+    return defaultLocaleCode;
+  }
+  return normalizeLocaleCode(locales.first.languageCode);
+}
+
 class TimetableProvider extends ChangeNotifier {
-  TimetableProvider({TimetableStorage? storage})
-    : _storage = storage ?? TimetableStorage();
+  TimetableProvider({
+    TimetableStorage? storage,
+    String Function()? systemLocaleCodeResolver,
+  }) : _storage = storage ?? TimetableStorage(),
+       _systemLocaleCodeResolver =
+           systemLocaleCodeResolver ?? _defaultSystemLocaleCodeResolver;
 
   final TimetableStorage _storage;
+  final String Function() _systemLocaleCodeResolver;
 
   AppData _appData = buildInitialAppData(buildDefaultPeriodTimes());
   int _selectedWeek = 1;
@@ -42,6 +55,7 @@ class TimetableProvider extends ChangeNotifier {
   bool get liveCourseOutlineFollowTheme => _appData.liveCourseOutlineFollowTheme;
   bool get liveCourseOutlineCustomColorInitialized =>
       _appData.liveCourseOutlineCustomColorInitialized;
+  double get liveCourseOutlineWidth => _appData.liveCourseOutlineWidth;
   String? get ignoredUpdateVersion => _appData.ignoredUpdateVersion;
   String? get availableUpdateVersion => _appData.availableUpdateVersion;
   String get activePrivacyPolicyVersion => currentPrivacyPolicyVersion;
@@ -742,7 +756,10 @@ class TimetableProvider extends ChangeNotifier {
   Future<AppData> _buildDefaultAppData() async {
     final periodTimes = await _loadDefaultPeriodTimes();
     return _normalizeImportedAppData(
-      buildInitialAppData(periodTimes, localeCode: _appData.localeCode),
+      buildInitialAppData(
+        periodTimes,
+        localeCode: _systemLocaleCodeResolver(),
+      ),
     );
   }
 
@@ -841,12 +858,15 @@ class TimetableProvider extends ChangeNotifier {
     required bool followTheme,
     required int colorValue,
     required bool customColorInitialized,
+    required double width,
   }) async {
+    final normalizedWidth = normalizeLiveCourseOutlineWidth(width);
     final nextData = _appData.copyWith(
       liveCourseOutlineEnabled: enabled,
       liveCourseOutlineFollowTheme: followTheme,
       liveCourseOutlineColorValue: colorValue,
       liveCourseOutlineCustomColorInitialized: customColorInitialized,
+      liveCourseOutlineWidth: normalizedWidth,
     );
     if (nextData.liveCourseOutlineEnabled == _appData.liveCourseOutlineEnabled &&
         nextData.liveCourseOutlineFollowTheme ==
@@ -854,7 +874,8 @@ class TimetableProvider extends ChangeNotifier {
         nextData.liveCourseOutlineColorValue ==
             _appData.liveCourseOutlineColorValue &&
         nextData.liveCourseOutlineCustomColorInitialized ==
-            _appData.liveCourseOutlineCustomColorInitialized) {
+            _appData.liveCourseOutlineCustomColorInitialized &&
+        nextData.liveCourseOutlineWidth == _appData.liveCourseOutlineWidth) {
       return;
     }
     _appData = nextData;

@@ -291,6 +291,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             provider.liveCourseOutlineEnabled,
                         liveCourseOutlineColorValue:
                             liveCourseOutlineColorValue,
+                        liveCourseOutlineWidth:
+                            provider.liveCourseOutlineWidth,
                         onCourseTap: (info) =>
                             _openDetails(context, provider, info),
                         onEmptySlotTap: (slotInfo) => _openEditor(

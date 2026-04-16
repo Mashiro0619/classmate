@@ -255,6 +255,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get liveCourseOutlineCustomColor => '自定义描边颜色';
 
   @override
+  String get liveCourseOutlineWidth => '描边宽度';
+
+  @override
   String get language => '语言';
 
   @override

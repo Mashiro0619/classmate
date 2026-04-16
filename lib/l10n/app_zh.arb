@@ -122,6 +122,7 @@
   "liveCourseOutlineFollowTheme": "跟随主题色",
   "liveCourseOutlineEffectiveColor": "当前生效颜色",
   "liveCourseOutlineCustomColor": "自定义描边颜色",
+  "liveCourseOutlineWidth": "描边宽度",
   "language": "语言",
   "languageChinese": "中文",
   "languageEnglish": "English",

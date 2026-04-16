@@ -255,6 +255,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveCourseOutlineCustomColor => 'Custom outline color';
 
   @override
+  String get liveCourseOutlineWidth => 'Outline width';
+
+  @override
   String get language => 'Language';
 
   @override

@@ -11,6 +11,9 @@ const defaultLiveCourseOutlineColorValue = 0xFFEF6C00;
 const defaultLiveCourseOutlineEnabled = true;
 const defaultLiveCourseOutlineFollowTheme = true;
 const defaultLiveCourseOutlineCustomColorInitialized = false;
+const defaultLiveCourseOutlineWidth = 2.5;
+const minLiveCourseOutlineWidth = 1.0;
+const maxLiveCourseOutlineWidth = 4.0;
 const maxTimetableWeeks = 100;
 const currentPrivacyPolicyVersion = '2026-04-08';
 
@@ -19,9 +22,16 @@ bool _isEnglishLocale(String localeCode) =>
 
 Color deriveLiveCourseOutlineColorFromSeed(Color seedColor) {
   final hsl = HSLColor.fromColor(seedColor);
-  final lightness = (hsl.lightness - 0.16).clamp(0.18, 0.72).toDouble();
+  final lightness = (hsl.lightness - 0.11).clamp(0.20, 0.74).toDouble();
   final saturation = (hsl.saturation + 0.08).clamp(0.12, 1.0).toDouble();
   return hsl.withLightness(lightness).withSaturation(saturation).toColor();
+}
+
+double normalizeLiveCourseOutlineWidth(double? width) {
+  return (width ?? defaultLiveCourseOutlineWidth).clamp(
+    minLiveCourseOutlineWidth,
+    maxLiveCourseOutlineWidth,
+  ).toDouble();
 }
 
 String defaultPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
@@ -544,6 +554,7 @@ class AppData {
     this.liveCourseOutlineFollowTheme = defaultLiveCourseOutlineFollowTheme,
     this.liveCourseOutlineCustomColorInitialized =
         defaultLiveCourseOutlineCustomColorInitialized,
+    this.liveCourseOutlineWidth = defaultLiveCourseOutlineWidth,
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
     this.ignoredUpdateVersion,
@@ -566,6 +577,7 @@ class AppData {
   final bool liveCourseOutlineEnabled;
   final bool liveCourseOutlineFollowTheme;
   final bool liveCourseOutlineCustomColorInitialized;
+  final double liveCourseOutlineWidth;
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
   final String? ignoredUpdateVersion;
@@ -589,6 +601,7 @@ class AppData {
     'liveCourseOutlineFollowTheme': liveCourseOutlineFollowTheme,
     'liveCourseOutlineCustomColorInitialized':
         liveCourseOutlineCustomColorInitialized,
+    'liveCourseOutlineWidth': liveCourseOutlineWidth,
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
     'ignoredUpdateVersion': ignoredUpdateVersion,
@@ -700,6 +713,9 @@ class AppData {
       liveCourseOutlineCustomColorInitialized:
           json['liveCourseOutlineCustomColorInitialized'] as bool? ??
           defaultLiveCourseOutlineCustomColorInitialized,
+      liveCourseOutlineWidth: normalizeLiveCourseOutlineWidth(
+        (json['liveCourseOutlineWidth'] as num?)?.toDouble(),
+      ),
       privacyPolicyAcceptedVersion:
           json['privacyPolicyAcceptedVersion'] as String?,
       privacyPolicyAcceptedAtIso: json['privacyPolicyAcceptedAtIso'] as String?,
@@ -725,6 +741,7 @@ class AppData {
     bool? liveCourseOutlineEnabled,
     bool? liveCourseOutlineFollowTheme,
     bool? liveCourseOutlineCustomColorInitialized,
+    double? liveCourseOutlineWidth,
     String? privacyPolicyAcceptedVersion,
     String? privacyPolicyAcceptedAtIso,
     String? ignoredUpdateVersion,
@@ -758,6 +775,9 @@ class AppData {
       liveCourseOutlineCustomColorInitialized:
           liveCourseOutlineCustomColorInitialized ??
           this.liveCourseOutlineCustomColorInitialized,
+      liveCourseOutlineWidth: normalizeLiveCourseOutlineWidth(
+        liveCourseOutlineWidth ?? this.liveCourseOutlineWidth,
+      ),
       privacyPolicyAcceptedVersion:
           privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
       privacyPolicyAcceptedAtIso:

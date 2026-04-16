@@ -211,6 +211,7 @@ void main() {
 
       final firstProvider = TimetableProvider(
         storage: TestTimetableStorage(file),
+        systemLocaleCodeResolver: () => 'zh',
       );
       await firstProvider.load();
 
@@ -219,6 +220,7 @@ void main() {
 
       final secondProvider = TimetableProvider(
         storage: TestTimetableStorage(file),
+        systemLocaleCodeResolver: () => 'zh',
       );
       await secondProvider.load();
 
@@ -486,6 +488,7 @@ void main() {
         liveCourseOutlineFollowTheme: false,
         liveCourseOutlineCustomColorInitialized: true,
         liveCourseOutlineColorValue: 0xFF123456,
+        liveCourseOutlineWidth: 3.5,
       );
       final decodedCustomized = AppData.decode(customized.encode());
 
@@ -493,6 +496,7 @@ void main() {
       expect(decodedCustomized.liveCourseOutlineFollowTheme, isFalse);
       expect(decodedCustomized.liveCourseOutlineCustomColorInitialized, isTrue);
       expect(decodedCustomized.liveCourseOutlineColorValue, 0xFF123456);
+      expect(decodedCustomized.liveCourseOutlineWidth, 3.5);
 
       final legacy = AppData.decode(
         jsonEncode({
@@ -517,6 +521,53 @@ void main() {
       expect(legacy.liveCourseOutlineEnabled, isTrue);
       expect(legacy.liveCourseOutlineFollowTheme, isTrue);
       expect(legacy.liveCourseOutlineCustomColorInitialized, isFalse);
+      expect(legacy.liveCourseOutlineWidth, defaultLiveCourseOutlineWidth);
+    });
+
+    test('首次加载无本地数据时会按系统语言初始化英文', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(),
+        systemLocaleCodeResolver: () => 'en',
+      );
+      await provider.load();
+
+      expect(provider.localeCode, 'en');
+      expect(provider.activePeriodTimeSet.name, 'Default periods');
+    });
+
+    test('已有本地语言设置时不会被系统语言覆盖', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: _buildTestAppData().copyWith(localeCode: 'zh'),
+        ),
+        systemLocaleCodeResolver: () => 'en',
+      );
+      await provider.load();
+
+      expect(provider.localeCode, 'zh');
+    });
+
+    test('跟随主题色的描边派生色会比旧实现更浅但仍深于原色', () {
+      const seedColor = Color(0xFF6750A4);
+      final derivedColor = deriveLiveCourseOutlineColorFromSeed(seedColor);
+      final oldDerivedColor = HSLColor.fromColor(seedColor)
+          .withLightness(
+            (HSLColor.fromColor(seedColor).lightness - 0.16)
+                .clamp(0.18, 0.72)
+                .toDouble(),
+          )
+          .withSaturation(
+            (HSLColor.fromColor(seedColor).saturation + 0.08)
+                .clamp(0.12, 1.0)
+                .toDouble(),
+          )
+          .toColor();
+      final derivedHsl = HSLColor.fromColor(derivedColor);
+      final seedHsl = HSLColor.fromColor(seedColor);
+      final oldDerivedHsl = HSLColor.fromColor(oldDerivedColor);
+
+      expect(derivedHsl.lightness, lessThan(seedHsl.lightness));
+      expect(derivedHsl.lightness, greaterThan(oldDerivedHsl.lightness));
     });
   });
 
@@ -598,6 +649,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(provider.liveCourseOutlineEnabled, isFalse);
+    });
+
+    testWidgets('调整描边宽度后 provider 会保存设置', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: TimetableDisplaySettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('当前/下一节课程描边'));
+      await tester.pumpAndSettle();
+
+      final slider = find.byType(Slider);
+      expect(slider, findsOneWidget);
+      await tester.drag(slider, const Offset(240, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('应用颜色'));
+      await tester.pumpAndSettle();
+
+      expect(provider.liveCourseOutlineWidth, greaterThan(defaultLiveCourseOutlineWidth));
     });
   });
 
@@ -784,6 +872,7 @@ void main() {
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
                 liveCourseOutlineColorValue: defaultLiveCourseOutlineColorValue,
+                liveCourseOutlineWidth: defaultLiveCourseOutlineWidth,
               ),
             ),
           ),
@@ -868,6 +957,7 @@ void main() {
                 onCourseTap: (_) {},
                 onEmptySlotTap: (_) {},
                 liveCourseOutlineColorValue: defaultLiveCourseOutlineColorValue,
+                liveCourseOutlineWidth: defaultLiveCourseOutlineWidth,
               ),
             ),
           ),

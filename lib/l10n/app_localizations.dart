@@ -563,6 +563,12 @@ abstract class AppLocalizations {
   /// **'Custom outline color'**
   String get liveCourseOutlineCustomColor;
 
+  /// No description provided for @liveCourseOutlineWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Outline width'**
+  String get liveCourseOutlineWidth;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
