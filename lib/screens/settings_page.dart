@@ -4,6 +4,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../widgets/text_transfer_widgets.dart';
+
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
@@ -17,8 +19,10 @@ import 'timetable_import_flow.dart';
 
 enum _DataAction {
   importTimetables,
+  importTimetablesText,
   exportTimetablesShare,
   exportTimetablesSave,
+  exportTimetablesText,
 }
 
 enum UpdateCheckSource { manual, startup }
@@ -186,7 +190,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   String? _editingTimetableId;
   String _currentVersion = '';
-  late DateTime _selectedDate;
   late String _selectedPeriodTimeSetId;
 
   @override
@@ -207,7 +210,6 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     _editingTimetableId = timetable.id;
-    _selectedDate = timetable.config.startDate;
     _selectedPeriodTimeSetId = timetable.config.periodTimeSetId;
   }
 
@@ -231,21 +233,6 @@ class _SettingsPageState extends State<SettingsPage> {
           body: ListView(
             padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                leading: const Icon(Icons.calendar_month_outlined),
-                title: Text(l10n.semesterStartDate),
-                subtitle: Text(
-                  '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
-                ),
-                trailing: const Icon(Icons.calendar_month),
-                onTap: () => _pickStartDate(provider, timetable.config),
-              ),
-              Divider(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
-              ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.schedule_outlined),
@@ -455,23 +442,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _pickStartDate(
-    TimetableProvider provider,
-    TimetableConfig config,
-  ) async {
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
-      initialDate: _selectedDate,
-    );
-    if (picked == null || picked == _selectedDate) {
-      return;
-    }
-    setState(() => _selectedDate = picked);
-    await provider.updateTimetableConfig(config.copyWith(startDate: picked));
-  }
-
   Future<void> _openPrivacyPolicyPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
@@ -592,6 +562,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.paste_outlined),
+                  title: Text(l10n.importTimetableText),
+                  subtitle: Text(l10n.importTimetableTextDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.importTimetablesText),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.share_outlined),
                   title: Text(l10n.shareTimetableFiles),
                   subtitle: Text(l10n.shareTimetableFilesDesc),
@@ -607,6 +586,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     sheetContext,
                   ).pop(_DataAction.exportTimetablesSave),
                 ),
+                ListTile(
+                  leading: const Icon(Icons.text_snippet_outlined),
+                  title: Text(l10n.exportTimetableText),
+                  subtitle: Text(l10n.exportTimetableTextDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesText),
+                ),
               ],
             ),
           ),
@@ -620,17 +607,71 @@ class _SettingsPageState extends State<SettingsPage> {
       case _DataAction.importTimetables:
         await TimetableImportFlow.importTimetables(context, provider);
         return;
+      case _DataAction.importTimetablesText:
+        await _importTimetablesFromText(provider);
+        return;
       case _DataAction.exportTimetablesShare:
         await _exportTimetables(provider, share: true);
         return;
       case _DataAction.exportTimetablesSave:
         await _exportTimetables(provider, share: false);
         return;
+      case _DataAction.exportTimetablesText:
+        await _exportTimetablesAsText(provider);
+        return;
     }
   }
 
   Future<void> _openSchoolSitesPage(TimetableProvider provider) async {
     await TimetableImportFlow.openSchoolSitesPage(context, provider);
+  }
+
+  Future<void> _importTimetablesFromText(TimetableProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TextImportPage(
+          title: l10n.importTimetableText,
+          onSubmit: (context, content) {
+            return TimetableImportFlow.importTimetablesFromSource(
+              context,
+              provider,
+              content,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportTimetablesAsText(TimetableProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
+    final activeId = provider.activeTimetableOrNull?.id;
+    final selectedIds = await _pickTimetableIds(
+      timetables: provider.timetables,
+      title: l10n.selectTimetablesToExport,
+      confirmText: l10n.copyText,
+      initialSelectedIds: activeId == null ? const [] : [activeId],
+    );
+    if (selectedIds == null || selectedIds.isEmpty || !mounted) {
+      return;
+    }
+    try {
+      final content = provider.exportSelectedTimetablesJson(selectedIds);
+      await showTextExportDialog(
+        context,
+        title: l10n.exportTimetableText,
+        content: content,
+      );
+    } on FormatException catch (error) {
+      if (mounted) {
+        _showMessage(error.message);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showMessage(l10n.saveFailedRetry);
+      }
+    }
   }
 
   Future<void> _exportTimetables(

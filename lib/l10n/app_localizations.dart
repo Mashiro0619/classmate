@@ -569,6 +569,12 @@ abstract class AppLocalizations {
   /// **'Outline width'**
   String get liveCourseOutlineWidth;
 
+  /// No description provided for @outlineWidthUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'px'**
+  String get outlineWidthUnit;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
@@ -628,6 +634,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply color'**
   String get themeApplyCustomColor;
+
+  /// No description provided for @themeApplySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply settings'**
+  String get themeApplySettings;
 
   /// No description provided for @dataImportExport.
   ///
@@ -755,6 +767,18 @@ abstract class AppLocalizations {
   /// **'Supports one or multiple timetable files.'**
   String get importTimetableFilesDesc;
 
+  /// No description provided for @importTimetableText.
+  ///
+  /// In en, this message translates to:
+  /// **'Import timetable from text'**
+  String get importTimetableText;
+
+  /// No description provided for @importTimetableTextDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste timetable JSON content and import it.'**
+  String get importTimetableTextDesc;
+
   /// No description provided for @shareTimetableFiles.
   ///
   /// In en, this message translates to:
@@ -778,6 +802,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose one or more timetables first.'**
   String get saveTimetableFilesDesc;
+
+  /// No description provided for @exportTimetableText.
+  ///
+  /// In en, this message translates to:
+  /// **'Export timetable as text'**
+  String get exportTimetableText;
+
+  /// No description provided for @exportTimetableTextDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one or more timetables, then copy the JSON content.'**
+  String get exportTimetableTextDesc;
+
+  /// No description provided for @jsonContent.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON content'**
+  String get jsonContent;
+
+  /// No description provided for @pasteJsonContentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the JSON content to import.'**
+  String get pasteJsonContentHint;
+
+  /// No description provided for @jsonContentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON content first.'**
+  String get jsonContentEmpty;
+
+  /// No description provided for @copyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyText;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
 
   /// No description provided for @share.
   ///
@@ -832,6 +898,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replace current timetable'**
   String get replaceCurrentTimetable;
+
+  /// No description provided for @importPeriodTimeSetDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import period time sets'**
+  String get importPeriodTimeSetDialogTitle;
+
+  /// No description provided for @importPeriodTimeSetDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This file contains bundled period time sets. Do you want to import and associate them?'**
+  String get importPeriodTimeSetDialogBody;
+
+  /// No description provided for @importBundledPeriodTimeSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Import and associate'**
+  String get importBundledPeriodTimeSets;
+
+  /// No description provided for @discardBundledPeriodTimeSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard bundled sets'**
+  String get discardBundledPeriodTimeSets;
+
+  /// No description provided for @importDiscardPeriodTimeSetUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No existing period time set is available, so bundled period time sets cannot be discarded.'**
+  String get importDiscardPeriodTimeSetUnavailable;
 
   /// No description provided for @savedToPath.
   ///
@@ -965,6 +1061,12 @@ abstract class AppLocalizations {
   /// **'Import period template'**
   String get importPeriodTemplate;
 
+  /// No description provided for @importPeriodTemplateText.
+  ///
+  /// In en, this message translates to:
+  /// **'Import period template from text'**
+  String get importPeriodTemplateText;
+
   /// No description provided for @sharePeriodTemplate.
   ///
   /// In en, this message translates to:
@@ -976,6 +1078,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save template to file'**
   String get saveTemplateToFile;
+
+  /// No description provided for @exportPeriodTemplateText.
+  ///
+  /// In en, this message translates to:
+  /// **'Export period template as text'**
+  String get exportPeriodTemplateText;
 
   /// No description provided for @deletePeriodTimeSet.
   ///
@@ -1408,6 +1516,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parse and import'**
   String get schoolHtmlImportSubmit;
+
+  /// No description provided for @schoolHtmlImportParsingMayTakeLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsing may take a while. Please wait.'**
+  String get schoolHtmlImportParsingMayTakeLong;
 
   /// No description provided for @schoolHtmlImportEmpty.
   ///

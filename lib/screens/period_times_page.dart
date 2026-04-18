@@ -8,11 +8,14 @@ import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
+import '../widgets/text_transfer_widgets.dart';
 
 enum _PeriodTimesMenuAction {
   importTemplate,
+  importTemplateText,
   exportTemplate,
   saveTemplate,
+  exportTemplateText,
   deleteSet,
 }
 
@@ -84,12 +87,20 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
                 child: Text(l10n.importPeriodTemplate),
               ),
               PopupMenuItem(
+                value: _PeriodTimesMenuAction.importTemplateText,
+                child: Text(l10n.importPeriodTemplateText),
+              ),
+              PopupMenuItem(
                 value: _PeriodTimesMenuAction.exportTemplate,
                 child: Text(l10n.sharePeriodTemplate),
               ),
               PopupMenuItem(
                 value: _PeriodTimesMenuAction.saveTemplate,
                 child: Text(l10n.saveTemplateToFile),
+              ),
+              PopupMenuItem(
+                value: _PeriodTimesMenuAction.exportTemplateText,
+                child: Text(l10n.exportPeriodTemplateText),
               ),
               PopupMenuDivider(),
               PopupMenuItem(
@@ -210,11 +221,17 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       case _PeriodTimesMenuAction.importTemplate:
         await _importTemplate();
         return;
+      case _PeriodTimesMenuAction.importTemplateText:
+        await _importTemplateFromText();
+        return;
       case _PeriodTimesMenuAction.exportTemplate:
         await _shareTemplate();
         return;
       case _PeriodTimesMenuAction.saveTemplate:
         await _saveTemplateToFile();
+        return;
+      case _PeriodTimesMenuAction.exportTemplateText:
+        await _exportTemplateAsText();
         return;
       case _PeriodTimesMenuAction.deleteSet:
         await _deleteSet();
@@ -331,12 +348,58 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     }
   }
 
+  Future<void> _importTemplateFromText() async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TextImportPage(
+          title: l10n.importPeriodTemplateText,
+          onSubmit: (_, content) async {
+            final provider = context.read<TimetableProvider>();
+            try {
+              final imported = provider.importPeriodTimesJson(content);
+              final count = imported.length;
+              if (count == 0) {
+                throw FormatException(
+                  noPeriodTimesInImportMessage(localeCode: provider.localeCode),
+                );
+              }
+              if (!mounted) {
+                return false;
+              }
+              setState(() {
+                _periodTimes = imported;
+              });
+              _showMessage(l10n.importedPeriodTimesCount(count));
+              return true;
+            } on FormatException catch (error) {
+              _showMessage(error.message);
+              return false;
+            } catch (_) {
+              _showMessage(l10n.importFailedCheckContent);
+              return false;
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _shareTemplate() async {
     await _exportService.shareFile(
       ExportPayload(
         fileName: 'classmate_period_times.json',
         content: encodePeriodTimesEnvelope(_periodTimes),
       ),
+    );
+  }
+
+  Future<void> _exportTemplateAsText() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showTextExportDialog(
+      context,
+      title: l10n.exportPeriodTemplateText,
+      content: encodePeriodTimesEnvelope(_periodTimes),
     );
   }
 

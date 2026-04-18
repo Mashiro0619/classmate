@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -9,12 +11,26 @@ enum AppImportMode { replaceAll, addAll }
 
 enum TimetableImportMode { addAsNew, replaceActive }
 
+String resolveFirstLaunchLocaleCode(Locale? locale) {
+  if (locale == null) {
+    return 'en';
+  }
+
+  final languageCode = locale.languageCode.toLowerCase();
+  final scriptCode = locale.scriptCode?.toLowerCase();
+  final countryCode = locale.countryCode?.toUpperCase();
+  final isTraditionalChinese =
+      languageCode == 'zh' &&
+      (scriptCode == 'hant' ||
+          countryCode == 'TW' ||
+          countryCode == 'HK' ||
+          countryCode == 'MO');
+  return isTraditionalChinese ? 'zh' : 'en';
+}
+
 String _defaultSystemLocaleCodeResolver() {
   final locales = PlatformDispatcher.instance.locales;
-  if (locales.isEmpty) {
-    return defaultLocaleCode;
-  }
-  return normalizeLocaleCode(locales.first.languageCode);
+  return resolveFirstLaunchLocaleCode(locales.isEmpty ? null : locales.first);
 }
 
 class TimetableProvider extends ChangeNotifier {
@@ -469,8 +485,19 @@ class TimetableProvider extends ChangeNotifier {
     String source, {
     required List<String> timetableIds,
     required TimetableImportMode mode,
+    bool importBundledPeriodTimeSets = true,
+    String? targetPeriodTimeSetId,
   }) async {
     final imported = _decodeImportCandidate(source);
+    final manualTargetSetId = targetPeriodTimeSetId?.trim() ?? '';
+    if (!importBundledPeriodTimeSets) {
+      if (manualTargetSetId.isEmpty ||
+          periodTimeSetForId(manualTargetSetId) == null) {
+        throw FormatException(
+          noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
+        );
+      }
+    }
     final selectedIdSet = timetableIds.toSet();
     final selectedTimetables = imported.timetables
         .where((item) => selectedIdSet.contains(item.id))
@@ -496,20 +523,26 @@ class TimetableProvider extends ChangeNotifier {
         );
       }
       final selected = selectedTimetables.first;
-      final importedSet = imported.periodTimeSets.firstWhere(
-        (item) => item.id == selected.config.periodTimeSetId,
-        orElse: () => _createFallbackPeriodTimeSet(),
-      );
       final existingSetIds = _appData.periodTimeSets
           .map((item) => item.id)
           .toSet();
-      final copiedSet = _copyImportedPeriodTimeSetWithUniqueId(
-        importedSet,
-        existingSetIds,
-      );
+      final shouldReuseExistingSet =
+          !importBundledPeriodTimeSets && manualTargetSetId.isNotEmpty;
+      final copiedSet = shouldReuseExistingSet
+          ? null
+          : _copyImportedPeriodTimeSetWithUniqueId(
+              imported.periodTimeSets.firstWhere(
+                (item) => item.id == selected.config.periodTimeSetId,
+                orElse: () => _createFallbackPeriodTimeSet(),
+              ),
+              existingSetIds,
+            );
+      final resolvedSetId = shouldReuseExistingSet
+          ? manualTargetSetId
+          : copiedSet!.id;
       final replaced = selected.copyWith(
         id: current.id,
-        config: selected.config.copyWith(periodTimeSetId: copiedSet.id),
+        config: selected.config.copyWith(periodTimeSetId: resolvedSetId),
       );
       final updatedTimetables = _appData.timetables
           .map((item) => item.id == current.id ? replaced : item)
@@ -517,7 +550,9 @@ class TimetableProvider extends ChangeNotifier {
       _appData = _appData.copyWith(
         activeTimetableId: current.id,
         timetables: updatedTimetables,
-        periodTimeSets: [..._appData.periodTimeSets, copiedSet],
+        periodTimeSets: copiedSet == null
+            ? _appData.periodTimeSets
+            : [..._appData.periodTimeSets, copiedSet],
       );
       _selectedWeek = currentWeekFor(replaced.config);
       await _saveAndNotify();
@@ -534,22 +569,25 @@ class TimetableProvider extends ChangeNotifier {
         .map((item) => item.id)
         .toSet();
     final importedSetIdMap = <String, String>{};
-    final appendedSets = selectedSets.map((item) {
-      final copied = _copyImportedPeriodTimeSetWithUniqueId(
-        item,
-        existingSetIds,
-      );
-      importedSetIdMap[item.id] = copied.id;
-      return copied;
-    }).toList();
+    final appendedSets = importBundledPeriodTimeSets
+        ? selectedSets.map((item) {
+            final copied = _copyImportedPeriodTimeSetWithUniqueId(
+              item,
+              existingSetIds,
+            );
+            importedSetIdMap[item.id] = copied.id;
+            return copied;
+          }).toList()
+        : <PeriodTimeSet>[];
 
     final existingTimetableIds = _appData.timetables
         .map((item) => item.id)
         .toSet();
     final appendedTimetables = selectedTimetables.map((item) {
-      final mappedSetId =
-          importedSetIdMap[item.config.periodTimeSetId] ??
-          item.config.periodTimeSetId;
+      final mappedSetId = importBundledPeriodTimeSets
+          ? (importedSetIdMap[item.config.periodTimeSetId] ??
+              item.config.periodTimeSetId)
+          : manualTargetSetId;
       return _copyImportedTimetableWithUniqueId(
         item.copyWith(
           config: item.config.copyWith(periodTimeSetId: mappedSetId),
@@ -594,6 +632,8 @@ class TimetableProvider extends ChangeNotifier {
   Future<String> importTimetableJson(
     String source, {
     required TimetableImportMode mode,
+    bool importBundledPeriodTimeSets = true,
+    String? targetPeriodTimeSetId,
   }) async {
     final imported = _decodeImportCandidate(source);
     final selected = imported.timetables.first;
@@ -601,6 +641,8 @@ class TimetableProvider extends ChangeNotifier {
       source,
       timetableIds: [selected.id],
       mode: mode,
+      importBundledPeriodTimeSets: importBundledPeriodTimeSets,
+      targetPeriodTimeSetId: targetPeriodTimeSetId,
     );
     return selected.config.name;
   }

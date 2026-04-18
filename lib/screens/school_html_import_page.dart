@@ -159,6 +159,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     }
     final sanitizedContent = html;
 
+    _showMessage(l10n.schoolHtmlImportParsingMayTakeLong);
     setState(() => _isSubmitting = true);
     try {
       final result = await _api.importCurrentPageWithRawResponse(

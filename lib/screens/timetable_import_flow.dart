@@ -7,7 +7,18 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
+import '../widgets/period_time_set_picker_dialog.dart';
 import 'school_sites_page.dart';
+
+class _TimetableImportChoice {
+  const _TimetableImportChoice({
+    required this.importBundledPeriodTimeSets,
+    this.targetPeriodTimeSetId,
+  });
+
+  final bool importBundledPeriodTimeSets;
+  final String? targetPeriodTimeSetId;
+}
 
 class TimetableImportFlow {
   const TimetableImportFlow._();
@@ -16,26 +27,34 @@ class TimetableImportFlow {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
     final source = await _pickJsonSource();
     if (source == null || !context.mounted) {
       return;
     }
+    await importTimetablesFromSource(context, provider, source);
+  }
+
+  static Future<bool> importTimetablesFromSource(
+    BuildContext context,
+    TimetableProvider provider,
+    String source,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
 
     List<TimetableData> candidates;
     try {
       candidates = provider.previewImportTimetables(source);
     } on FormatException catch (error) {
       _showMessage(context, error.message);
-      return;
+      return false;
     } catch (_) {
       _showMessage(context, l10n.importFailedCheckContent);
-      return;
+      return false;
     }
 
     if (candidates.isEmpty) {
       _showMessage(context, l10n.noImportableTimetables);
-      return;
+      return false;
     }
 
     final selectedIds = candidates.length == 1
@@ -48,7 +67,7 @@ class TimetableImportFlow {
             initialSelectedIds: candidates.map((item) => item.id).toList(),
           );
     if (selectedIds == null || selectedIds.isEmpty || !context.mounted) {
-      return;
+      return false;
     }
 
     var mode = TimetableImportMode.addAsNew;
@@ -77,9 +96,21 @@ class TimetableImportFlow {
         },
       );
       if (pickedMode == null) {
-        return;
+        return false;
       }
       mode = pickedMode;
+    }
+
+    if (!context.mounted) {
+      return false;
+    }
+    final importChoice = await _pickImportBundledPeriodTimeSets(
+      context,
+      provider,
+      source,
+    );
+    if (importChoice == null) {
+      return false;
     }
 
     try {
@@ -87,18 +118,23 @@ class TimetableImportFlow {
         source,
         timetableIds: selectedIds,
         mode: mode,
+        importBundledPeriodTimeSets: importChoice.importBundledPeriodTimeSets,
+        targetPeriodTimeSetId: importChoice.targetPeriodTimeSetId,
       );
       if (context.mounted) {
         _showMessage(context, l10n.importedTimetablesCount(count));
       }
+      return true;
     } on FormatException catch (error) {
       if (context.mounted) {
         _showMessage(context, error.message);
       }
+      return false;
     } catch (_) {
       if (context.mounted) {
         _showMessage(context, l10n.importFailedCheckContent);
       }
+      return false;
     }
   }
 
@@ -113,6 +149,79 @@ class TimetableImportFlow {
           child: const SchoolSitesPage(),
         ),
       ),
+    );
+  }
+
+  static Future<_TimetableImportChoice?> _pickImportBundledPeriodTimeSets(
+    BuildContext context,
+    TimetableProvider provider,
+    String source,
+  ) async {
+    final envelope = ImportExportEnvelope.decode(source);
+    final hasBundledPeriodTimeSets = switch (envelope.schema) {
+      timetableDataSchema =>
+        (envelope.data['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
+            .isNotEmpty ||
+        (envelope.data.containsKey('config') &&
+            envelope.data.containsKey('courses')),
+      appDataSchema =>
+        (envelope.data['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
+            .isNotEmpty,
+      _ => false,
+    };
+    if (!hasBundledPeriodTimeSets) {
+      return const _TimetableImportChoice(importBundledPeriodTimeSets: true);
+    }
+    if (!context.mounted) {
+      return null;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final canDiscardBundledSets = provider.periodTimeSets.isNotEmpty;
+    final dialogBody = canDiscardBundledSets
+        ? l10n.importPeriodTimeSetDialogBody
+        : '${l10n.importPeriodTimeSetDialogBody}\n\n${l10n.importDiscardPeriodTimeSetUnavailable}';
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.importPeriodTimeSetDialogTitle),
+          content: Text(dialogBody),
+          actions: [
+            TextButton(
+              onPressed: canDiscardBundledSets
+                  ? () => Navigator.of(context).pop(false)
+                  : null,
+              child: Text(l10n.discardBundledPeriodTimeSets),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.importBundledPeriodTimeSets),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == null) {
+      return null;
+    }
+    if (result) {
+      return const _TimetableImportChoice(importBundledPeriodTimeSets: true);
+    }
+    if (!context.mounted) {
+      return null;
+    }
+    final selectedPeriodTimeSetId = await showPeriodTimeSetPickerDialog(
+      context,
+      provider: provider,
+      selectedPeriodTimeSetId: provider.activePeriodTimeSetOrNull?.id ??
+          provider.periodTimeSets.first.id,
+    );
+    if (selectedPeriodTimeSetId == null || selectedPeriodTimeSetId.isEmpty) {
+      return null;
+    }
+    return _TimetableImportChoice(
+      importBundledPeriodTimeSets: false,
+      targetPeriodTimeSetId: selectedPeriodTimeSetId,
     );
   }
 

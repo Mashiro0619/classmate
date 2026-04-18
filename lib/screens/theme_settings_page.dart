@@ -3,6 +3,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 
 const _themeSeedOptions = <int>[
@@ -25,9 +26,24 @@ const _themeSeedOptions = <int>[
 
 bool _isPresetThemeColor(int colorValue) => _themeSeedOptions.contains(colorValue);
 
-String _formatThemeColorHex(int colorValue) {
+String _formatColorHex(int colorValue) {
   final rgb = colorValue & 0x00FFFFFF;
   return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
+}
+
+String _formatOutlineWidthNumber(double width) {
+  return width.toStringAsFixed(width % 1 == 0 ? 0 : 1);
+}
+
+String _formatOutlineWidthValue(BuildContext context, double width) {
+  final l10n = AppLocalizations.of(context)!;
+  return '${_formatOutlineWidthNumber(width)} ${l10n.outlineWidthUnit}';
+}
+
+int _derivedOutlineColorValue(int themeSeedColorValue) {
+  return deriveLiveCourseOutlineColorFromSeed(
+    Color(themeSeedColorValue),
+  ).toARGB32();
 }
 
 class ThemeSettingsPage extends StatelessWidget {
@@ -41,81 +57,28 @@ class ThemeSettingsPage extends StatelessWidget {
         final hasCustomColor = !_isPresetThemeColor(
           provider.themeSeedColorValue,
         );
+        final effectiveOutlineColorValue = provider.liveCourseOutlineFollowTheme
+            ? _derivedOutlineColorValue(provider.themeSeedColorValue)
+            : provider.liveCourseOutlineColorValue;
+        final outlineWidth = provider.liveCourseOutlineWidth;
         return Scaffold(
           appBar: AppBar(title: Text(l10n.theme)),
           body: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.all(16),
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.themeFollowSystem),
-                trailing: provider.themeMode == 'system'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => provider.updateThemeMode('system'),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.themeLight),
-                trailing: provider.themeMode == 'light'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => provider.updateThemeMode('light'),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.themeDark),
-                trailing: provider.themeMode == 'dark'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => provider.updateThemeMode('dark'),
+              _ThemeModeCard(provider: provider),
+              const SizedBox(height: 12),
+              _ThemeColorCard(
+                provider: provider,
+                hasCustomColor: hasCustomColor,
+                onPickCustomColor: () => _openCustomColorDialog(context, provider),
               ),
               const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  l10n.themeColor,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _themeSeedOptions.length,
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 104,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    mainAxisExtent: 52,
-                  ),
-                  itemBuilder: (context, index) {
-                    final colorValue = _themeSeedOptions[index];
-                    return _ThemeColorOption(
-                      colorValue: colorValue,
-                      selected: provider.themeSeedColorValue == colorValue,
-                      onTap: () => provider.updateThemeSeedColorValue(colorValue),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                leading: _ThemeColorPreview(
-                  colorValue: provider.themeSeedColorValue,
-                  selected: hasCustomColor,
-                ),
-                title: Text(l10n.themeCustomColor),
-                subtitle: hasCustomColor
-                    ? Text(_formatThemeColorHex(provider.themeSeedColorValue))
-                    : null,
-                trailing: hasCustomColor
-                    ? const Icon(Icons.check)
-                    : const Icon(Icons.chevron_right),
-                onTap: () => _openCustomColorDialog(context, provider),
+              _OutlineSettingsCard(
+                provider: provider,
+                effectiveOutlineColorValue: effectiveOutlineColorValue,
+                outlineWidth: outlineWidth,
+                onTap: () => _openOutlineSettingsDialog(context, provider),
               ),
             ],
           ),
@@ -135,48 +98,46 @@ class ThemeSettingsPage extends StatelessWidget {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final colorValue = selectedColor.toARGB32();
             return AlertDialog(
               title: Text(l10n.themeCustomColor),
               content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          l10n.themeColor,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(width: 12),
-                        _ThemeColorPreview(
-                          colorValue: selectedColor.toARGB32(),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _PreviewBanner(
+                        title: l10n.themeColor,
+                        value: _formatColorHex(colorValue),
+                        preview: _ThemeColorPreview(
+                          colorValue: colorValue,
                           selected: true,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _formatThemeColorHex(selectedColor.toARGB32()),
-                            textAlign: TextAlign.end,
+                      ),
+                      const SizedBox(height: 16),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: ColorPicker(
+                            pickerColor: selectedColor,
+                            onColorChanged: (color) => setState(() {
+                              selectedColor = color;
+                            }),
+                            enableAlpha: false,
+                            displayThumbColor: true,
+                            portraitOnly: true,
+                            labelTypes: const [],
+                            paletteType: PaletteType.hsvWithHue,
+                            hexInputBar: true,
+                            pickerAreaHeightPercent: 0.7,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ColorPicker(
-                      pickerColor: selectedColor,
-                      onColorChanged: (color) => setState(() {
-                        selectedColor = color;
-                      }),
-                      enableAlpha: false,
-                      displayThumbColor: true,
-                      portraitOnly: true,
-                      labelTypes: const [],
-                      paletteType: PaletteType.hsvWithHue,
-                      hexInputBar: true,
-                      pickerAreaHeightPercent: 0.7,
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -186,9 +147,7 @@ class ThemeSettingsPage extends StatelessWidget {
                 ),
                 FilledButton(
                   onPressed: () async {
-                    await provider.updateThemeSeedColorValue(
-                      selectedColor.toARGB32(),
-                    );
+                    await provider.updateThemeSeedColorValue(colorValue);
                     if (context.mounted) {
                       Navigator.of(context).pop();
                     }
@@ -200,6 +159,432 @@ class ThemeSettingsPage extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  Future<void> _openOutlineSettingsDialog(
+    BuildContext context,
+    TimetableProvider provider,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final derivedThemeColorValue = _derivedOutlineColorValue(
+      provider.themeSeedColorValue,
+    );
+    var enabled = provider.liveCourseOutlineEnabled;
+    var followTheme = provider.liveCourseOutlineFollowTheme;
+    var customColorValue = provider.liveCourseOutlineColorValue;
+    var customColorInitialized =
+        provider.liveCourseOutlineCustomColorInitialized;
+    var outlineWidth = provider.liveCourseOutlineWidth;
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final effectiveColorValue = followTheme
+                ? derivedThemeColorValue
+                : customColorValue;
+            return AlertDialog(
+              title: Text(l10n.liveCourseOutlineSettings),
+              content: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _PreviewBanner(
+                        title: l10n.liveCourseOutlineEffectiveColor,
+                        value:
+                            '${_formatColorHex(effectiveColorValue)} · ${l10n.liveCourseOutlineWidth} ${_formatOutlineWidthValue(context, outlineWidth)}',
+                        preview: _OutlineColorPreview(
+                          colorValue: effectiveColorValue,
+                          borderWidth: outlineWidth,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SwitchListTile.adaptive(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              value: enabled,
+                              title: Text(l10n.liveCourseOutlineEnabled),
+                              onChanged: (value) => setState(() {
+                                enabled = value;
+                              }),
+                            ),
+                            Divider(
+                              height: 1,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+                            ),
+                            SwitchListTile.adaptive(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              value: followTheme,
+                              title: Text(l10n.liveCourseOutlineFollowTheme),
+                              onChanged: (value) => setState(() {
+                                final initializingCustomColor =
+                                    followTheme &&
+                                    !value &&
+                                    !customColorInitialized;
+                                followTheme = value;
+                                if (initializingCustomColor) {
+                                  customColorValue = derivedThemeColorValue;
+                                  customColorInitialized = true;
+                                }
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _OutlineWidthSummaryRow(width: outlineWidth),
+                              Slider.adaptive(
+                                value: outlineWidth,
+                                min: minLiveCourseOutlineWidth,
+                                max: maxLiveCourseOutlineWidth,
+                                divisions: 6,
+                                label: _formatOutlineWidthValue(context, outlineWidth),
+                                onChanged: (value) => setState(() {
+                                  outlineWidth = value;
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      l10n.liveCourseOutlineCustomColor,
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                  ),
+                                  _OutlineColorPreview(
+                                    colorValue: customColorValue,
+                                    borderWidth: outlineWidth,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  SizedBox(
+                                    width: 76,
+                                    child: Text(
+                                      _formatColorHex(customColorValue),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.topCenter,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 180),
+                                  switchInCurve: Curves.easeOut,
+                                  switchOutCurve: Curves.easeIn,
+                                  child: followTheme
+                                      ? const SizedBox.shrink(
+                                          key: ValueKey('outline-custom-hidden'),
+                                        )
+                                      : Padding(
+                                          key: const ValueKey(
+                                            'outline-custom-picker',
+                                          ),
+                                          padding: const EdgeInsets.only(top: 12),
+                                          child: _CompactColorPicker(
+                                            colorValue: customColorValue,
+                                            onColorChanged: (colorValue) => setState(() {
+                                              customColorValue = colorValue;
+                                              customColorInitialized = true;
+                                            }),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    await provider.updateLiveCourseOutlineSettings(
+                      enabled: enabled,
+                      followTheme: followTheme,
+                      colorValue: customColorValue,
+                      customColorInitialized: customColorInitialized,
+                      width: outlineWidth,
+                    );
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(l10n.themeApplySettings),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ThemeModeCard extends StatelessWidget {
+  const _ThemeModeCard({required this.provider});
+
+  final TimetableProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card.outlined(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.theme, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            _SelectableOptionTile(
+              title: l10n.themeFollowSystem,
+              selected: provider.themeMode == 'system',
+              onTap: () => provider.updateThemeMode('system'),
+            ),
+            const SizedBox(height: 8),
+            _SelectableOptionTile(
+              title: l10n.themeLight,
+              selected: provider.themeMode == 'light',
+              onTap: () => provider.updateThemeMode('light'),
+            ),
+            const SizedBox(height: 8),
+            _SelectableOptionTile(
+              title: l10n.themeDark,
+              selected: provider.themeMode == 'dark',
+              onTap: () => provider.updateThemeMode('dark'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeColorCard extends StatelessWidget {
+  const _ThemeColorCard({
+    required this.provider,
+    required this.hasCustomColor,
+    required this.onPickCustomColor,
+  });
+
+  final TimetableProvider provider;
+  final bool hasCustomColor;
+  final VoidCallback onPickCustomColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card.outlined(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _PreviewBanner(
+              title: l10n.themeColor,
+              value: _formatColorHex(provider.themeSeedColorValue),
+              preview: _ThemeColorPreview(
+                colorValue: provider.themeSeedColorValue,
+                selected: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (final colorValue in _themeSeedOptions)
+                  _ThemeColorOption(
+                    colorValue: colorValue,
+                    selected: provider.themeSeedColorValue == colorValue,
+                    onTap: () => provider.updateThemeSeedColorValue(colorValue),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _ActionOptionCard(
+              onTap: onPickCustomColor,
+              selected: hasCustomColor,
+              leading: _ThemeColorPreview(
+                colorValue: provider.themeSeedColorValue,
+                selected: hasCustomColor,
+              ),
+              title: l10n.themeCustomColor,
+              subtitle: hasCustomColor
+                  ? _formatColorHex(provider.themeSeedColorValue)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OutlineSettingsCard extends StatelessWidget {
+  const _OutlineSettingsCard({
+    required this.provider,
+    required this.effectiveOutlineColorValue,
+    required this.outlineWidth,
+    required this.onTap,
+  });
+
+  final TimetableProvider provider;
+  final int effectiveOutlineColorValue;
+  final double outlineWidth;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    return Card.outlined(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.liveCourseOutlineSettings,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.liveCourseOutlineSettingsHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _OutlineColorPreview(
+                    colorValue: effectiveOutlineColorValue,
+                    borderWidth: outlineWidth,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _SummaryValueRow(
+                label: l10n.liveCourseOutlineEnabled,
+                value: Icon(
+                  provider.liveCourseOutlineEnabled
+                      ? Icons.check_circle_outline
+                      : Icons.remove_circle_outline,
+                  color: provider.liveCourseOutlineEnabled
+                      ? colors.primary
+                      : colors.outline,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: l10n.liveCourseOutlineFollowTheme,
+                value: Icon(
+                  provider.liveCourseOutlineFollowTheme
+                      ? Icons.check_circle_outline
+                      : Icons.palette_outlined,
+                  color: provider.liveCourseOutlineFollowTheme
+                      ? colors.primary
+                      : colors.outline,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: l10n.liveCourseOutlineEffectiveColor,
+                value: Text(_formatColorHex(effectiveOutlineColorValue)),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: l10n.liveCourseOutlineWidth,
+                value: Text(_formatOutlineWidthValue(context, outlineWidth)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectableOptionTile extends StatelessWidget {
+  const _SelectableOptionTile({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? colors.secondaryContainer : colors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              if (selected)
+                Icon(Icons.check, color: colors.onSecondaryContainer),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -217,12 +602,10 @@ class _ThemeColorOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: _ThemeColorPreview(
-        colorValue: colorValue,
-        selected: selected,
-        onTap: onTap,
-      ),
+    return _ThemeColorPreview(
+      colorValue: colorValue,
+      selected: selected,
+      onTap: onTap,
     );
   }
 }
@@ -271,6 +654,233 @@ class _ThemeColorPreview extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       onTap: onTap,
       child: child,
+    );
+  }
+}
+
+class _ActionOptionCard extends StatelessWidget {
+  const _ActionOptionCard({
+    required this.onTap,
+    required this.selected,
+    required this.leading,
+    required this.title,
+    this.subtitle,
+  });
+
+  final VoidCallback onTap;
+  final bool selected;
+  final Widget leading;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? colors.secondaryContainer : colors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleSmall),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                selected ? Icons.check : Icons.chevron_right,
+                color: selected ? colors.onSecondaryContainer : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewBanner extends StatelessWidget {
+  const _PreviewBanner({
+    required this.title,
+    required this.value,
+    required this.preview,
+  });
+
+  final String title;
+  final String value;
+  final Widget preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.secondaryContainer.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(value, style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          preview,
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryValueRow extends StatelessWidget {
+  const _SummaryValueRow({required this.label, required this.value});
+
+  final String label;
+  final Widget value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        const SizedBox(width: 12),
+        value,
+      ],
+    );
+  }
+}
+
+class _OutlineWidthSummaryRow extends StatelessWidget {
+  const _OutlineWidthSummaryRow({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            AppLocalizations.of(context)!.liveCourseOutlineWidth,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        Text(_formatOutlineWidthValue(context, width)),
+      ],
+    );
+  }
+}
+
+class _OutlineColorPreview extends StatelessWidget {
+  const _OutlineColorPreview({
+    required this.colorValue,
+    required this.borderWidth,
+  });
+
+  final int colorValue;
+  final double borderWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(colorValue);
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: borderWidth),
+      ),
+    );
+  }
+}
+
+class _CompactColorPicker extends StatefulWidget {
+  const _CompactColorPicker({
+    required this.colorValue,
+    required this.onColorChanged,
+  });
+
+  final int colorValue;
+  final ValueChanged<int> onColorChanged;
+
+  @override
+  State<_CompactColorPicker> createState() => _CompactColorPickerState();
+}
+
+class _CompactColorPickerState extends State<_CompactColorPicker> {
+  static const double _pickerWidth = 300;
+
+  void _updateColor(Color color) {
+    widget.onColorChanged(color.toARGB32());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(widget.colorValue);
+    final hsvColor = HSVColor.fromColor(color);
+    return SizedBox(
+      width: _pickerWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: _pickerWidth,
+            height: _pickerWidth * 0.45,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: ColorPickerArea(
+                hsvColor,
+                (updatedHsvColor) => _updateColor(updatedHsvColor.toColor()),
+                PaletteType.hsvWithHue,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: _pickerWidth,
+            height: 40,
+            child: ColorPickerSlider(
+              TrackType.hue,
+              hsvColor,
+              (updatedHsvColor) => _updateColor(updatedHsvColor.toColor()),
+              displayThumbColor: true,
+            ),
+          ),
+          ColorPickerInput(
+            color,
+            (updatedColor) => _updateColor(updatedColor),
+            enableAlpha: false,
+            embeddedText: false,
+          ),
+        ],
+      ),
     );
   }
 }

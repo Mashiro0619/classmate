@@ -258,6 +258,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveCourseOutlineWidth => 'Outline width';
 
   @override
+  String get outlineWidthUnit => 'px';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -286,6 +289,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeApplyCustomColor => 'Apply color';
+
+  @override
+  String get themeApplySettings => 'Apply settings';
 
   @override
   String get dataImportExport => 'Import and export data';
@@ -353,6 +359,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importTimetableFilesDesc => 'Supports one or multiple timetable files.';
 
   @override
+  String get importTimetableText => 'Import timetable from text';
+
+  @override
+  String get importTimetableTextDesc => 'Paste timetable JSON content and import it.';
+
+  @override
   String get shareTimetableFiles => 'Share timetable files';
 
   @override
@@ -363,6 +375,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveTimetableFilesDesc => 'Choose one or more timetables first.';
+
+  @override
+  String get exportTimetableText => 'Export timetable as text';
+
+  @override
+  String get exportTimetableTextDesc => 'Choose one or more timetables, then copy the JSON content.';
+
+  @override
+  String get jsonContent => 'JSON content';
+
+  @override
+  String get pasteJsonContentHint => 'Paste the JSON content to import.';
+
+  @override
+  String get jsonContentEmpty => 'Paste JSON content first.';
+
+  @override
+  String get copyText => 'Copy';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
 
   @override
   String get share => 'Share';
@@ -392,6 +425,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replaceCurrentTimetable => 'Replace current timetable';
+
+  @override
+  String get importPeriodTimeSetDialogTitle => 'Import period time sets';
+
+  @override
+  String get importPeriodTimeSetDialogBody =>
+      'This file contains bundled period time sets. Do you want to import and associate them?';
+
+  @override
+  String get importBundledPeriodTimeSets => 'Import and associate';
+
+  @override
+  String get discardBundledPeriodTimeSets => 'Discard bundled sets';
+
+  @override
+  String get importDiscardPeriodTimeSetUnavailable =>
+      'No existing period time set is available, so bundled period time sets cannot be discarded.';
 
   @override
   String savedToPath(Object path) {
@@ -464,10 +514,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importPeriodTemplate => 'Import period template';
 
   @override
+  String get importPeriodTemplateText => 'Import period template from text';
+
+  @override
   String get sharePeriodTemplate => 'Share period template';
 
   @override
   String get saveTemplateToFile => 'Save template to file';
+
+  @override
+  String get exportPeriodTemplateText => 'Export period template as text';
 
   @override
   String get deletePeriodTimeSet => 'Delete period time set';
@@ -548,13 +604,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => 'Classmate is a local-first app. Timetables, timetable settings, period-time sets, and school-site configuration are stored on your device or in your browser by default. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.';
+  String get privacyPolicyIntro => 'Classmate stores timetables, timetable settings, period-time sets, and school-site configuration only on your device or in your browser. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Local storage';
 
   @override
-  String get privacyPolicyLocalStorageBody => 'On Android, iOS, Windows, macOS, and Linux, timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. On the web, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.';
+  String get privacyPolicyLocalStorageBody => 'Timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Import and export';
@@ -575,10 +631,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicyExternalLinksBody => 'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.';
 
   @override
-  String get privacyPolicyNoCollectionTitle => 'What the app does not collect by default';
+  String get privacyPolicyNoCollectionTitle => 'What the app does not collect';
 
   @override
-  String get privacyPolicyNoCollectionBody => 'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup by default. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.';
+  String get privacyPolicyNoCollectionBody => 'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.';
 
   @override
   String get privacyPolicyFutureFeatureTitle => 'Webpage parsing';
@@ -598,7 +654,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyGateTitle => 'Please agree to the privacy policy before using the app';
 
   @override
-  String get privacyGateSummaryStorage => 'Timetables, period-time sets, and school-site configuration are stored locally by default and are not automatically uploaded to a developer server.';
+  String get privacyGateSummaryStorage => 'Timetables, period-time sets, and school-site configuration are only stored locally and are not automatically uploaded to a developer server.';
 
   @override
   String get privacyGateSummaryImportExport => 'Import, export, and sharing only happen when you explicitly start them; webpage parsing sends only the compressed content you submit to your configured parsing endpoint, and you can review the parsed timetable before saving.';
@@ -700,6 +756,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get schoolHtmlImportSubmit => 'Parse and import';
+
+  @override
+  String get schoolHtmlImportParsingMayTakeLong =>
+      'Parsing may take a while. Please wait.';
 
   @override
   String get schoolHtmlImportEmpty => 'Paste the page HTML first.';

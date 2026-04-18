@@ -7,7 +7,7 @@ import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
-import 'package:classmate/screens/timetable_display_settings_page.dart';
+import 'package:classmate/screens/theme_settings_page.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
@@ -226,6 +226,20 @@ void main() {
 
       expect(secondProvider.timetables, isEmpty);
       expect(secondProvider.activeTimetable.config.name, '空课表');
+    });
+
+    test('首次启动语言检测仅对繁体中文映射为中文', () {
+      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh');
+      expect(resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh');
+      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh');
+    });
+
+    test('首次启动语言检测对其他语言一律映射为英文', () {
+      expect(resolveFirstLaunchLocaleCode(null), 'en');
+      expect(resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
+      expect(resolveFirstLaunchLocaleCode(const Locale('ja')), 'en');
+      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'en');
+      expect(resolveFirstLaunchLocaleCode(const Locale('zh')), 'en');
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
@@ -590,21 +604,27 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: [Locale('zh'), Locale('en')],
-            home: TimetableDisplaySettingsPage(),
+            home: ThemeSettingsPage(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('当前/下一节课程描边'),
+        200,
+      );
       await tester.tap(find.text('当前/下一节课程描边'));
       await tester.pumpAndSettle();
 
       expect(provider.liveCourseOutlineFollowTheme, isTrue);
       expect(provider.liveCourseOutlineCustomColorInitialized, isFalse);
 
-      await tester.tap(find.text('跟随主题色'));
+      await tester.tap(
+        find.widgetWithText(SwitchListTile, '跟随主题色'),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('应用颜色'));
+      await tester.tap(find.text('应用设置'));
       await tester.pumpAndSettle();
 
       expect(provider.liveCourseOutlineFollowTheme, isFalse);
@@ -635,20 +655,62 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: [Locale('zh'), Locale('en')],
-            home: TimetableDisplaySettingsPage(),
+            home: ThemeSettingsPage(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('当前/下一节课程描边'),
+        200,
+      );
       await tester.tap(find.text('当前/下一节课程描边'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('开启课程描边'));
+      await tester.tap(
+        find.widgetWithText(SwitchListTile, '开启课程描边'),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('应用颜色'));
+      await tester.tap(find.text('应用设置'));
       await tester.pumpAndSettle();
 
       expect(provider.liveCourseOutlineEnabled, isFalse);
+    });
+
+    testWidgets('描边宽度显示会带单位', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: ThemeSettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('当前/下一节课程描边'),
+        200,
+      );
+      expect(find.text('2.5 px'), findsOneWidget);
+
+      await tester.tap(find.text('当前/下一节课程描边'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2.5 px'), findsWidgets);
     });
 
     testWidgets('调整描边宽度后 provider 会保存设置', (tester) async {
@@ -669,12 +731,16 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: [Locale('zh'), Locale('en')],
-            home: TimetableDisplaySettingsPage(),
+            home: ThemeSettingsPage(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('当前/下一节课程描边'),
+        200,
+      );
       await tester.tap(find.text('当前/下一节课程描边'));
       await tester.pumpAndSettle();
 
@@ -682,7 +748,7 @@ void main() {
       expect(slider, findsOneWidget);
       await tester.drag(slider, const Offset(240, 0));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('应用颜色'));
+      await tester.tap(find.text('应用设置'));
       await tester.pumpAndSettle();
 
       expect(provider.liveCourseOutlineWidth, greaterThan(defaultLiveCourseOutlineWidth));
@@ -698,6 +764,68 @@ void main() {
       await tester.pumpWidget(MyApp(provider: provider));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('首次未同意隐私政策时显示弹窗而不是整页', (tester) async {
+      final initialData = _buildTestAppData();
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: AppData(
+            activeTimetableId: initialData.activeTimetableId,
+            timetables: initialData.timetables,
+            periodTimeSets: initialData.periodTimeSets,
+            conflictDisplayCourseIds: initialData.conflictDisplayCourseIds,
+            closeCoursePopupOnOutsideTap:
+                initialData.closeCoursePopupOnOutsideTap,
+            preserveTimetableGaps: initialData.preserveTimetableGaps,
+            showPastEndedCourses: initialData.showPastEndedCourses,
+            showFutureCourses: initialData.showFutureCourses,
+            showTimetableGridLines: initialData.showTimetableGridLines,
+            localeCode: initialData.localeCode,
+            themeMode: initialData.themeMode,
+            themeSeedColorValue: initialData.themeSeedColorValue,
+            liveCourseOutlineColorValue: initialData.liveCourseOutlineColorValue,
+            liveCourseOutlineEnabled: initialData.liveCourseOutlineEnabled,
+            liveCourseOutlineFollowTheme:
+                initialData.liveCourseOutlineFollowTheme,
+            liveCourseOutlineCustomColorInitialized:
+                initialData.liveCourseOutlineCustomColorInitialized,
+            liveCourseOutlineWidth: initialData.liveCourseOutlineWidth,
+          ),
+        ),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('zh'), Locale('en')],
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('使用前请先同意隐私政策'), findsOneWidget);
+      expect(find.text('测试课表A'), findsOneWidget);
+      expect(find.text('查看完整隐私政策'), findsOneWidget);
+      expect(find.text('同意并继续'), findsOneWidget);
+
+      await tester.tap(find.text('同意并继续'));
+      await tester.pumpAndSettle();
+
+      expect(provider.hasAcceptedCurrentPrivacyPolicy, isTrue);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('第 ${provider.selectedWeek} 周'), findsOneWidget);
     });
 
     testWidgets('主页显示精简标题、右上角添加课程且无 FAB', (tester) async {
@@ -756,10 +884,26 @@ void main() {
     });
 
     testWidgets('课程详情优先展示地点和时间卡片', (tester) async {
-      final course = _buildTestAppData().timetables.first.courses.first;
+      final appData = _buildTestAppData();
+      final course = appData.timetables.first.courses.first;
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: appData),
+      );
+      await provider.load();
 
       await tester.pumpWidget(
-        _buildLocalizedApp(CourseDetailsSheet(course: course, onEdit: () {})),
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: _buildLocalizedApp(
+            CourseDetailsSheet(
+              courseId: course.id,
+              weekday: course.dayOfWeek,
+              conflictKey: null,
+              isFullConflict: false,
+              onEdit: () {},
+            ),
+          ),
+        ),
       );
 
       expect(find.text('地点'), findsOneWidget);

@@ -258,6 +258,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get liveCourseOutlineWidth => '描边宽度';
 
   @override
+  String get outlineWidthUnit => 'px';
+
+  @override
   String get language => '语言';
 
   @override
@@ -286,6 +289,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get themeApplyCustomColor => '应用颜色';
+
+  @override
+  String get themeApplySettings => '应用设置';
 
   @override
   String get dataImportExport => '导入导出数据';
@@ -353,6 +359,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importTimetableFilesDesc => '支持单个或多个课表文件';
 
   @override
+  String get importTimetableText => '从文字导入课表';
+
+  @override
+  String get importTimetableTextDesc => '粘贴课表 JSON 内容后导入';
+
+  @override
   String get shareTimetableFiles => '分享课表文件';
 
   @override
@@ -363,6 +375,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get saveTimetableFilesDesc => '先选择一个或多个课表';
+
+  @override
+  String get exportTimetableText => '导出课表为文字';
+
+  @override
+  String get exportTimetableTextDesc => '先选择一个或多个课表，再复制 JSON 内容';
+
+  @override
+  String get jsonContent => 'JSON 内容';
+
+  @override
+  String get pasteJsonContentHint => '请粘贴要导入的 JSON 内容';
+
+  @override
+  String get jsonContentEmpty => '请先粘贴 JSON 内容';
+
+  @override
+  String get copyText => '复制';
+
+  @override
+  String get copiedToClipboard => '已复制到剪贴板';
 
   @override
   String get share => '分享';
@@ -392,6 +425,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get replaceCurrentTimetable => '覆盖当前课表';
+
+  @override
+  String get importPeriodTimeSetDialogTitle => '导入节次时间集';
+
+  @override
+  String get importPeriodTimeSetDialogBody => '检测到文件内包含节次时间集。是否一并导入并关联它们？';
+
+  @override
+  String get importBundledPeriodTimeSets => '导入并关联';
+
+  @override
+  String get discardBundledPeriodTimeSets => '丢弃内含节次';
+
+  @override
+  String get importDiscardPeriodTimeSetUnavailable =>
+      '当前没有可用节次时间集，不能丢弃文件内节次时间集。';
 
   @override
   String savedToPath(Object path) {
@@ -464,10 +513,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importPeriodTemplate => '导入节次模板';
 
   @override
+  String get importPeriodTemplateText => '从文字导入节次模板';
+
+  @override
   String get sharePeriodTemplate => '分享节次模板';
 
   @override
   String get saveTemplateToFile => '保存模板到文件';
+
+  @override
+  String get exportPeriodTemplateText => '导出节次模板为文字';
 
   @override
   String get deletePeriodTimeSet => '删除节次时间';
@@ -548,13 +603,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => '课表、课表设置、节次时间集和学校站点配置默认保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。';
+  String get privacyPolicyIntro => '课表、课表设置、节次时间集和学校站点配置只会保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。';
 
   @override
   String get privacyPolicyLocalStorageTitle => '本地存储';
 
   @override
-  String get privacyPolicyLocalStorageBody => '在 Android、iOS、Windows、macOS 和 Linux 等平台，课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。在 Web 端，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。';
+  String get privacyPolicyLocalStorageBody => '课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。若在浏览器中使用，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。';
 
   @override
   String get privacyPolicyImportExportTitle => '导入与导出';
@@ -575,10 +630,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyPolicyExternalLinksBody => '当你主动打开 GitHub 仓库等外部链接时，应用会调用系统浏览器或其他外部应用。离开应用后的数据处理将受对应第三方的政策约束。';
 
   @override
-  String get privacyPolicyNoCollectionTitle => '默认不收集的内容';
+  String get privacyPolicyNoCollectionTitle => '不会收集的内容';
 
   @override
-  String get privacyPolicyNoCollectionBody => '应用不要求你注册 Classmate 账号，也不会默认启用分析统计、广告标识符或云端备份。应用本身也没有专门采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。';
+  String get privacyPolicyNoCollectionBody => '应用不要求你注册 Classmate 账号，也不会启用分析统计、广告标识符或云端备份。应用本身也没有专门用于采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。';
 
   @override
   String get privacyPolicyFutureFeatureTitle => '网页解析';
@@ -598,7 +653,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyGateTitle => '使用前请先同意隐私政策';
 
   @override
-  String get privacyGateSummaryStorage => '课表、节次时间集和学校站点配置默认保存在本地，不会自动上传到开发者服务器。';
+  String get privacyGateSummaryStorage => '课表、节次时间集和学校站点配置只会保存在本地，不会自动上传到开发者服务器。';
 
   @override
   String get privacyGateSummaryImportExport => '导入、导出和分享仅在你主动操作时触发；网页解析只会发送你主动提交的压缩后内容，并在保存前让你预览解析结果。';
@@ -700,6 +755,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get schoolHtmlImportSubmit => '解析并导入';
+
+  @override
+  String get schoolHtmlImportParsingMayTakeLong => '解析时间可能较长，请耐心等待。';
 
   @override
   String get schoolHtmlImportEmpty => '请先粘贴网页 HTML。';
