@@ -39,7 +39,9 @@ class AppUpdateCoordinator {
   }) async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final result = await _updateService.checkForUpdates();
+      final result = await _updateService.checkForUpdates(
+        preferredLocale: Localizations.localeOf(context),
+      );
       if (!context.mounted) {
         return;
       }

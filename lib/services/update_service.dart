@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -35,6 +36,11 @@ class _RemoteUpdateInfo {
   final String updateContent;
 }
 
+bool prefersConfiguredUpdateSourceForLocale(Locale? locale) {
+  final languageCode = locale?.languageCode.toLowerCase();
+  return languageCode == 'zh';
+}
+
 class UpdateService {
   const UpdateService({http.Client? client}) : _client = client;
 
@@ -45,9 +51,11 @@ class UpdateService {
 
   final http.Client? _client;
 
-  Future<UpdateCheckResult> checkForUpdates() async {
+  Future<UpdateCheckResult> checkForUpdates({Locale? preferredLocale}) async {
     final localVersion = await _getLocalVersion();
-    final remoteInfo = await _getRemoteUpdateInfo();
+    final remoteInfo = await _getRemoteUpdateInfo(
+      preferredLocale: preferredLocale,
+    );
     return UpdateCheckResult(
       localVersion: localVersion,
       remoteVersion: remoteInfo.version,
@@ -63,23 +71,44 @@ class UpdateService {
     return info.version;
   }
 
-  Future<_RemoteUpdateInfo> _getRemoteUpdateInfo() async {
+  Future<_RemoteUpdateInfo> _getRemoteUpdateInfo({
+    Locale? preferredLocale,
+  }) async {
     final client = _client ?? http.Client();
     final ownsClient = _client == null;
     try {
-      if (AppConfig.hasUpdateVersionUrl) {
-        try {
-          return await _getCustomUpdateInfo(client);
-        } on FormatException {
-          rethrow;
-        } catch (_) {}
+      final locale = preferredLocale ?? _defaultPreferredLocale();
+      if (prefersConfiguredUpdateSourceForLocale(locale)) {
+        if (AppConfig.hasUpdateVersionUrl) {
+          try {
+            return await _getCustomUpdateInfo(client);
+          } on FormatException {
+            rethrow;
+          } catch (_) {}
+        }
+        return _getGithubLatestReleaseInfo(client);
       }
-      return _getGithubLatestReleaseInfo(client);
+
+      try {
+        return await _getGithubLatestReleaseInfo(client);
+      } on FormatException {
+        rethrow;
+      } catch (_) {
+        if (AppConfig.hasUpdateVersionUrl) {
+          return _getCustomUpdateInfo(client);
+        }
+        rethrow;
+      }
     } finally {
       if (ownsClient) {
         client.close();
       }
     }
+  }
+
+  Locale? _defaultPreferredLocale() {
+    final locales = PlatformDispatcher.instance.locales;
+    return locales.isEmpty ? null : locales.first;
   }
 
   Future<_RemoteUpdateInfo> _getCustomUpdateInfo(http.Client client) async {

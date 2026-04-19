@@ -8,6 +8,7 @@ import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
 import 'package:classmate/screens/theme_settings_page.dart';
+import 'package:classmate/services/update_service.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
@@ -240,6 +241,19 @@ void main() {
       expect(resolveFirstLaunchLocaleCode(const Locale('ja')), 'en');
       expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'en');
       expect(resolveFirstLaunchLocaleCode(const Locale('zh')), 'en');
+    });
+
+    test('中文系语言默认使用配置的更新接口', () {
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('zh')), isTrue);
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('zh', 'CN')), isTrue);
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('zh', 'TW')), isTrue);
+    });
+
+    test('非中文系语言默认使用 GitHub 更新源', () {
+      expect(prefersConfiguredUpdateSourceForLocale(null), isFalse);
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('en')), isFalse);
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('ja')), isFalse);
+      expect(prefersConfiguredUpdateSourceForLocale(const Locale('fr')), isFalse);
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
