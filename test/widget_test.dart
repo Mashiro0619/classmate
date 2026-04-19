@@ -627,6 +627,20 @@ void main() {
       expect(target?.courseId, 'next_week_monday');
     });
 
+    test('copyWith 可以显式清空更新状态字段', () {
+      final data = _buildTestAppData().copyWith(
+        ignoredUpdateVersion: '1.6.10',
+        availableUpdateVersion: '1.6.10',
+      );
+      final cleared = data.copyWith(
+        ignoredUpdateVersion: null,
+        availableUpdateVersion: null,
+      );
+
+      expect(cleared.ignoredUpdateVersion, isNull);
+      expect(cleared.availableUpdateVersion, isNull);
+    });
+
     test('描边设置字段可以正确编码解码并兼容旧数据默认值', () {
       final customized = _buildTestAppData().copyWith(
         liveCourseOutlineEnabled: false,

@@ -535,6 +535,8 @@ class TimetableExportData {
   }
 }
 
+const Object _keepNullableValue = Object();
+
 class AppData {
   const AppData({
     required this.activeTimetableId,
@@ -742,10 +744,10 @@ class AppData {
     bool? liveCourseOutlineFollowTheme,
     bool? liveCourseOutlineCustomColorInitialized,
     double? liveCourseOutlineWidth,
-    String? privacyPolicyAcceptedVersion,
-    String? privacyPolicyAcceptedAtIso,
-    String? ignoredUpdateVersion,
-    String? availableUpdateVersion,
+    Object? privacyPolicyAcceptedVersion = _keepNullableValue,
+    Object? privacyPolicyAcceptedAtIso = _keepNullableValue,
+    Object? ignoredUpdateVersion = _keepNullableValue,
+    Object? availableUpdateVersion = _keepNullableValue,
   }) {
     return AppData(
       activeTimetableId: activeTimetableId ?? this.activeTimetableId,
@@ -779,13 +781,20 @@ class AppData {
         liveCourseOutlineWidth ?? this.liveCourseOutlineWidth,
       ),
       privacyPolicyAcceptedVersion:
-          privacyPolicyAcceptedVersion ?? this.privacyPolicyAcceptedVersion,
+          identical(privacyPolicyAcceptedVersion, _keepNullableValue)
+              ? this.privacyPolicyAcceptedVersion
+              : privacyPolicyAcceptedVersion as String?,
       privacyPolicyAcceptedAtIso:
-          privacyPolicyAcceptedAtIso ?? this.privacyPolicyAcceptedAtIso,
-      ignoredUpdateVersion:
-          ignoredUpdateVersion ?? this.ignoredUpdateVersion,
+          identical(privacyPolicyAcceptedAtIso, _keepNullableValue)
+              ? this.privacyPolicyAcceptedAtIso
+              : privacyPolicyAcceptedAtIso as String?,
+      ignoredUpdateVersion: identical(ignoredUpdateVersion, _keepNullableValue)
+          ? this.ignoredUpdateVersion
+          : ignoredUpdateVersion as String?,
       availableUpdateVersion:
-          availableUpdateVersion ?? this.availableUpdateVersion,
+          identical(availableUpdateVersion, _keepNullableValue)
+              ? this.availableUpdateVersion
+              : availableUpdateVersion as String?,
     );
   }
 
