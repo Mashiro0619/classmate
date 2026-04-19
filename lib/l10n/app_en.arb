@@ -140,7 +140,7 @@
   "openSourceLicenses": "Open-source licenses",
   "openSourceLicensesDesc": "View licenses for Flutter dependencies and bundled app icon assets.",
   "checkForUpdates": "Check for updates",
-  "checkForUpdatesDesc": "GitHub / Official website",
+  "checkForUpdatesDesc": "GitHub / Official website / Google Play / Cloud drive",
   "alreadyLatestVersion": "Already on the latest version ({version})",
   "@alreadyLatestVersion": {
     "placeholders": {
@@ -152,8 +152,12 @@
   "latestVersionLabel": "Latest version",
   "updateContentLabel": "Update details",
   "officialWebsite": "Official website",
+  "googlePlay": "Google Play",
+  "cloudDrive": "Cloud drive",
   "ignoreThisVersion": "Ignore this version",
   "openUpdatesFailed": "Unable to open the update link",
+  "updateCheckFailedTitle": "Update check failed",
+  "updateCheckFailedMessage": "Unable to get valid update information from any update source. You can still use the links below to update manually.",
   "githubRepository": "GitHub repository",
   "openGithubFailed": "Unable to open the GitHub repository link",
   "selectPeriodTimeSet": "Choose period time set",

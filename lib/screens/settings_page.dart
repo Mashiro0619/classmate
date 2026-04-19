@@ -27,19 +27,26 @@ enum _DataAction {
 
 enum UpdateCheckSource { manual, startup }
 
-enum _UpdateAction { github, website, ignore, cancel }
+enum _UpdateAction { github, website, googlePlay, quark, ignore, cancel }
 
 class AppUpdateCoordinator {
   static const _updateService = UpdateService();
+  static const _googlePlayDeepLink =
+      'market://details?id=com.mashiro.classmate';
+  static const _googlePlayUrl =
+      'https://play.google.com/store/apps/details?id=com.mashiro.classmate';
+  static const _quarkPanUrl = 'https://pan.quark.cn/s/420966ed21ec';
 
   static Future<void> checkForUpdates(
     BuildContext context, {
     required TimetableProvider provider,
     required UpdateCheckSource source,
+    UpdateService updateService = _updateService,
   }) async {
     final l10n = AppLocalizations.of(context)!;
+    final showIgnoreButton = source == UpdateCheckSource.startup;
     try {
-      final result = await _updateService.checkForUpdates(
+      final result = await updateService.checkForUpdates(
         preferredLocale: Localizations.localeOf(context),
       );
       if (!context.mounted) {
@@ -60,38 +67,46 @@ class AppUpdateCoordinator {
       if (!context.mounted) {
         return;
       }
-      if (source == UpdateCheckSource.startup &&
+      if (showIgnoreButton &&
           provider.ignoredUpdateVersion == result.remoteVersion) {
         return;
       }
       final action = await _showUpdateDialog(
         context,
         result,
-        showIgnoreButton: source == UpdateCheckSource.startup,
+        showIgnoreButton: showIgnoreButton,
       );
       if (!context.mounted) {
         return;
       }
-      switch (action) {
-        case _UpdateAction.github:
-          await _openReleasesPage(context, result.releaseUrl);
-          return;
-        case _UpdateAction.website:
-          await _openWebsitePage(context, result.officialWebsiteUrl);
-          return;
-        case _UpdateAction.ignore:
-          if (source == UpdateCheckSource.startup) {
-            await provider.ignoreUpdateVersion(result.remoteVersion);
-          }
-          return;
-        case _UpdateAction.cancel:
-        case null:
-          return;
-      }
+      await _handleUpdateAction(
+        context,
+        provider: provider,
+        action: action,
+        showIgnoreButton: showIgnoreButton,
+        remoteVersion: result.remoteVersion,
+        releaseUrl: result.releaseUrl,
+        websiteUrl: result.officialWebsiteUrl,
+      );
     } catch (_) {
-      if (context.mounted && source == UpdateCheckSource.manual) {
-        _showMessage(context, l10n.openUpdatesFailed);
+      if (!context.mounted) {
+        return;
       }
+      final action = await _showUpdateCheckFailedDialog(
+        context,
+        showIgnoreButton: showIgnoreButton,
+      );
+      if (!context.mounted) {
+        return;
+      }
+      await _handleUpdateAction(
+        context,
+        provider: provider,
+        action: action,
+        showIgnoreButton: showIgnoreButton,
+        releaseUrl: UpdateService.latestReleaseUrl,
+        websiteUrl: null,
+      );
     }
   }
 
@@ -127,48 +142,127 @@ class AppUpdateCoordinator {
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(_UpdateAction.cancel),
-              child: Text(l10n.cancel),
-            ),
-            if (showIgnoreButton)
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(_UpdateAction.ignore),
-                child: Text(l10n.ignoreThisVersion),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(_UpdateAction.website),
-              child: Text(l10n.officialWebsite),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(_UpdateAction.github),
-              child: const Text('GitHub'),
-            ),
-          ],
+          actions: _buildUpdateDialogActions(
+            context,
+            showIgnoreButton: showIgnoreButton,
+          ),
         );
       },
     );
   }
 
-  static Future<void> _openReleasesPage(
-    BuildContext context, [
-    String? releaseUrl,
-  ]) async {
-    final uri = Uri.parse(
-      releaseUrl ?? 'https://github.com/Mashiro0619/classmate/releases/latest',
+  static Future<_UpdateAction?> _showUpdateCheckFailedDialog(
+    BuildContext context, {
+    required bool showIgnoreButton,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<_UpdateAction>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.updateCheckFailedTitle),
+          content: Text(l10n.updateCheckFailedMessage),
+          actions: _buildUpdateDialogActions(
+            context,
+            showIgnoreButton: showIgnoreButton,
+          ),
+        );
+      },
     );
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && context.mounted) {
-      _showMessage(context, AppLocalizations.of(context)!.openUpdatesFailed);
+  }
+
+  static List<Widget> _buildUpdateDialogActions(
+    BuildContext context, {
+    required bool showIgnoreButton,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(_UpdateAction.cancel),
+        child: Text(l10n.cancel),
+      ),
+      if (showIgnoreButton)
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_UpdateAction.ignore),
+          child: Text(l10n.ignoreThisVersion),
+        ),
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(_UpdateAction.website),
+        child: Text(l10n.officialWebsite),
+      ),
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(_UpdateAction.googlePlay),
+        child: Text(l10n.googlePlay),
+      ),
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(_UpdateAction.quark),
+        child: Text(l10n.cloudDrive),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(_UpdateAction.github),
+        child: const Text('GitHub'),
+      ),
+    ];
+  }
+
+  static Future<void> _handleUpdateAction(
+    BuildContext context, {
+    required TimetableProvider provider,
+    required _UpdateAction? action,
+    required bool showIgnoreButton,
+    String? remoteVersion,
+    String? releaseUrl,
+    String? websiteUrl,
+  }) async {
+    switch (action) {
+      case _UpdateAction.github:
+        await _openExternalPage(
+          context,
+          releaseUrl ?? UpdateService.latestReleaseUrl,
+        );
+        return;
+      case _UpdateAction.website:
+        await _openExternalPage(
+          context,
+          websiteUrl ?? 'https://mashiro.tech/classmate',
+        );
+        return;
+      case _UpdateAction.googlePlay:
+        await _openGooglePlayPage(context);
+        return;
+      case _UpdateAction.quark:
+        await _openExternalPage(context, _quarkPanUrl);
+        return;
+      case _UpdateAction.ignore:
+        if (showIgnoreButton &&
+            remoteVersion != null &&
+            remoteVersion.trim().isNotEmpty) {
+          await provider.ignoreUpdateVersion(remoteVersion);
+        }
+        return;
+      case _UpdateAction.cancel:
+      case null:
+        return;
     }
   }
 
-  static Future<void> _openWebsitePage(
+  static Future<void> _openGooglePlayPage(BuildContext context) async {
+    final deepLinkUri = Uri.parse(_googlePlayDeepLink);
+    final openedDeepLink = await launchUrl(
+      deepLinkUri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (openedDeepLink || !context.mounted) {
+      return;
+    }
+    await _openExternalPage(context, _googlePlayUrl);
+  }
+
+  static Future<void> _openExternalPage(
     BuildContext context,
-    String websiteUrl,
+    String url,
   ) async {
-    final uri = Uri.parse(websiteUrl);
+    final uri = Uri.parse(url);
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
       _showMessage(context, AppLocalizations.of(context)!.openUpdatesFailed);

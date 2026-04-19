@@ -121,18 +121,11 @@ class ThemeSettingsPage extends StatelessWidget {
                         margin: EdgeInsets.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
-                          child: ColorPicker(
-                            pickerColor: selectedColor,
-                            onColorChanged: (color) => setState(() {
-                              selectedColor = color;
+                          child: _CompactColorPicker(
+                            colorValue: colorValue,
+                            onColorChanged: (updatedColorValue) => setState(() {
+                              selectedColor = Color(updatedColorValue);
                             }),
-                            enableAlpha: false,
-                            displayThumbColor: true,
-                            portraitOnly: true,
-                            labelTypes: const [],
-                            paletteType: PaletteType.hsvWithHue,
-                            hexInputBar: true,
-                            pickerAreaHeightPercent: 0.7,
                           ),
                         ),
                       ),

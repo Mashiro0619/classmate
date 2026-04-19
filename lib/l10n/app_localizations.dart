@@ -713,6 +713,18 @@ abstract class AppLocalizations {
   /// **'Official website'**
   String get officialWebsite;
 
+  /// No description provided for @googlePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play'**
+  String get googlePlay;
+
+  /// No description provided for @cloudDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud drive'**
+  String get cloudDrive;
+
   /// No description provided for @ignoreThisVersion.
   ///
   /// In en, this message translates to:
@@ -724,6 +736,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to open the update link'**
   String get openUpdatesFailed;
+
+  /// No description provided for @updateCheckFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update check failed'**
+  String get updateCheckFailedTitle;
+
+  /// No description provided for @updateCheckFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to get valid update information from any update source. You can still use the links below to update manually.'**
+  String get updateCheckFailedMessage;
 
   /// No description provided for @githubRepository.
   ///

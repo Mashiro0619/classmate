@@ -332,10 +332,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get officialWebsite => 'Official website';
 
   @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get cloudDrive => 'Cloud drive';
+
+  @override
   String get ignoreThisVersion => 'Ignore this version';
 
   @override
   String get openUpdatesFailed => 'Unable to open the update link';
+
+  @override
+  String get updateCheckFailedTitle => 'Update check failed';
+
+  @override
+  String get updateCheckFailedMessage =>
+      'Unable to get valid update information from any update source. You can still use the links below to update manually.';
 
   @override
   String get githubRepository => 'GitHub repository';

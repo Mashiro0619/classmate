@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:classmate/config/app_config.dart';
 import 'package:classmate/data/timetable_storage.dart';
 import 'package:classmate/l10n/app_localizations.dart';
 import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/timetable_models.dart';
 import 'package:classmate/providers/timetable_provider.dart';
 import 'package:classmate/screens/home_screen.dart';
+import 'package:classmate/screens/settings_page.dart';
 import 'package:classmate/screens/theme_settings_page.dart';
 import 'package:classmate/services/update_service.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
@@ -15,6 +17,9 @@ import 'package:classmate/widgets/timetable_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 /// 测试专用 JSON 存储实现，避免污染真实用户目录。
@@ -68,9 +73,31 @@ class MemoryTimetableStorage implements TimetableStorage {
   Future<String?> filePath() async => 'memory://classmate-test';
 }
 
-Widget _buildLocalizedApp(Widget child) {
+class FakeSuccessUpdateService extends UpdateService {
+  const FakeSuccessUpdateService(this.result);
+
+  final UpdateCheckResult result;
+
+  @override
+  Future<UpdateCheckResult> checkForUpdates({Locale? preferredLocale}) async {
+    return result;
+  }
+}
+
+class FakeThrowingUpdateService extends UpdateService {
+  const FakeThrowingUpdateService(this.error);
+
+  final Object error;
+
+  @override
+  Future<UpdateCheckResult> checkForUpdates({Locale? preferredLocale}) async {
+    throw error;
+  }
+}
+
+Widget _buildLocalizedApp(Widget child, {Locale locale = const Locale('zh')}) {
   return MaterialApp(
-    locale: const Locale('zh'),
+    locale: locale,
     localizationsDelegates: const [
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,
@@ -80,6 +107,30 @@ Widget _buildLocalizedApp(Widget child) {
     supportedLocales: const [Locale('zh'), Locale('en')],
     home: Scaffold(body: child),
   );
+}
+
+Future<BuildContext> _pumpUpdateHarness(
+  WidgetTester tester, {
+  required TimetableProvider provider,
+  Locale locale = const Locale('zh'),
+}) async {
+  late BuildContext context;
+  await tester.pumpWidget(
+    ChangeNotifierProvider<TimetableProvider>.value(
+      value: provider,
+      child: _buildLocalizedApp(
+        Builder(
+          builder: (buildContext) {
+            context = buildContext;
+            return const SizedBox.shrink();
+          },
+        ),
+        locale: locale,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return context;
 }
 
 AppData _buildTestAppData() {
@@ -254,6 +305,72 @@ void main() {
       expect(prefersConfiguredUpdateSourceForLocale(const Locale('en')), isFalse);
       expect(prefersConfiguredUpdateSourceForLocale(const Locale('ja')), isFalse);
       expect(prefersConfiguredUpdateSourceForLocale(const Locale('fr')), isFalse);
+    });
+
+    test('中文系主源格式错误时会回退到 GitHub', () async {
+      PackageInfo.setMockInitialValues(
+        appName: 'Classmate',
+        packageName: 'com.mashiro.classmate',
+        version: '1.0.0',
+        buildNumber: '1',
+        buildSignature: '',
+      );
+      final service = UpdateService(
+        client: MockClient((request) async {
+          if (request.url.toString() == AppConfig.updateVersionUrl) {
+            return http.Response('{"version":""}', 200);
+          }
+          if (request.url.toString().contains('/releases/latest')) {
+            return http.Response(
+              jsonEncode({
+                'tag_name': 'v1.2.0',
+                'html_url': 'https://github.com/Mashiro0619/classmate/releases/tag/v1.2.0',
+                'body': 'notes',
+              }),
+              200,
+            );
+          }
+          return http.Response('not found', 404);
+        }),
+      );
+
+      final result = await service.checkForUpdates(
+        preferredLocale: const Locale('zh'),
+      );
+
+      expect(result.remoteVersion, '1.2.0');
+      expect(result.hasUpdate, isTrue);
+    });
+
+    test('非中文系主源格式错误时会回退到配置接口', () async {
+      PackageInfo.setMockInitialValues(
+        appName: 'Classmate',
+        packageName: 'com.mashiro.classmate',
+        version: '1.0.0',
+        buildNumber: '1',
+        buildSignature: '',
+      );
+      final service = UpdateService(
+        client: MockClient((request) async {
+          if (request.url.toString().contains('/releases/latest')) {
+            return http.Response('{"tag_name":""}', 200);
+          }
+          if (request.url.toString() == AppConfig.updateVersionUrl) {
+            return http.Response(
+              jsonEncode({'version': '1.3.0', 'updateContent': 'notes'}),
+              200,
+            );
+          }
+          return http.Response('not found', 404);
+        }),
+      );
+
+      final result = await service.checkForUpdates(
+        preferredLocale: const Locale('en'),
+      );
+
+      expect(result.remoteVersion, '1.3.0');
+      expect(result.hasUpdate, isTrue);
     });
 
     test('导入导出包装结构可以正确编码与解码', () {
@@ -924,6 +1041,98 @@ void main() {
       expect(find.text('时间'), findsOneWidget);
       expect(find.text(course.location), findsOneWidget);
       expect(find.textContaining(course.timeRange), findsOneWidget);
+    });
+
+    testWidgets('手动检测更新时的更新弹窗包含官网 Google Play GitHub 和网盘按钮', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+      final context = await _pumpUpdateHarness(tester, provider: provider);
+
+      final future = AppUpdateCoordinator.checkForUpdates(
+        context,
+        provider: provider,
+        source: UpdateCheckSource.manual,
+        updateService: const FakeSuccessUpdateService(
+          UpdateCheckResult(
+            localVersion: '1.0.0',
+            remoteVersion: '1.1.0',
+            releaseUrl: 'https://github.com/Mashiro0619/classmate/releases/latest',
+            officialWebsiteUrl: 'https://mashiro.tech/classmate',
+            updateContent: '更新说明',
+            hasUpdate: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('官网'), findsOneWidget);
+      expect(find.text('Google Play'), findsOneWidget);
+      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('网盘'), findsOneWidget);
+      expect(find.text('忽略此版本'), findsNothing);
+
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+      await future;
+    });
+
+    testWidgets('检测更新失败时会显示错误弹窗并提供官网 Google Play GitHub 和网盘按钮', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+      final context = await _pumpUpdateHarness(tester, provider: provider);
+
+      final future = AppUpdateCoordinator.checkForUpdates(
+        context,
+        provider: provider,
+        source: UpdateCheckSource.manual,
+        updateService: FakeThrowingUpdateService(Exception('boom')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('检测更新失败'), findsOneWidget);
+      expect(find.text('官网'), findsOneWidget);
+      expect(find.text('Google Play'), findsOneWidget);
+      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('网盘'), findsOneWidget);
+      expect(find.text('忽略此版本'), findsNothing);
+
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+      await future;
+    });
+
+    testWidgets('启动时检测更新失败的错误弹窗包含忽略此版本', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+      final context = await _pumpUpdateHarness(tester, provider: provider);
+
+      final future = AppUpdateCoordinator.checkForUpdates(
+        context,
+        provider: provider,
+        source: UpdateCheckSource.startup,
+        updateService: FakeThrowingUpdateService(Exception('boom')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('检测更新失败'), findsOneWidget);
+      expect(find.text('忽略此版本'), findsOneWidget);
+      expect(find.text('官网'), findsOneWidget);
+      expect(find.text('Google Play'), findsOneWidget);
+      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('网盘'), findsOneWidget);
+
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+      await future;
     });
 
     testWidgets('没有课表时显示新建和导入引导', (tester) async {

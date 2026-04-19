@@ -332,10 +332,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get officialWebsite => '官网';
 
   @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get cloudDrive => '网盘';
+
+  @override
   String get ignoreThisVersion => '忽略此版本';
 
   @override
   String get openUpdatesFailed => '无法打开更新链接';
+
+  @override
+  String get updateCheckFailedTitle => '检测更新失败';
+
+  @override
+  String get updateCheckFailedMessage => '无法从更新源获取有效版本信息。你仍可通过下方渠道手动获取更新。';
 
   @override
   String get githubRepository => 'GitHub 仓库';

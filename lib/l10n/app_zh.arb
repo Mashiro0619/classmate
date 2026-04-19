@@ -140,7 +140,7 @@
   "openSourceLicenses": "开源许可",
   "openSourceLicensesDesc": "查看 Flutter 依赖与应用内置图标资源的许可信息",
   "checkForUpdates": "检测更新",
-  "checkForUpdatesDesc": "GitHub / 官网",
+  "checkForUpdatesDesc": "GitHub / 官网 / Google Play / 网盘",
   "alreadyLatestVersion": "当前已是最新版本（{version}）",
   "@alreadyLatestVersion": {
     "placeholders": {
@@ -152,8 +152,12 @@
   "latestVersionLabel": "最新版本",
   "updateContentLabel": "更新内容",
   "officialWebsite": "官网",
+  "googlePlay": "Google Play",
+  "cloudDrive": "网盘",
   "ignoreThisVersion": "忽略此版本",
   "openUpdatesFailed": "无法打开更新链接",
+  "updateCheckFailedTitle": "检测更新失败",
+  "updateCheckFailedMessage": "无法从更新源获取有效版本信息。你仍可通过下方渠道手动获取更新。",
   "githubRepository": "GitHub 仓库",
   "openGithubFailed": "无法打开 GitHub 仓库链接",
   "selectPeriodTimeSet": "选择节次时间集",

@@ -78,27 +78,29 @@ class UpdateService {
     final ownsClient = _client == null;
     try {
       final locale = preferredLocale ?? _defaultPreferredLocale();
-      if (prefersConfiguredUpdateSourceForLocale(locale)) {
-        if (AppConfig.hasUpdateVersionUrl) {
-          try {
-            return await _getCustomUpdateInfo(client);
-          } on FormatException {
-            rethrow;
-          } catch (_) {}
+      final tryCustomFirst = prefersConfiguredUpdateSourceForLocale(locale);
+      final fetchers = <Future<_RemoteUpdateInfo> Function()>[
+        if (tryCustomFirst && AppConfig.hasUpdateVersionUrl)
+          () => _getCustomUpdateInfo(client),
+        if (!tryCustomFirst) () => _getGithubLatestReleaseInfo(client),
+        if (tryCustomFirst) () => _getGithubLatestReleaseInfo(client),
+        if (!tryCustomFirst && AppConfig.hasUpdateVersionUrl)
+          () => _getCustomUpdateInfo(client),
+      ];
+      Object? lastError;
+      StackTrace? lastStackTrace;
+      for (final fetch in fetchers) {
+        try {
+          return await fetch();
+        } catch (error, stackTrace) {
+          lastError = error;
+          lastStackTrace = stackTrace;
         }
-        return _getGithubLatestReleaseInfo(client);
       }
-
-      try {
-        return await _getGithubLatestReleaseInfo(client);
-      } on FormatException {
-        rethrow;
-      } catch (_) {
-        if (AppConfig.hasUpdateVersionUrl) {
-          return _getCustomUpdateInfo(client);
-        }
-        rethrow;
+      if (lastError != null) {
+        Error.throwWithStackTrace(lastError, lastStackTrace!);
       }
+      throw const FormatException('No update source is available.');
     } finally {
       if (ownsClient) {
         client.close();
