@@ -7,6 +7,25 @@ import '../data/timetable_storage.dart';
 import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
 
+const _colorfulCoursePalette = <int>[
+  0xFFE57373,
+  0xFFF06292,
+  0xFFBA68C8,
+  0xFF9575CD,
+  0xFF7986CB,
+  0xFF64B5F6,
+  0xFF4FC3F7,
+  0xFF4DD0E1,
+  0xFF4DB6AC,
+  0xFF81C784,
+  0xFFAED581,
+  0xFFFFD54F,
+  0xFFFFB74D,
+  0xFFFF8A65,
+  0xFFA1887F,
+  0xFF90A4AE,
+];
+
 enum AppImportMode { replaceAll, addAll }
 
 enum TimetableImportMode { addAsNew, replaceActive }
@@ -65,12 +84,30 @@ class TimetableProvider extends ChangeNotifier {
   bool get showTimetableGridLines => _appData.showTimetableGridLines;
   String get localeCode => _appData.localeCode;
   String get themeMode => _appData.themeMode;
+  String get themeColorMode => _appData.themeColorMode;
   int get themeSeedColorValue => _appData.themeSeedColorValue;
+  String get colorfulCourseTextColorMode =>
+      _appData.colorfulCourseTextColorMode;
+  Map<String, int> get colorfulUiColorValues => _appData.colorfulUiColorValues;
+  Map<String, int> get courseNameColorValues => _appData.courseNameColorValues;
+  SchoolImportParserSettings get schoolImportParserSettings =>
+      _appData.schoolImportParserSettings;
+  String get schoolImportParserSource =>
+      _appData.schoolImportParserSettings.source;
+  String get customSchoolImportBaseUrl =>
+      _appData.schoolImportParserSettings.customBaseUrl;
+  String get customSchoolImportApiKey =>
+      _appData.schoolImportParserSettings.customApiKey;
+  String get customSchoolImportModel =>
+      _appData.schoolImportParserSettings.customModel;
+  String get customSchoolImportPrompt =>
+      _appData.schoolImportParserSettings.customPrompt;
   int get liveCourseOutlineColorValue => _appData.liveCourseOutlineColorValue;
   bool get liveCourseOutlineEnabled => _appData.liveCourseOutlineEnabled;
   bool get liveCourseOutlineFollowTheme => _appData.liveCourseOutlineFollowTheme;
   bool get liveCourseOutlineCustomColorInitialized =>
       _appData.liveCourseOutlineCustomColorInitialized;
+  String get liveCourseOutlineMode => _appData.liveCourseOutlineMode;
   double get liveCourseOutlineWidth => _appData.liveCourseOutlineWidth;
   String? get ignoredUpdateVersion => _appData.ignoredUpdateVersion;
   String? get availableUpdateVersion => _appData.availableUpdateVersion;
@@ -547,12 +584,17 @@ class TimetableProvider extends ChangeNotifier {
       final updatedTimetables = _appData.timetables
           .map((item) => item.id == current.id ? replaced : item)
           .toList();
+      final nextPeriodTimeSets = copiedSet == null
+          ? _appData.periodTimeSets
+          : [..._appData.periodTimeSets, copiedSet];
       _appData = _appData.copyWith(
         activeTimetableId: current.id,
         timetables: updatedTimetables,
-        periodTimeSets: copiedSet == null
-            ? _appData.periodTimeSets
-            : [..._appData.periodTimeSets, copiedSet],
+        periodTimeSets: nextPeriodTimeSets,
+        courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+          updatedTimetables,
+          existing: _appData.courseNameColorValues,
+        ),
       );
       _selectedWeek = currentWeekFor(replaced.config);
       await _saveAndNotify();
@@ -596,12 +638,17 @@ class TimetableProvider extends ChangeNotifier {
       );
     }).toList();
 
+    final nextTimetables = [..._appData.timetables, ...appendedTimetables];
     _appData = _appData.copyWith(
       activeTimetableId: appendedTimetables.isEmpty
           ? _appData.activeTimetableId
           : appendedTimetables.last.id,
-      timetables: [..._appData.timetables, ...appendedTimetables],
+      timetables: nextTimetables,
       periodTimeSets: [..._appData.periodTimeSets, ...appendedSets],
+      courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+        nextTimetables,
+        existing: _appData.courseNameColorValues,
+      ),
     );
     _selectedWeek = appendedTimetables.isEmpty
         ? _selectedWeek
@@ -677,15 +724,24 @@ class TimetableProvider extends ChangeNotifier {
       _appData = _appData.copyWith(
         activeTimetableId: current.id,
         timetables: updatedTimetables,
+        courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+          updatedTimetables,
+          existing: _appData.courseNameColorValues,
+        ),
       );
       _selectedWeek = currentWeekFor(replaced.config);
       await _saveAndNotify();
       return;
     }
 
+    final nextTimetables = [..._appData.timetables, timetable];
     _appData = _appData.copyWith(
       activeTimetableId: timetable.id,
-      timetables: [..._appData.timetables, timetable],
+      timetables: nextTimetables,
+      courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+        nextTimetables,
+        existing: _appData.courseNameColorValues,
+      ),
     );
     _selectedWeek = currentWeekFor(timetable.config);
     await _saveAndNotify();
@@ -871,6 +927,133 @@ class TimetableProvider extends ChangeNotifier {
     await _saveAndNotify();
   }
 
+  Future<void> updateThemeColorMode(String mode) async {
+    final normalized = normalizeThemeColorMode(mode);
+    if (_appData.themeColorMode == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(themeColorMode: normalized);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateColorfulUiColorValue(String key, int colorValue) async {
+    final normalizedKey = key.trim();
+    if (normalizedKey.isEmpty) {
+      return;
+    }
+    if (_appData.colorfulUiColorValues[normalizedKey] == colorValue) {
+      return;
+    }
+    final updated = Map<String, int>.from(_appData.colorfulUiColorValues)
+      ..[normalizedKey] = colorValue;
+    _appData = _appData.copyWith(colorfulUiColorValues: updated);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateColorfulCourseTextColorMode(String mode) async {
+    final normalized = normalizeColorfulCourseTextColorMode(mode);
+    if (_appData.colorfulCourseTextColorMode == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(colorfulCourseTextColorMode: normalized);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateCourseNameColorValue(String courseName, int colorValue) async {
+    final normalizedCourseName = normalizeCourseColorName(courseName);
+    if (normalizedCourseName.isEmpty) {
+      return;
+    }
+    if (_appData.courseNameColorValues[normalizedCourseName] == colorValue) {
+      return;
+    }
+    final updated = Map<String, int>.from(_appData.courseNameColorValues)
+      ..[normalizedCourseName] = colorValue;
+    _appData = _appData.copyWith(courseNameColorValues: updated);
+    await _saveAndNotify();
+  }
+
+  Future<void> updateSchoolImportParserSource(String source) async {
+    final normalized = normalizeSchoolImportParserSource(source);
+    if (_appData.schoolImportParserSettings.source == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      schoolImportParserSettings: _appData.schoolImportParserSettings.copyWith(
+        source: normalized,
+      ),
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> updateCustomSchoolImportBaseUrl(String value) async {
+    final normalized = value.trim();
+    if (_appData.schoolImportParserSettings.customBaseUrl == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      schoolImportParserSettings: _appData.schoolImportParserSettings.copyWith(
+        customBaseUrl: normalized,
+      ),
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> updateCustomSchoolImportApiKey(String value) async {
+    final normalized = value.trim();
+    if (_appData.schoolImportParserSettings.customApiKey == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      schoolImportParserSettings: _appData.schoolImportParserSettings.copyWith(
+        customApiKey: normalized,
+      ),
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> updateCustomSchoolImportModel(String value) async {
+    final normalized = value.trim();
+    if (_appData.schoolImportParserSettings.customModel == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      schoolImportParserSettings: _appData.schoolImportParserSettings.copyWith(
+        customModel: normalized,
+      ),
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> updateCustomSchoolImportPrompt(String value) async {
+    final normalized = value.trim();
+    if (_appData.schoolImportParserSettings.customPrompt == normalized) {
+      return;
+    }
+    _appData = _appData.copyWith(
+      schoolImportParserSettings: _appData.schoolImportParserSettings.copyWith(
+        customPrompt: normalized,
+      ),
+    );
+    await _saveAndNotify();
+  }
+
+  Future<void> updateSchoolImportParserSettings(
+    SchoolImportParserSettings settings,
+  ) async {
+    final normalized = settings.copyWith();
+    final current = _appData.schoolImportParserSettings;
+    if (current.source == normalized.source &&
+        current.customBaseUrl == normalized.customBaseUrl &&
+        current.customApiKey == normalized.customApiKey &&
+        current.customModel == normalized.customModel &&
+        current.customPrompt == normalized.customPrompt) {
+      return;
+    }
+    _appData = _appData.copyWith(schoolImportParserSettings: normalized);
+    await _saveAndNotify();
+  }
+
   Future<void> updateLiveCourseOutlineColorValue(int colorValue) async {
     if (_appData.liveCourseOutlineColorValue == colorValue) {
       return;
@@ -900,14 +1083,17 @@ class TimetableProvider extends ChangeNotifier {
     required bool followTheme,
     required int colorValue,
     required bool customColorInitialized,
+    required String mode,
     required double width,
   }) async {
     final normalizedWidth = normalizeLiveCourseOutlineWidth(width);
+    final normalizedMode = normalizeLiveCourseOutlineMode(mode);
     final nextData = _appData.copyWith(
       liveCourseOutlineEnabled: enabled,
       liveCourseOutlineFollowTheme: followTheme,
       liveCourseOutlineColorValue: colorValue,
       liveCourseOutlineCustomColorInitialized: customColorInitialized,
+      liveCourseOutlineMode: normalizedMode,
       liveCourseOutlineWidth: normalizedWidth,
     );
     if (nextData.liveCourseOutlineEnabled == _appData.liveCourseOutlineEnabled &&
@@ -917,6 +1103,7 @@ class TimetableProvider extends ChangeNotifier {
             _appData.liveCourseOutlineColorValue &&
         nextData.liveCourseOutlineCustomColorInitialized ==
             _appData.liveCourseOutlineCustomColorInitialized &&
+        nextData.liveCourseOutlineMode == _appData.liveCourseOutlineMode &&
         nextData.liveCourseOutlineWidth == _appData.liveCourseOutlineWidth) {
       return;
     }
@@ -958,8 +1145,64 @@ class TimetableProvider extends ChangeNotifier {
     final updated = _appData.timetables
         .map((item) => item.id == timetable.id ? timetable : item)
         .toList();
-    _appData = _appData.copyWith(timetables: updated);
+    _appData = _appData.copyWith(
+      timetables: updated,
+      courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+        updated,
+        existing: _appData.courseNameColorValues,
+      ),
+    );
     await _saveAndNotify();
+  }
+
+  Map<String, int> _buildCourseNameColorValuesForTimetables(
+    List<TimetableData> timetables, {
+    Map<String, int>? existing,
+  }) {
+    final courseNames = <String>{};
+    for (final timetable in timetables) {
+      for (final course in timetable.courses) {
+        final normalizedName = normalizeCourseColorName(course.name);
+        if (normalizedName.isNotEmpty) {
+          courseNames.add(normalizedName);
+        }
+      }
+    }
+
+    final result = <String, int>{};
+    final usedColors = <int>{};
+    for (final entry in (existing ?? const <String, int>{}).entries) {
+      final normalizedName = normalizeCourseColorName(entry.key);
+      if (normalizedName.isEmpty || !courseNames.contains(normalizedName)) {
+        continue;
+      }
+      final colorValue = entry.value;
+      if (usedColors.contains(colorValue) &&
+          _colorfulCoursePalette.contains(colorValue)) {
+        continue;
+      }
+      result[normalizedName] = colorValue;
+      usedColors.add(colorValue);
+    }
+
+    for (final courseName in courseNames.toList()..sort()) {
+      if (result.containsKey(courseName)) {
+        continue;
+      }
+      final colorValue = _pickNextCourseColorValue(usedColors);
+      result[courseName] = colorValue;
+      usedColors.add(colorValue);
+    }
+    return result;
+  }
+
+  int _pickNextCourseColorValue(Set<int> usedColors) {
+    for (final colorValue in _colorfulCoursePalette) {
+      if (!usedColors.contains(colorValue)) {
+        return colorValue;
+      }
+    }
+    return _colorfulCoursePalette[usedColors.length % _colorfulCoursePalette.length];
   }
 
   AppData _normalizeImportedAppData(AppData data) {
@@ -1018,6 +1261,11 @@ class TimetableProvider extends ChangeNotifier {
       periodTimeSets: normalizedSets,
       conflictDisplayCourseIds: filteredPrefs,
       localeCode: normalizeLocaleCode(data.localeCode),
+      themeColorMode: normalizeThemeColorMode(data.themeColorMode),
+      courseNameColorValues: _buildCourseNameColorValuesForTimetables(
+        normalizedTimetables,
+        existing: data.courseNameColorValues,
+      ),
     );
   }
 

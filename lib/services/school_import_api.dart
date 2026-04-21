@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/school_import_models.dart';
+import '../models/timetable_models.dart';
 
 class SchoolImportApiResult {
   const SchoolImportApiResult({
@@ -20,16 +21,151 @@ class SchoolImportApiResult {
 class SchoolImportApi {
   const SchoolImportApi({http.Client? client}) : _client = client;
 
+  static const _defaultCustomOpenAiSystemPrompt = '''You are an expert timetable extraction engine.
+
+Your job is to read the provided page content and convert it into exactly one JSON object.
+The content may be HTML, plain text, copied table text, JSON fragments, or mixed page source.
+Return JSON only. Do not wrap it in markdown. Do not add explanations.
+
+The timetable JSON schema must be exactly:
+{
+  "name": "string",
+  "startDate": "YYYY-MM-DD",
+  "totalWeeks": 18,
+  "periodTimeSet": {
+    "name": "string",
+    "periodTimes": [
+      {"index": 1, "startMinutes": 480, "endMinutes": 525}
+    ]
+  },
+  "courses": [
+    {
+      "name": "string",
+      "teacher": "string",
+      "location": "string",
+      "dayOfWeek": 1,
+      "semesterWeeks": [1, 2, 3],
+      "periods": [1, 2],
+      "startMinutes": 480,
+      "endMinutes": 570,
+      "credit": 0,
+      "remarks": "string",
+      "customFields": {}
+    }
+  ]
+}
+
+Rules:
+1. Extract the actual timetable from the provided content. Ignore navigation, scripts, styles, ads, and unrelated text.
+2. The source content is not guaranteed to be valid HTML. You must still try to recognize timetable information from any text or mixed markup.
+3. Output one valid JSON object only.
+4. Use empty strings instead of null.
+5. Use [] instead of null for arrays.
+6. Use {} instead of null for customFields.
+7. dayOfWeek uses Monday=1 through Sunday=7.
+8. semesterWeeks and periods must contain positive integers only, sorted ascending, without duplicates.
+9. startMinutes and endMinutes must be integers representing minutes after 00:00 when the source explicitly provides real class times; otherwise use 0.
+10. Never invent period times, startMinutes, endMinutes, or a periodTimeSet when the source does not explicitly provide them.
+11. If the content contains period numbers but not explicit times, keep periods only and leave time-related fields as 0; keep periodTimeSet.periodTimes as an empty array.
+12. If the content contains explicit class times, preserve them exactly.
+13. Only fill periodTimeSet.periodTimes when the source explicitly provides actual period time ranges.
+14. If a field is unknown, keep it empty or 0, but still keep the field.
+15. If the timetable title is visible, put it in name.
+16. If the total week count is not visible, use 18.
+17. If the start date is not visible, use the best reasonable YYYY-MM-DD value from the context; if unavailable, use today's date.
+18. Only include real courses that appear in the provided content.
+
+Return the final JSON using exactly this outer schema:
+{"ok":true,"meta":{"sourceUrl":"string","pageTitle":"string","parser":"string","warnings":["string"]},"timetable":{"name":"string","startDate":"YYYY-MM-DD","totalWeeks":18,"periodTimeSet":{"name":"string","periodTimes":[{"index":1,"startMinutes":480,"endMinutes":525}]},"courses":[{"name":"string","teacher":"string","location":"string","dayOfWeek":1,"semesterWeeks":[1,2],"periods":[1,2],"startMinutes":480,"endMinutes":570,"credit":0,"remarks":"string","customFields":{}}]}}.
+Populate timetable with the extracted timetable object. Keep ok=true. Fill meta.sourceUrl from the provided url when possible, meta.pageTitle from the provided title when possible, meta.parser with a non-empty parser label, and meta.warnings as an array. If some meta fields are unknown, still return valid JSON with safe defaults instead of prose.''';
+
+  static String get defaultCustomOpenAiSystemPrompt =>
+      _defaultCustomOpenAiSystemPrompt;
+
   final http.Client? _client;
 
   Future<SchoolImportResponse> importCurrentPage(
-    SchoolImportPagePayload payload,
-  ) async {
-    final result = await importCurrentPageWithRawResponse(payload);
+    SchoolImportPagePayload payload, {
+    SchoolImportParserSettings? parserSettings,
+  }) async {
+    final result = await importCurrentPageWithRawResponse(
+      payload,
+      parserSettings: parserSettings,
+    );
     return result.response;
   }
 
   Future<SchoolImportApiResult> importCurrentPageWithRawResponse(
+    SchoolImportPagePayload payload, {
+    SchoolImportParserSettings? parserSettings,
+  }) async {
+    final settings = parserSettings ?? const SchoolImportParserSettings();
+    return settings.source == schoolImportParserSourceCustomOpenAi
+        ? _importWithCustomOpenAi(payload, settings)
+        : _importWithOfficialApi(payload);
+  }
+
+  Future<List<String>> fetchCustomModels({
+    required String baseUrl,
+    required String apiKey,
+  }) async {
+    final normalizedBaseUrl = baseUrl.trim();
+    final normalizedApiKey = apiKey.trim();
+    if (normalizedBaseUrl.isEmpty || normalizedApiKey.isEmpty) {
+      throw const FormatException('Custom parser base URL or API key is missing.');
+    }
+
+    final client = _client ?? http.Client();
+    final ownsClient = _client == null;
+    try {
+      final uri = _buildOpenAiModelsUri(normalizedBaseUrl);
+      final response = await client.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $normalizedApiKey',
+        },
+      );
+      final rawBody = response.body;
+      final decoded = _tryDecodeJson(rawBody);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final message = _extractErrorMessage(decoded);
+        throw FormatException(
+          message ?? 'Model list request failed (${response.statusCode}).\n\n$rawBody',
+        );
+      }
+      if (decoded is! Map<String, dynamic>) {
+        throw FormatException('Model list response format is invalid.\n\n$rawBody');
+      }
+      final data = decoded['data'];
+      if (data is! List) {
+        throw FormatException('Model list response format is invalid.\n\n$rawBody');
+      }
+      final models = data
+          .map((item) {
+            if (item is Map) {
+              final id = item['id']?.toString().trim() ?? '';
+              return id;
+            }
+            return '';
+          })
+          .where((item) => item.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+      return models;
+    } on FormatException {
+      rethrow;
+    } catch (error) {
+      throw FormatException('Unable to fetch the model list.\n\n$error');
+    } finally {
+      if (ownsClient) {
+        client.close();
+      }
+    }
+  }
+
+  Future<SchoolImportApiResult> _importWithOfficialApi(
     SchoolImportPagePayload payload,
   ) async {
     if (!AppConfig.hasSchoolImportApiBaseUrl) {
@@ -91,6 +227,172 @@ class SchoolImportApi {
     }
   }
 
+  Future<SchoolImportApiResult> _importWithCustomOpenAi(
+    SchoolImportPagePayload payload,
+    SchoolImportParserSettings settings,
+  ) async {
+    final normalizedBaseUrl = settings.customBaseUrl.trim();
+    final normalizedApiKey = settings.customApiKey.trim();
+    final normalizedModel = settings.customModel.trim();
+    if (normalizedBaseUrl.isEmpty ||
+        normalizedApiKey.isEmpty ||
+        normalizedModel.isEmpty) {
+      throw const FormatException('Custom parser configuration is incomplete.');
+    }
+
+    final client = _client ?? http.Client();
+    final ownsClient = _client == null;
+    try {
+      final uri = _buildOpenAiChatUri(normalizedBaseUrl);
+      final response = await client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $normalizedApiKey',
+        },
+        body: jsonEncode({
+          'model': normalizedModel,
+          'temperature': 0,
+          'messages': [
+            {
+              'role': 'system',
+              'content': _buildCustomOpenAiSystemPrompt(settings),
+            },
+            {
+              'role': 'user',
+              'content': _buildOpenAiUserPrompt(payload),
+            },
+          ],
+          'response_format': const {'type': 'json_object'},
+        }),
+      );
+      final rawBody = response.body;
+      final decoded = _tryDecodeJson(rawBody);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final message = _extractErrorMessage(decoded);
+        throw FormatException(
+          message ?? 'Import request failed (${response.statusCode}).\n\n$rawBody',
+        );
+      }
+      if (decoded is! Map<String, dynamic>) {
+        throw FormatException('Import response format is invalid.\n\n$rawBody');
+      }
+      final content = _extractOpenAiMessageContent(decoded);
+      final parsedJson = _tryDecodeJson(content);
+      if (parsedJson is! Map<String, dynamic>) {
+        throw FormatException('Import response parse failed.\n\n$rawBody');
+      }
+      final normalizedResponseJson = _normalizeCustomImportResponse(
+        parsedJson,
+        payload: payload,
+        model: normalizedModel,
+      );
+      return SchoolImportApiResult(
+        response: SchoolImportResponse.fromJson(normalizedResponseJson),
+        rawBody: rawBody,
+        statusCode: response.statusCode,
+      );
+    } on FormatException {
+      rethrow;
+    } catch (error) {
+      throw FormatException('Unable to connect to the import service.\n\n$error');
+    } finally {
+      if (ownsClient) {
+        client.close();
+      }
+    }
+  }
+
+  String _buildCustomOpenAiSystemPrompt(SchoolImportParserSettings settings) {
+    final customPrompt = settings.customPrompt.trim();
+    if (customPrompt.isEmpty) {
+      return defaultCustomOpenAiSystemPrompt;
+    }
+    return customPrompt;
+  }
+
+  String _buildOpenAiUserPrompt(SchoolImportPagePayload payload) {
+    return jsonEncode({
+      'task': 'Extract timetable data from the provided source content. The content may be HTML or any other raw page content as long as it contains timetable information.',
+      'locale': payload.locale,
+      'sourceHint': payload.sourceHint,
+      'url': payload.url,
+      'title': payload.title,
+      'html': payload.html,
+    });
+  }
+
+  Map<String, dynamic> _normalizeCustomImportResponse(
+    Map<String, dynamic> json, {
+    required SchoolImportPagePayload payload,
+    required String model,
+  }) {
+    final responseJson = Map<String, dynamic>.from(json);
+    responseJson['ok'] = responseJson['ok'] != false;
+    final meta = Map<String, dynamic>.from(responseJson['meta'] as Map? ?? const {});
+    meta['sourceUrl'] = (meta['sourceUrl'] as String? ?? payload.url).trim();
+    meta['pageTitle'] = (meta['pageTitle'] as String? ?? payload.title).trim();
+    meta['parser'] =
+        (meta['parser'] as String? ?? 'custom-openai:$model').trim().isEmpty
+        ? 'custom-openai:$model'
+        : (meta['parser'] as String).trim();
+    meta['warnings'] = (meta['warnings'] as List?) ?? const [];
+    responseJson['meta'] = meta;
+    return responseJson;
+  }
+
+  String _extractOpenAiMessageContent(Map<String, dynamic> json) {
+    final choices = json['choices'];
+    if (choices is! List || choices.isEmpty) {
+      throw const FormatException('Import response format is invalid.');
+    }
+    final firstChoice = choices.first;
+    if (firstChoice is! Map) {
+      throw const FormatException('Import response format is invalid.');
+    }
+    final message = firstChoice['message'];
+    if (message is! Map) {
+      throw const FormatException('Import response format is invalid.');
+    }
+    final content = message['content'];
+    if (content is String && content.trim().isNotEmpty) {
+      return content.trim();
+    }
+    if (content is List) {
+      final buffer = StringBuffer();
+      for (final item in content) {
+        if (item is Map) {
+          final text = item['text']?.toString() ?? '';
+          if (text.trim().isNotEmpty) {
+            buffer.write(text);
+          }
+        }
+      }
+      final result = buffer.toString().trim();
+      if (result.isNotEmpty) {
+        return result;
+      }
+    }
+    throw const FormatException('Import response format is invalid.');
+  }
+
+  Uri _buildOpenAiChatUri(String baseUrl) {
+    final baseUri = Uri.parse(baseUrl.trim());
+    final path = baseUri.path.trim().toLowerCase().endsWith('/chat/completions')
+        ? baseUri.path
+        : _joinPath(baseUri.path, 'chat/completions');
+    return baseUri.replace(path: path, query: '');
+  }
+
+  Uri _buildOpenAiModelsUri(String baseUrl) {
+    final baseUri = Uri.parse(baseUrl.trim());
+    final path = baseUri.path.trim().toLowerCase().endsWith('/models')
+        ? baseUri.path
+        : _joinPath(baseUri.path, 'models');
+    return baseUri.replace(path: path, query: '');
+  }
+
   Map<String, dynamic>? _tryDecodeJson(String source) {
     try {
       final decoded = jsonDecode(source);
@@ -104,11 +406,18 @@ class SchoolImportApi {
   }
 
   String? _extractErrorMessage(Map<String, dynamic>? json) {
-    final message = json?['message']?.toString().trim();
-    if (message == null || message.isEmpty) {
-      return null;
+    final topLevelMessage = json?['message']?.toString().trim();
+    if (topLevelMessage != null && topLevelMessage.isNotEmpty) {
+      return topLevelMessage;
     }
-    return message;
+    final error = json?['error'];
+    if (error is Map) {
+      final nestedMessage = error['message']?.toString().trim();
+      if (nestedMessage != null && nestedMessage.isNotEmpty) {
+        return nestedMessage;
+      }
+    }
+    return null;
   }
 
   String _joinPath(String basePath, String child) {

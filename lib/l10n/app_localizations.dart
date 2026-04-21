@@ -551,6 +551,24 @@ abstract class AppLocalizations {
   /// **'Follow theme color'**
   String get liveCourseOutlineFollowTheme;
 
+  /// No description provided for @liveCourseOutlineTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Outline target'**
+  String get liveCourseOutlineTarget;
+
+  /// No description provided for @liveCourseOutlineTargetCurrentOrNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Current/next course'**
+  String get liveCourseOutlineTargetCurrentOrNext;
+
+  /// No description provided for @liveCourseOutlineTargetAllDisplayed.
+  ///
+  /// In en, this message translates to:
+  /// **'All displayed courses'**
+  String get liveCourseOutlineTargetAllDisplayed;
+
   /// No description provided for @liveCourseOutlineEffectiveColor.
   ///
   /// In en, this message translates to:
@@ -622,6 +640,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme color'**
   String get themeColor;
+
+  /// No description provided for @themeColorModeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single theme color'**
+  String get themeColorModeSingle;
+
+  /// No description provided for @themeColorModeColorful.
+  ///
+  /// In en, this message translates to:
+  /// **'Colorful'**
+  String get themeColorModeColorful;
+
+  /// No description provided for @themeColorUiColors.
+  ///
+  /// In en, this message translates to:
+  /// **'UI colors'**
+  String get themeColorUiColors;
+
+  /// No description provided for @themeColorCourseColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Course colors'**
+  String get themeColorCourseColors;
+
+  /// No description provided for @themeColorPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get themeColorPrimary;
+
+  /// No description provided for @themeColorSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary'**
+  String get themeColorSecondary;
+
+  /// No description provided for @themeColorTertiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Tertiary'**
+  String get themeColorTertiary;
+
+  /// No description provided for @themeColorCourseText.
+  ///
+  /// In en, this message translates to:
+  /// **'Course text'**
+  String get themeColorCourseText;
+
+  /// No description provided for @themeColorCourseTextAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get themeColorCourseTextAuto;
+
+  /// No description provided for @themeColorCourseTextCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get themeColorCourseTextCustom;
+
+  /// No description provided for @themeColorCourseColorsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Course colors will be generated after importing a timetable.'**
+  String get themeColorCourseColorsEmpty;
 
   /// No description provided for @themeCustomColor.
   ///
@@ -1517,6 +1601,12 @@ abstract class AppLocalizations {
   /// **'Paste the full timetable page HTML here.'**
   String get schoolHtmlImportHtmlHint;
 
+  /// No description provided for @schoolHtmlImportNonHtmlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-HTML source content can also be tried for parsing and import. Prefer pasting the raw page content related to the timetable.'**
+  String get schoolHtmlImportNonHtmlHint;
+
   /// No description provided for @schoolHtmlImportCompress.
   ///
   /// In en, this message translates to:
@@ -1684,6 +1774,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Web timetable imported'**
   String get schoolWebImportSuccess;
+
+  /// No description provided for @schoolImportParserSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable parser settings'**
+  String get schoolImportParserSettingsTitle;
+
+  /// No description provided for @schoolImportParserSettingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the official parser or a custom OpenAI-compatible endpoint.'**
+  String get schoolImportParserSettingsDesc;
+
+  /// No description provided for @schoolImportParserSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser source'**
+  String get schoolImportParserSourceTitle;
+
+  /// No description provided for @schoolImportParserSourceOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Official parser'**
+  String get schoolImportParserSourceOfficial;
+
+  /// No description provided for @schoolImportParserSourceOfficialDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the built-in official parsing service configured by the app.'**
+  String get schoolImportParserSourceOfficialDesc;
+
+  /// No description provided for @schoolImportParserSourceOfficialInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The official parser uses the app's configured parsing backend and keeps the current import flow unchanged.'**
+  String get schoolImportParserSourceOfficialInfo;
+
+  /// No description provided for @schoolImportParserSourceCustomOpenAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom OpenAI-compatible'**
+  String get schoolImportParserSourceCustomOpenAi;
+
+  /// No description provided for @schoolImportParserSourceCustomOpenAiDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the page content directly to your own OpenAI-compatible endpoint.'**
+  String get schoolImportParserSourceCustomOpenAiDesc;
+
+  /// No description provided for @schoolImportParserCustomOpenAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom OpenAI-compatible parser'**
+  String get schoolImportParserCustomOpenAi;
+
+  /// No description provided for @schoolImportParserCustomPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom prompt'**
+  String get schoolImportParserCustomPromptTitle;
+
+  /// No description provided for @schoolImportParserCustomPromptDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Appended after the built-in parser prompt and only affects the custom OpenAI-compatible parser.'**
+  String get schoolImportParserCustomPromptDescription;
+
+  /// No description provided for @schoolImportParserCustomPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add extra extraction rules or output constraints here.'**
+  String get schoolImportParserCustomPromptHint;
+
+  /// No description provided for @schoolImportParserResetDefaultPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset default prompt'**
+  String get schoolImportParserResetDefaultPrompt;
+
+  /// No description provided for @schoolImportParserBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get schoolImportParserBaseUrl;
+
+  /// No description provided for @schoolImportParserApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get schoolImportParserApiKey;
+
+  /// No description provided for @schoolImportParserModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get schoolImportParserModel;
+
+  /// No description provided for @schoolImportParserFetchModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch model list'**
+  String get schoolImportParserFetchModels;
+
+  /// No description provided for @schoolImportParserFetchingModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching models...'**
+  String get schoolImportParserFetchingModels;
+
+  /// No description provided for @schoolImportParserNoModelsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No models were returned by the endpoint.'**
+  String get schoolImportParserNoModelsFound;
+
+  /// No description provided for @schoolImportParserModelsFetched.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetched {count} models'**
+  String schoolImportParserModelsFetched(int count);
+
+  /// No description provided for @schoolImportParserPlaintextWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The custom API key is stored in the app's local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.'**
+  String get schoolImportParserPlaintextWarning;
+
+  /// No description provided for @schoolImportParserCustomConfigIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom parser configuration is incomplete. Fill in the base URL, API key, and model first.'**
+  String get schoolImportParserCustomConfigIncomplete;
+
+  /// No description provided for @schoolImportParserCurrentSourceOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser: Official'**
+  String get schoolImportParserCurrentSourceOfficial;
+
+  /// No description provided for @schoolImportParserCurrentSourceCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser: Custom ({model})'**
+  String schoolImportParserCurrentSourceCustom(Object model);
 
   /// No description provided for @privacyViewFullPolicy.
   ///

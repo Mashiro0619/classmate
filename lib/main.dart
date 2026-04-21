@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
+import 'models/timetable_models.dart';
 import 'providers/timetable_provider.dart';
 import 'screens/home_screen.dart';
 
@@ -45,13 +46,32 @@ ThemeMode _themeModeFromValue(String value) {
 ThemeData _buildTheme({
   required Color seedColor,
   required Brightness brightness,
+  required String themeColorMode,
+  required Map<String, int> colorfulUiColorValues,
 }) {
+  final baseScheme = ColorScheme.fromSeed(
+    seedColor: seedColor,
+    brightness: brightness,
+  );
+  final colorScheme = themeColorMode == themeColorModeColorful
+      ? baseScheme.copyWith(
+          primary: Color(
+            colorfulUiColorValues[colorfulUiPrimaryKey] ??
+                baseScheme.primary.toARGB32(),
+          ),
+          secondary: Color(
+            colorfulUiColorValues[colorfulUiSecondaryKey] ??
+                baseScheme.secondary.toARGB32(),
+          ),
+          tertiary: Color(
+            colorfulUiColorValues[colorfulUiTertiaryKey] ??
+                baseScheme.tertiary.toARGB32(),
+          ),
+        )
+      : baseScheme;
   return ThemeData(
     useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: seedColor,
-      brightness: brightness,
-    ),
+    colorScheme: colorScheme,
     cardTheme: const CardThemeData(margin: EdgeInsets.zero),
   );
 }
@@ -83,10 +103,14 @@ class MyApp extends StatelessWidget {
             theme: _buildTheme(
               seedColor: Color(timetableProvider.themeSeedColorValue),
               brightness: Brightness.light,
+              themeColorMode: timetableProvider.themeColorMode,
+              colorfulUiColorValues: timetableProvider.colorfulUiColorValues,
             ),
             darkTheme: _buildTheme(
               seedColor: Color(timetableProvider.themeSeedColorValue),
               brightness: Brightness.dark,
+              themeColorMode: timetableProvider.themeColorMode,
+              colorfulUiColorValues: timetableProvider.colorfulUiColorValues,
             ),
             home: const HomeScreen(),
           );

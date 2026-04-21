@@ -67,9 +67,14 @@ class TimetableGrid extends StatelessWidget {
     required this.showGridLines,
     required this.onCourseTap,
     required this.onEmptySlotTap,
+    required this.themeColorMode,
+    required this.courseNameColorValues,
+    required this.colorfulCourseTextColorMode,
+    this.colorfulCourseTextColorValue,
     this.displayedCourseIdForConflict,
     this.liveCourseTarget,
     required this.liveCourseOutlineEnabled,
+    required this.liveCourseOutlineMode,
     required this.liveCourseOutlineColorValue,
     required this.liveCourseOutlineWidth,
   });
@@ -86,9 +91,14 @@ class TimetableGrid extends StatelessWidget {
   final bool showGridLines;
   final ValueChanged<TimetableCourseTapInfo> onCourseTap;
   final ValueChanged<TimetableEmptySlotTapInfo> onEmptySlotTap;
+  final String themeColorMode;
+  final Map<String, int> courseNameColorValues;
+  final String colorfulCourseTextColorMode;
+  final int? colorfulCourseTextColorValue;
   final String? Function(String conflictKey)? displayedCourseIdForConflict;
   final TimetableLiveCourseTarget? liveCourseTarget;
   final bool liveCourseOutlineEnabled;
+  final String liveCourseOutlineMode;
   final int liveCourseOutlineColorValue;
   final double liveCourseOutlineWidth;
 
@@ -102,6 +112,33 @@ class TimetableGrid extends StatelessWidget {
       preserveGaps: preserveGaps,
     );
     final colors = Theme.of(context).colorScheme;
+    final dayLayoutsByWeekday = <int, List<_CourseLayout>>{
+      for (var weekday = 1; weekday <= 7; weekday++)
+        weekday: _buildDayLayouts(
+          timetable: timetable,
+          courses: timetable.courses,
+          weekday: weekday,
+          selectedWeek: selectedWeek,
+          realCurrentWeek: realCurrentWeek,
+          showPastEndedCourses: showPastEndedCourses,
+          showFutureCourses: showFutureCourses,
+          displayedCourseIdForConflict: displayedCourseIdForConflict,
+          liveCourseTarget: liveCourseTarget,
+          liveCourseOutlineEnabled: liveCourseOutlineEnabled,
+          liveCourseOutlineMode: liveCourseOutlineMode,
+        ),
+    };
+    final colorfulTextColor = themeColorMode == themeColorModeColorful
+        ? colorfulCourseTextColorMode == colorfulCourseTextColorModeCustom &&
+                  colorfulCourseTextColorValue != null
+              ? Color(colorfulCourseTextColorValue!)
+              : _resolveSharedColorfulTextColor(
+                  layouts: dayLayoutsByWeekday.values.expand((items) => items),
+                  courseNameColorValues: courseNameColorValues,
+                  surfaceColor: colors.surface,
+                  fallbackColor: colors.onSecondaryContainer,
+                )
+        : null;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -237,24 +274,15 @@ class TimetableGrid extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                ..._buildDayLayouts(
-                                  timetable: timetable,
-                                  courses: timetable.courses,
-                                  weekday: weekday,
-                                  selectedWeek: selectedWeek,
-                                  realCurrentWeek: realCurrentWeek,
-                                  showPastEndedCourses: showPastEndedCourses,
-                                  showFutureCourses: showFutureCourses,
-                                  displayedCourseIdForConflict:
-                                      displayedCourseIdForConflict,
-                                  liveCourseTarget: liveCourseTarget,
-                                  liveCourseOutlineEnabled:
-                                      liveCourseOutlineEnabled,
-                                ).map(
+                                ...dayLayoutsByWeekday[weekday]!.map(
                                   (item) => _CourseCard(
                                     layout: item,
                                     verticalLayout: layout,
                                     metrics: metrics,
+                                    themeColorMode: themeColorMode,
+                                    courseNameColorValues: courseNameColorValues,
+                                    colorfulTextColor: colorfulTextColor,
+                                    liveCourseOutlineMode: liveCourseOutlineMode,
                                     outlineColor: Color(
                                       liveCourseOutlineColorValue,
                                     ),
@@ -570,6 +598,10 @@ class _CourseCard extends StatelessWidget {
     required this.layout,
     required this.verticalLayout,
     required this.metrics,
+    required this.themeColorMode,
+    required this.courseNameColorValues,
+    required this.colorfulTextColor,
+    required this.liveCourseOutlineMode,
     required this.outlineColor,
     required this.outlineWidth,
     required this.onTap,
@@ -578,6 +610,10 @@ class _CourseCard extends StatelessWidget {
   final _CourseLayout layout;
   final _TimetableVerticalLayout verticalLayout;
   final _TimetableMetrics metrics;
+  final String themeColorMode;
+  final Map<String, int> courseNameColorValues;
+  final Color? colorfulTextColor;
+  final String liveCourseOutlineMode;
   final Color outlineColor;
   final double outlineWidth;
   final VoidCallback onTap;
@@ -598,19 +634,35 @@ class _CourseCard extends StatelessWidget {
       metrics.dayColumnWidth - (metrics.courseGap * 2),
     );
     final compact = width < 96 || height < 112;
-    final activeBaseColor = Color.lerp(
-      colorScheme.secondaryContainer,
-      colorScheme.primaryContainer,
-      0.18 + (layout.priorityDepth * 0.18),
-    );
-    final futureInactiveColor =
-        Color.lerp(colorScheme.surfaceContainerHighest, colorScheme.outlineVariant, 0.34) ??
-        colorScheme.surfaceContainerHighest;
-    final pastEndedColor =
-        Color.lerp(colorScheme.surface, colorScheme.surfaceContainerHighest, 0.72) ??
-        colorScheme.surfaceContainerHighest;
+    final normalizedCourseName = normalizeCourseColorName(layout.course.name);
+    final colorfulCourseBase = normalizedCourseName.isEmpty
+        ? null
+        : courseNameColorValues[normalizedCourseName];
+    final activeBaseColor =
+        themeColorMode == themeColorModeColorful && colorfulCourseBase != null
+        ? Color(colorfulCourseBase)
+        : Color.lerp(
+                colorScheme.secondaryContainer,
+                colorScheme.primaryContainer,
+                0.18 + (layout.priorityDepth * 0.18),
+              ) ??
+              colorScheme.secondaryContainer;
+    final futureInactiveColor = themeColorMode == themeColorModeColorful
+        ? Color.lerp(activeBaseColor, colorScheme.surface, 0.58) ??
+              colorScheme.surfaceContainerHighest
+        : Color.lerp(
+                colorScheme.surfaceContainerHighest,
+                colorScheme.outlineVariant,
+                0.34,
+              ) ??
+              colorScheme.surfaceContainerHighest;
+    final pastEndedColor = themeColorMode == themeColorModeColorful
+        ? Color.lerp(activeBaseColor, colorScheme.surface, 0.74) ??
+              colorScheme.surfaceContainerHighest
+        : Color.lerp(colorScheme.surface, colorScheme.surfaceContainerHighest, 0.72) ??
+              colorScheme.surfaceContainerHighest;
     final baseColor = switch (layout.displayState) {
-      _CourseDisplayState.active => activeBaseColor ?? colorScheme.secondaryContainer,
+      _CourseDisplayState.active => activeBaseColor,
       _CourseDisplayState.futureInactive => futureInactiveColor,
       _CourseDisplayState.pastEnded => pastEndedColor,
     };
@@ -627,6 +679,9 @@ class _CourseCard extends StatelessWidget {
     final effectiveOutlineWidth = compact
         ? math.max(minLiveCourseOutlineWidth, outlineWidth - 0.5)
         : outlineWidth;
+    final effectivePrimaryOutlineWidth = layout.isPrimaryLiveTarget
+        ? effectiveOutlineWidth + (compact ? 1.2 : 1.6)
+        : effectiveOutlineWidth;
 
     return Positioned(
       top: top,
@@ -642,7 +697,9 @@ class _CourseCard extends StatelessWidget {
           side: layout.isLiveHighlighted
               ? BorderSide(
                   color: outlineColor,
-                  width: effectiveOutlineWidth,
+                  width: layout.isPrimaryLiveTarget
+                      ? effectivePrimaryOutlineWidth
+                      : effectiveOutlineWidth,
                 )
               : BorderSide.none,
         ),
@@ -652,9 +709,11 @@ class _CourseCard extends StatelessWidget {
             padding: EdgeInsets.all(metrics.cardPadding),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final textColor = (_isInactiveForCurrentWeek
-                        ? colorScheme.onSurfaceVariant
-                        : colorScheme.onSecondaryContainer)
+                final textColor = (themeColorMode == themeColorModeColorful
+                        ? (colorfulTextColor ?? colorScheme.onSecondaryContainer)
+                        : (_isInactiveForCurrentWeek
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.onSecondaryContainer))
                     .withValues(
                       alpha: _isInactiveForCurrentWeek
                           ? 0.9
@@ -717,6 +776,32 @@ class _CourseCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (layout.isPrimaryLiveTarget &&
+                        liveCourseOutlineMode != liveCourseOutlineModeAllDisplayed &&
+                        !layout.isFullConflict &&
+                        layout.priorityDepth == 0)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: compact ? 4 : 6,
+                            vertical: compact ? 2 : 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: outlineColor.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: outlineColor.withValues(alpha: 0.45),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.notifications_active_outlined,
+                            size: compact ? 12 : 14,
+                            color: outlineColor,
+                          ),
+                        ),
+                      ),
                     if (layout.isFullConflict)
                       Positioned(
                         right: 0,
@@ -753,6 +838,7 @@ class _CourseLayout {
     required this.conflictCourses,
     required this.displayState,
     required this.isLiveHighlighted,
+    required this.isPrimaryLiveTarget,
     this.conflictKey,
   });
 
@@ -762,6 +848,7 @@ class _CourseLayout {
   final List<CourseItem> conflictCourses;
   final _CourseDisplayState displayState;
   final bool isLiveHighlighted;
+  final bool isPrimaryLiveTarget;
   final String? conflictKey;
 }
 
@@ -769,6 +856,60 @@ class _OverlapGroup {
   const _OverlapGroup(this.courses);
 
   final List<CourseItem> courses;
+}
+
+Color _resolveSharedColorfulTextColor({
+  required Iterable<_CourseLayout> layouts,
+  required Map<String, int> courseNameColorValues,
+  required Color surfaceColor,
+  required Color fallbackColor,
+}) {
+  var minLuminance = 1.0;
+  var foundColor = false;
+
+  for (final layout in layouts) {
+    final normalizedCourseName = normalizeCourseColorName(layout.course.name);
+    if (normalizedCourseName.isEmpty) {
+      continue;
+    }
+    final courseColorValue = courseNameColorValues[normalizedCourseName];
+    if (courseColorValue == null) {
+      continue;
+    }
+    foundColor = true;
+    final activeBaseColor = Color(courseColorValue);
+    final inactiveColor = Color.lerp(activeBaseColor, surfaceColor, 0.74) ??
+        surfaceColor;
+    final baseColor = switch (layout.displayState) {
+      _CourseDisplayState.active => activeBaseColor,
+      _CourseDisplayState.futureInactive =>
+        Color.lerp(activeBaseColor, surfaceColor, 0.58) ?? surfaceColor,
+      _CourseDisplayState.pastEnded => inactiveColor,
+    };
+    final blendedColor = Color.alphaBlend(
+      baseColor.withValues(
+        alpha: layout.displayState != _CourseDisplayState.active
+            ? (layout.displayState == _CourseDisplayState.pastEnded ? 0.92 : 0.96)
+            : layout.isFullConflict
+            ? 0.94
+            : layout.priorityDepth == 0
+            ? 0.92
+            : math.max(0.48, 0.82 - (layout.priorityDepth * 0.10)),
+      ),
+      surfaceColor,
+    );
+    minLuminance = math.min(minLuminance, blendedColor.computeLuminance());
+  }
+
+  if (!foundColor) {
+    return fallbackColor;
+  }
+
+  final colorfulTextProgress = minLuminance < 0.5
+      ? minLuminance * 0.4
+      : 0.8 + ((minLuminance - 0.5) * 0.4);
+  return Color.lerp(Colors.white, Colors.black, colorfulTextProgress) ??
+      fallbackColor;
 }
 
 List<_CourseLayout> _buildDayLayouts({
@@ -782,6 +923,7 @@ List<_CourseLayout> _buildDayLayouts({
   required String? Function(String conflictKey)? displayedCourseIdForConflict,
   required TimetableLiveCourseTarget? liveCourseTarget,
   required bool liveCourseOutlineEnabled,
+  required String liveCourseOutlineMode,
 }) {
   final dayCourses =
       courses.where((item) => item.dayOfWeek == weekday).where((item) {
@@ -830,6 +972,14 @@ List<_CourseLayout> _buildDayLayouts({
             showFutureCourses: showFutureCourses,
           ) ??
           _CourseDisplayState.active;
+      final isPrimaryLiveTarget =
+          liveCourseOutlineEnabled &&
+          liveCourseTarget?.week == selectedWeek &&
+          liveCourseTarget?.weekday == weekday &&
+          liveCourseTarget?.courseId == displayedCourse.id;
+      final isLiveHighlighted = liveCourseOutlineEnabled &&
+          (liveCourseOutlineMode == liveCourseOutlineModeAllDisplayed ||
+              isPrimaryLiveTarget);
       layouts.add(
         _CourseLayout(
           course: displayedCourse,
@@ -837,11 +987,8 @@ List<_CourseLayout> _buildDayLayouts({
           isFullConflict: true,
           conflictCourses: sortedCourses,
           displayState: displayState,
-          isLiveHighlighted:
-              liveCourseOutlineEnabled &&
-              liveCourseTarget?.week == selectedWeek &&
-              liveCourseTarget?.weekday == weekday &&
-              liveCourseTarget?.courseId == displayedCourse.id,
+          isLiveHighlighted: isLiveHighlighted,
+          isPrimaryLiveTarget: isPrimaryLiveTarget,
           conflictKey: conflictKey,
         ),
       );
@@ -860,6 +1007,14 @@ List<_CourseLayout> _buildDayLayouts({
             showFutureCourses: showFutureCourses,
           ) ??
           _CourseDisplayState.active;
+      final isPrimaryLiveTarget =
+          liveCourseOutlineEnabled &&
+          liveCourseTarget?.week == selectedWeek &&
+          liveCourseTarget?.weekday == weekday &&
+          liveCourseTarget?.courseId == course.id;
+      final isLiveHighlighted = liveCourseOutlineEnabled &&
+          (liveCourseOutlineMode == liveCourseOutlineModeAllDisplayed ||
+              isPrimaryLiveTarget);
       layouts.add(
         _CourseLayout(
           course: course,
@@ -867,11 +1022,8 @@ List<_CourseLayout> _buildDayLayouts({
           isFullConflict: false,
           conflictCourses: [course],
           displayState: displayState,
-          isLiveHighlighted:
-              liveCourseOutlineEnabled &&
-              liveCourseTarget?.week == selectedWeek &&
-              liveCourseTarget?.weekday == weekday &&
-              liveCourseTarget?.courseId == course.id,
+          isLiveHighlighted: isLiveHighlighted,
+          isPrimaryLiveTarget: isPrimaryLiveTarget,
         ),
       );
     }

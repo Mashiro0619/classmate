@@ -362,11 +362,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         showPastEndedCourses: provider.showPastEndedCourses,
                         showFutureCourses: provider.showFutureCourses,
                         showGridLines: provider.showTimetableGridLines,
+                        themeColorMode: provider.themeColorMode,
+                        courseNameColorValues: provider.courseNameColorValues,
+                        colorfulCourseTextColorMode:
+                            provider.colorfulCourseTextColorMode,
+                        colorfulCourseTextColorValue: provider
+                            .colorfulUiColorValues[colorfulCourseTextColorKey],
                         displayedCourseIdForConflict:
                             provider.displayedCourseIdForConflict,
                         liveCourseTarget: liveCourseTarget,
                         liveCourseOutlineEnabled:
                             provider.liveCourseOutlineEnabled,
+                        liveCourseOutlineMode:
+                            provider.liveCourseOutlineMode,
                         liveCourseOutlineColorValue:
                             liveCourseOutlineColorValue,
                         liveCourseOutlineWidth:

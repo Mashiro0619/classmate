@@ -231,22 +231,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showTimetableGridLinesHint => '控制课表中的横向与纵向网格线是否显示。';
 
   @override
-  String get liveCourseOutlineColor => '当前/下一节课程描边颜色';
+  String get liveCourseOutlineColor => '课程描边颜色';
 
   @override
-  String get liveCourseOutlineColorHint => '当前上课时描边当前课程；当前不在上课时描边今天下一节即将开始的课程；如果当天课程已结束，则描边第二天第一节课。';
+  String get liveCourseOutlineColorHint => '描边目标可选择当前/下一节课程，或当前页所有已显示课程。';
 
   @override
-  String get liveCourseOutlineSettings => '当前/下一节课程描边';
+  String get liveCourseOutlineSettings => '课程描边';
 
   @override
-  String get liveCourseOutlineSettingsHint => '可设置是否开启描边、是否跟随主题色，以及当前实际生效的描边颜色。';
+  String get liveCourseOutlineSettingsHint => '可设置是否开启描边、描边目标、是否跟随主题色，以及当前实际生效的描边颜色。';
 
   @override
   String get liveCourseOutlineEnabled => '开启课程描边';
 
   @override
   String get liveCourseOutlineFollowTheme => '跟随主题色';
+
+  @override
+  String get liveCourseOutlineTarget => '描边目标';
+
+  @override
+  String get liveCourseOutlineTargetCurrentOrNext => '当前/下一节课程';
+
+  @override
+  String get liveCourseOutlineTargetAllDisplayed => '当前页全部课程';
 
   @override
   String get liveCourseOutlineEffectiveColor => '当前生效颜色';
@@ -283,6 +292,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get themeColor => '主题色';
+
+  @override
+  String get themeColorModeSingle => '单调主题色';
+
+  @override
+  String get themeColorModeColorful => '五彩缤纷';
+
+  @override
+  String get themeColorUiColors => 'UI 配色';
+
+  @override
+  String get themeColorCourseColors => '课程颜色';
+
+  @override
+  String get themeColorPrimary => '主色';
+
+  @override
+  String get themeColorSecondary => '辅色';
+
+  @override
+  String get themeColorTertiary => '强调色';
+
+  @override
+  String get themeColorCourseText => '课程文字色';
+
+  @override
+  String get themeColorCourseTextAuto => '自动配色';
+
+  @override
+  String get themeColorCourseTextCustom => '自定义颜色';
+
+  @override
+  String get themeColorCourseColorsEmpty => '导入课表后将自动生成课程颜色';
 
   @override
   String get themeCustomColor => '自定义颜色';
@@ -736,13 +778,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolSitesJsonFileName => 'classmate_school_sites.json';
 
   @override
-  String get schoolHtmlImportEntry => '粘贴课程表网页 HTML 导入';
+  String get schoolHtmlImportEntry => '粘贴课程表页面内容导入';
 
   @override
-  String get schoolHtmlImportEntryDesc => '手动粘贴课程表网页源码，适用于 Windows 和 Web 端。';
+  String get schoolHtmlImportEntryDesc => '手动粘贴包含课程信息的页面源码或原始内容。';
 
   @override
-  String get schoolHtmlImportPageTitle => 'HTML 导入课表';
+  String get schoolHtmlImportPageTitle => '解析课表页面内容';
 
   @override
   String get schoolHtmlImportUrlLabel => '来源 URL（可选）';
@@ -751,10 +793,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolHtmlImportTitleLabel => '页面标题（可选）';
 
   @override
-  String get schoolHtmlImportHtmlLabel => '网页 HTML';
+  String get schoolHtmlImportHtmlLabel => '页面内容';
 
   @override
-  String get schoolHtmlImportHtmlHint => '请粘贴完整课程表页面 HTML。';
+  String get schoolHtmlImportHtmlHint => '请粘贴包含课程信息的页面源码或原始内容。';
+
+  @override
+  String get schoolHtmlImportNonHtmlHint =>
+      '只要内容里包含课程信息，就可以解析导入，不限于 HTML。';
 
   @override
   String get schoolHtmlImportCompress => '压缩内容';
@@ -843,6 +889,82 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get schoolWebImportSuccess => '网页课表已导入';
+
+  @override
+  String get schoolImportParserSettingsTitle => '课表解析设置';
+
+  @override
+  String get schoolImportParserSettingsDesc => '选择官方解析，或改用自定义 OpenAI 兼容接口。';
+
+  @override
+  String get schoolImportParserSourceTitle => '解析来源';
+
+  @override
+  String get schoolImportParserSourceOfficial => '官方解析';
+
+  @override
+  String get schoolImportParserSourceOfficialDesc => '使用应用内配置的官方解析服务。';
+
+  @override
+  String get schoolImportParserSourceOfficialInfo => '官方解析会继续使用应用当前配置的解析后端，并保持现有导入流程不变。';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAi => '自定义 OpenAI 兼容接口';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAiDesc => '把页面内容直接发送到你自己的 OpenAI 兼容端点。';
+
+  @override
+  String get schoolImportParserCustomOpenAi => '自定义 OpenAI 兼容解析';
+
+  @override
+  String get schoolImportParserCustomPromptTitle => '自定义提示词';
+
+  @override
+  String get schoolImportParserCustomPromptDescription => '可直接在这里修改内置解析提示词，且仅对自定义 OpenAI 兼容接口生效。';
+
+  @override
+  String get schoolImportParserCustomPromptHint => '这里默认会载入内置提示词；清空后会回退为内置版本。';
+
+  @override
+  String get schoolImportParserResetDefaultPrompt => '重置默认提示词';
+
+  @override
+  String get schoolImportParserBaseUrl => 'Base URL';
+
+  @override
+  String get schoolImportParserApiKey => 'API 密钥';
+
+  @override
+  String get schoolImportParserModel => '模型名称';
+
+  @override
+  String get schoolImportParserFetchModels => '获取模型列表';
+
+  @override
+  String get schoolImportParserFetchingModels => '正在获取模型列表...';
+
+  @override
+  String get schoolImportParserNoModelsFound => '该端点没有返回任何模型。';
+
+  @override
+  String schoolImportParserModelsFetched(int count) {
+    return '已获取 $count 个模型';
+  }
+
+  @override
+  String get schoolImportParserPlaintextWarning => '当前实现下，自定义 API 密钥会以明文形式保存在应用本地配置中。请仅在你信任的设备或浏览器环境中使用。';
+
+  @override
+  String get schoolImportParserCustomConfigIncomplete => '自定义解析配置不完整，请先填写 Base URL、API 密钥和模型名称。';
+
+  @override
+  String get schoolImportParserCurrentSourceOfficial => '解析器：官方';
+
+  @override
+  String schoolImportParserCurrentSourceCustom(Object model) {
+    return '解析器：自定义（$model）';
+  }
 
   @override
   String get privacyViewFullPolicy => '查看完整隐私政策';

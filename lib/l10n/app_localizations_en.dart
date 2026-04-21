@@ -231,22 +231,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showTimetableGridLinesHint => 'Control whether horizontal and vertical grid lines are visible in the timetable.';
 
   @override
-  String get liveCourseOutlineColor => 'Current/next course outline color';
+  String get liveCourseOutlineColor => 'Course outline color';
 
   @override
-  String get liveCourseOutlineColorHint => 'Outline the current course during class time, the next upcoming course later today, or tomorrow\'s first course after today\'s classes are over.';
+  String get liveCourseOutlineColorHint => 'Choose whether outlines target the current/next course or all displayed courses on the current page.';
 
   @override
-  String get liveCourseOutlineSettings => 'Current/next course outline';
+  String get liveCourseOutlineSettings => 'Course outline';
 
   @override
-  String get liveCourseOutlineSettingsHint => 'Configure whether the outline is enabled, whether it follows the theme color, and the effective outline color.';
+  String get liveCourseOutlineSettingsHint => 'Configure whether the outline is enabled, what it targets, whether it follows the theme color, and the effective outline color.';
 
   @override
   String get liveCourseOutlineEnabled => 'Enable outline';
 
   @override
   String get liveCourseOutlineFollowTheme => 'Follow theme color';
+
+  @override
+  String get liveCourseOutlineTarget => 'Outline target';
+
+  @override
+  String get liveCourseOutlineTargetCurrentOrNext => 'Current/next course';
+
+  @override
+  String get liveCourseOutlineTargetAllDisplayed => 'All displayed courses';
 
   @override
   String get liveCourseOutlineEffectiveColor => 'Effective color';
@@ -283,6 +292,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeColor => 'Theme color';
+
+  @override
+  String get themeColorModeSingle => 'Single theme color';
+
+  @override
+  String get themeColorModeColorful => 'Colorful';
+
+  @override
+  String get themeColorUiColors => 'UI colors';
+
+  @override
+  String get themeColorCourseColors => 'Course colors';
+
+  @override
+  String get themeColorPrimary => 'Primary';
+
+  @override
+  String get themeColorSecondary => 'Secondary';
+
+  @override
+  String get themeColorTertiary => 'Tertiary';
+
+  @override
+  String get themeColorCourseText => 'Course text';
+
+  @override
+  String get themeColorCourseTextAuto => 'Auto';
+
+  @override
+  String get themeColorCourseTextCustom => 'Custom color';
+
+  @override
+  String get themeColorCourseColorsEmpty => 'Course colors will be generated after importing a timetable.';
 
   @override
   String get themeCustomColor => 'Custom color';
@@ -738,13 +780,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolSitesJsonFileName => 'classmate_school_sites.json';
 
   @override
-  String get schoolHtmlImportEntry => 'Import by pasting timetable HTML';
+  String get schoolHtmlImportEntry => 'Import by pasting timetable page content';
 
   @override
-  String get schoolHtmlImportEntryDesc => 'Paste timetable page HTML manually. Useful on Windows and web.';
+  String get schoolHtmlImportEntryDesc =>
+      'Paste source code or raw page content containing timetable information manually.';
 
   @override
-  String get schoolHtmlImportPageTitle => 'Import timetable from HTML';
+  String get schoolHtmlImportPageTitle => 'Parse timetable from page content';
 
   @override
   String get schoolHtmlImportUrlLabel => 'Source URL (optional)';
@@ -753,10 +796,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolHtmlImportTitleLabel => 'Page title (optional)';
 
   @override
-  String get schoolHtmlImportHtmlLabel => 'Page HTML';
+  String get schoolHtmlImportHtmlLabel => 'Page content';
 
   @override
-  String get schoolHtmlImportHtmlHint => 'Paste the full timetable page HTML here.';
+  String get schoolHtmlImportHtmlHint =>
+      'Paste source code or raw page content containing timetable information here.';
+
+  @override
+  String get schoolHtmlImportNonHtmlHint =>
+      'Any content containing timetable information can be parsed and imported, not just HTML.';
 
   @override
   String get schoolHtmlImportCompress => 'Compress content';
@@ -846,6 +894,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get schoolWebImportSuccess => 'Web timetable imported';
+
+  @override
+  String get schoolImportParserSettingsTitle => 'Timetable parser settings';
+
+  @override
+  String get schoolImportParserSettingsDesc => 'Choose the official parser or a custom OpenAI-compatible endpoint.';
+
+  @override
+  String get schoolImportParserSourceTitle => 'Parser source';
+
+  @override
+  String get schoolImportParserSourceOfficial => 'Official parser';
+
+  @override
+  String get schoolImportParserSourceOfficialDesc => 'Use the built-in official parsing service configured by the app.';
+
+  @override
+  String get schoolImportParserSourceOfficialInfo => 'The official parser uses the app\'s configured parsing backend and keeps the current import flow unchanged.';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAi => 'Custom OpenAI-compatible';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAiDesc => 'Send the page content directly to your own OpenAI-compatible endpoint.';
+
+  @override
+  String get schoolImportParserCustomOpenAi => 'Custom OpenAI-compatible parser';
+
+  @override
+  String get schoolImportParserCustomPromptTitle => 'Custom prompt';
+
+  @override
+  String get schoolImportParserCustomPromptDescription => 'Edit the built-in parser prompt here. Changes only affect the custom OpenAI-compatible parser.';
+
+  @override
+  String get schoolImportParserCustomPromptHint => 'The built-in prompt is loaded here by default. Clear it to fall back to the built-in version.';
+
+  @override
+  String get schoolImportParserResetDefaultPrompt => 'Reset default prompt';
+
+  @override
+  String get schoolImportParserBaseUrl => 'Base URL';
+
+  @override
+  String get schoolImportParserApiKey => 'API key';
+
+  @override
+  String get schoolImportParserModel => 'Model';
+
+  @override
+  String get schoolImportParserFetchModels => 'Fetch model list';
+
+  @override
+  String get schoolImportParserFetchingModels => 'Fetching models...';
+
+  @override
+  String get schoolImportParserNoModelsFound => 'No models were returned by the endpoint.';
+
+  @override
+  String schoolImportParserModelsFetched(int count) {
+    return 'Fetched $count models';
+  }
+
+  @override
+  String get schoolImportParserPlaintextWarning => 'The custom API key is stored in the app\'s local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.';
+
+  @override
+  String get schoolImportParserCustomConfigIncomplete => 'Custom parser configuration is incomplete. Fill in the base URL, API key, and model first.';
+
+  @override
+  String get schoolImportParserCurrentSourceOfficial => 'Parser: Official';
+
+  @override
+  String schoolImportParserCurrentSourceCustom(Object model) {
+    return 'Parser: Custom ($model)';
+  }
 
   @override
   String get privacyViewFullPolicy => 'View full privacy policy';

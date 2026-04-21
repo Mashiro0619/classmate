@@ -6,16 +6,32 @@ const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
 const defaultLocaleCode = 'zh';
 const defaultThemeMode = 'system';
+const defaultThemeColorMode = 'single';
+const themeColorModeSingle = 'single';
+const themeColorModeColorful = 'colorful';
+const colorfulUiPrimaryKey = 'primary';
+const colorfulUiSecondaryKey = 'secondary';
+const colorfulUiTertiaryKey = 'tertiary';
+const colorfulCourseTextColorKey = 'course_text';
+const defaultColorfulCourseTextColorMode = 'auto';
+const colorfulCourseTextColorModeAuto = 'auto';
+const colorfulCourseTextColorModeCustom = 'custom';
+const defaultSchoolImportParserSource = 'official';
+const schoolImportParserSourceOfficial = 'official';
+const schoolImportParserSourceCustomOpenAi = 'custom_openai';
 const defaultThemeSeedColorValue = 0xFF6750A4;
 const defaultLiveCourseOutlineColorValue = 0xFFEF6C00;
 const defaultLiveCourseOutlineEnabled = true;
 const defaultLiveCourseOutlineFollowTheme = true;
 const defaultLiveCourseOutlineCustomColorInitialized = false;
+const defaultLiveCourseOutlineMode = 'current_or_next';
+const liveCourseOutlineModeCurrentOrNext = 'current_or_next';
+const liveCourseOutlineModeAllDisplayed = 'all_displayed';
 const defaultLiveCourseOutlineWidth = 2.5;
 const minLiveCourseOutlineWidth = 1.0;
 const maxLiveCourseOutlineWidth = 4.0;
 const maxTimetableWeeks = 100;
-const currentPrivacyPolicyVersion = '2026-04-08';
+const currentPrivacyPolicyVersion = '2026-04-20';
 
 bool _isEnglishLocale(String localeCode) =>
     normalizeLocaleCode(localeCode) == 'en';
@@ -32,6 +48,26 @@ double normalizeLiveCourseOutlineWidth(double? width) {
     minLiveCourseOutlineWidth,
     maxLiveCourseOutlineWidth,
   ).toDouble();
+}
+
+String normalizeLiveCourseOutlineMode(String? mode) {
+  switch (mode) {
+    case liveCourseOutlineModeAllDisplayed:
+      return liveCourseOutlineModeAllDisplayed;
+    case liveCourseOutlineModeCurrentOrNext:
+    default:
+      return liveCourseOutlineModeCurrentOrNext;
+  }
+}
+
+String normalizeColorfulCourseTextColorMode(String? mode) {
+  switch (mode) {
+    case colorfulCourseTextColorModeCustom:
+      return colorfulCourseTextColorModeCustom;
+    case colorfulCourseTextColorModeAuto:
+    default:
+      return colorfulCourseTextColorModeAuto;
+  }
 }
 
 String defaultPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
@@ -537,6 +573,56 @@ class TimetableExportData {
 
 const Object _keepNullableValue = Object();
 
+class SchoolImportParserSettings {
+  const SchoolImportParserSettings({
+    this.source = defaultSchoolImportParserSource,
+    this.customBaseUrl = '',
+    this.customApiKey = '',
+    this.customModel = '',
+    this.customPrompt = '',
+  });
+
+  final String source;
+  final String customBaseUrl;
+  final String customApiKey;
+  final String customModel;
+  final String customPrompt;
+
+  Map<String, dynamic> toJson() => {
+    'source': normalizeSchoolImportParserSource(source),
+    'customBaseUrl': customBaseUrl.trim(),
+    'customApiKey': customApiKey.trim(),
+    'customModel': customModel.trim(),
+    'customPrompt': customPrompt.trim(),
+  };
+
+  factory SchoolImportParserSettings.fromJson(Map<String, dynamic> json) {
+    return SchoolImportParserSettings(
+      source: normalizeSchoolImportParserSource(json['source'] as String?),
+      customBaseUrl: (json['customBaseUrl'] as String? ?? '').trim(),
+      customApiKey: (json['customApiKey'] as String? ?? '').trim(),
+      customModel: (json['customModel'] as String? ?? '').trim(),
+      customPrompt: (json['customPrompt'] as String? ?? '').trim(),
+    );
+  }
+
+  SchoolImportParserSettings copyWith({
+    String? source,
+    String? customBaseUrl,
+    String? customApiKey,
+    String? customModel,
+    String? customPrompt,
+  }) {
+    return SchoolImportParserSettings(
+      source: normalizeSchoolImportParserSource(source ?? this.source),
+      customBaseUrl: (customBaseUrl ?? this.customBaseUrl).trim(),
+      customApiKey: (customApiKey ?? this.customApiKey).trim(),
+      customModel: (customModel ?? this.customModel).trim(),
+      customPrompt: (customPrompt ?? this.customPrompt).trim(),
+    );
+  }
+}
+
 class AppData {
   const AppData({
     required this.activeTimetableId,
@@ -550,12 +636,18 @@ class AppData {
     this.showTimetableGridLines = true,
     this.localeCode = defaultLocaleCode,
     this.themeMode = defaultThemeMode,
+    this.themeColorMode = defaultThemeColorMode,
     this.themeSeedColorValue = defaultThemeSeedColorValue,
+    this.colorfulCourseTextColorMode = defaultColorfulCourseTextColorMode,
+    this.colorfulUiColorValues = const {},
+    this.courseNameColorValues = const {},
+    this.schoolImportParserSettings = const SchoolImportParserSettings(),
     this.liveCourseOutlineColorValue = defaultLiveCourseOutlineColorValue,
     this.liveCourseOutlineEnabled = defaultLiveCourseOutlineEnabled,
     this.liveCourseOutlineFollowTheme = defaultLiveCourseOutlineFollowTheme,
     this.liveCourseOutlineCustomColorInitialized =
         defaultLiveCourseOutlineCustomColorInitialized,
+    this.liveCourseOutlineMode = defaultLiveCourseOutlineMode,
     this.liveCourseOutlineWidth = defaultLiveCourseOutlineWidth,
     this.privacyPolicyAcceptedVersion,
     this.privacyPolicyAcceptedAtIso,
@@ -574,11 +666,17 @@ class AppData {
   final bool showTimetableGridLines;
   final String localeCode;
   final String themeMode;
+  final String themeColorMode;
   final int themeSeedColorValue;
+  final String colorfulCourseTextColorMode;
+  final Map<String, int> colorfulUiColorValues;
+  final Map<String, int> courseNameColorValues;
+  final SchoolImportParserSettings schoolImportParserSettings;
   final int liveCourseOutlineColorValue;
   final bool liveCourseOutlineEnabled;
   final bool liveCourseOutlineFollowTheme;
   final bool liveCourseOutlineCustomColorInitialized;
+  final String liveCourseOutlineMode;
   final double liveCourseOutlineWidth;
   final String? privacyPolicyAcceptedVersion;
   final String? privacyPolicyAcceptedAtIso;
@@ -597,12 +695,22 @@ class AppData {
     'showTimetableGridLines': showTimetableGridLines,
     'localeCode': normalizeLocaleCode(localeCode),
     'themeMode': normalizeThemeMode(themeMode),
+    'themeColorMode': normalizeThemeColorMode(themeColorMode),
     'themeSeedColorValue': themeSeedColorValue,
+    'colorfulCourseTextColorMode': normalizeColorfulCourseTextColorMode(
+      colorfulCourseTextColorMode,
+    ),
+    'colorfulUiColorValues': colorfulUiColorValues,
+    'courseNameColorValues': courseNameColorValues,
+    'schoolImportParserSettings': schoolImportParserSettings.toJson(),
     'liveCourseOutlineColorValue': liveCourseOutlineColorValue,
     'liveCourseOutlineEnabled': liveCourseOutlineEnabled,
     'liveCourseOutlineFollowTheme': liveCourseOutlineFollowTheme,
     'liveCourseOutlineCustomColorInitialized':
         liveCourseOutlineCustomColorInitialized,
+    'liveCourseOutlineMode': normalizeLiveCourseOutlineMode(
+      liveCourseOutlineMode,
+    ),
     'liveCourseOutlineWidth': liveCourseOutlineWidth,
     'privacyPolicyAcceptedVersion': privacyPolicyAcceptedVersion,
     'privacyPolicyAcceptedAtIso': privacyPolicyAcceptedAtIso,
@@ -700,9 +808,27 @@ class AppData {
       themeMode: normalizeThemeMode(
         json['themeMode'] as String? ?? defaultThemeMode,
       ),
+      themeColorMode: normalizeThemeColorMode(
+        json['themeColorMode'] as String? ?? defaultThemeColorMode,
+      ),
       themeSeedColorValue:
           (json['themeSeedColorValue'] as num?)?.toInt() ??
           defaultThemeSeedColorValue,
+      colorfulCourseTextColorMode: normalizeColorfulCourseTextColorMode(
+        json['colorfulCourseTextColorMode'] as String? ??
+            defaultColorfulCourseTextColorMode,
+      ),
+      colorfulUiColorValues: decodeColorValueMap(
+        json['colorfulUiColorValues'],
+      ),
+      courseNameColorValues: decodeColorValueMap(
+        json['courseNameColorValues'],
+      ),
+      schoolImportParserSettings: SchoolImportParserSettings.fromJson(
+        Map<String, dynamic>.from(
+          json['schoolImportParserSettings'] as Map? ?? const {},
+        ),
+      ),
       liveCourseOutlineColorValue:
           (json['liveCourseOutlineColorValue'] as num?)?.toInt() ??
           defaultLiveCourseOutlineColorValue,
@@ -715,6 +841,9 @@ class AppData {
       liveCourseOutlineCustomColorInitialized:
           json['liveCourseOutlineCustomColorInitialized'] as bool? ??
           defaultLiveCourseOutlineCustomColorInitialized,
+      liveCourseOutlineMode: normalizeLiveCourseOutlineMode(
+        json['liveCourseOutlineMode'] as String? ?? defaultLiveCourseOutlineMode,
+      ),
       liveCourseOutlineWidth: normalizeLiveCourseOutlineWidth(
         (json['liveCourseOutlineWidth'] as num?)?.toDouble(),
       ),
@@ -738,11 +867,17 @@ class AppData {
     bool? showTimetableGridLines,
     String? localeCode,
     String? themeMode,
+    String? themeColorMode,
     int? themeSeedColorValue,
+    String? colorfulCourseTextColorMode,
+    Map<String, int>? colorfulUiColorValues,
+    Map<String, int>? courseNameColorValues,
+    SchoolImportParserSettings? schoolImportParserSettings,
     int? liveCourseOutlineColorValue,
     bool? liveCourseOutlineEnabled,
     bool? liveCourseOutlineFollowTheme,
     bool? liveCourseOutlineCustomColorInitialized,
+    String? liveCourseOutlineMode,
     double? liveCourseOutlineWidth,
     Object? privacyPolicyAcceptedVersion = _keepNullableValue,
     Object? privacyPolicyAcceptedAtIso = _keepNullableValue,
@@ -767,7 +902,19 @@ class AppData {
           showTimetableGridLines ?? this.showTimetableGridLines,
       localeCode: normalizeLocaleCode(localeCode ?? this.localeCode),
       themeMode: normalizeThemeMode(themeMode ?? this.themeMode),
+      themeColorMode: normalizeThemeColorMode(
+        themeColorMode ?? this.themeColorMode,
+      ),
       themeSeedColorValue: themeSeedColorValue ?? this.themeSeedColorValue,
+      colorfulCourseTextColorMode: normalizeColorfulCourseTextColorMode(
+        colorfulCourseTextColorMode ?? this.colorfulCourseTextColorMode,
+      ),
+      colorfulUiColorValues:
+          colorfulUiColorValues ?? this.colorfulUiColorValues,
+      courseNameColorValues:
+          courseNameColorValues ?? this.courseNameColorValues,
+      schoolImportParserSettings:
+          schoolImportParserSettings ?? this.schoolImportParserSettings,
       liveCourseOutlineColorValue:
           liveCourseOutlineColorValue ?? this.liveCourseOutlineColorValue,
       liveCourseOutlineEnabled:
@@ -777,6 +924,9 @@ class AppData {
       liveCourseOutlineCustomColorInitialized:
           liveCourseOutlineCustomColorInitialized ??
           this.liveCourseOutlineCustomColorInitialized,
+      liveCourseOutlineMode: normalizeLiveCourseOutlineMode(
+        liveCourseOutlineMode ?? this.liveCourseOutlineMode,
+      ),
       liveCourseOutlineWidth: normalizeLiveCourseOutlineWidth(
         liveCourseOutlineWidth ?? this.liveCourseOutlineWidth,
       ),
@@ -1056,6 +1206,46 @@ String normalizeThemeMode(String? themeMode) {
     default:
       return defaultThemeMode;
   }
+}
+
+String normalizeThemeColorMode(String? themeColorMode) {
+  switch (themeColorMode) {
+    case themeColorModeColorful:
+      return themeColorModeColorful;
+    case themeColorModeSingle:
+    default:
+      return themeColorModeSingle;
+  }
+}
+
+String normalizeSchoolImportParserSource(String? source) {
+  switch (source) {
+    case schoolImportParserSourceCustomOpenAi:
+      return schoolImportParserSourceCustomOpenAi;
+    case schoolImportParserSourceOfficial:
+    default:
+      return schoolImportParserSourceOfficial;
+  }
+}
+
+String normalizeCourseColorName(String? courseName) {
+  return courseName?.trim() ?? '';
+}
+
+Map<String, int> decodeColorValueMap(dynamic value) {
+  if (value is! Map) {
+    return const {};
+  }
+  final result = <String, int>{};
+  value.forEach((key, item) {
+    final normalizedKey = '$key'.trim();
+    final colorValue = (item as num?)?.toInt();
+    if (normalizedKey.isEmpty || colorValue == null) {
+      return;
+    }
+    result[normalizedKey] = colorValue;
+  });
+  return result;
 }
 
 /// 这里保留空列表语义，后面会把它当成“整学期都生效”，不用强行补满所有周。

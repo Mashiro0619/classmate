@@ -177,6 +177,12 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
                       title: Text(l10n.schoolWebImportPageTitleLabel),
                       subtitle: Text(widget.response.meta.pageTitle),
                     ),
+                  if (widget.response.meta.parser.trim().isNotEmpty)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.schoolImportParserSourceTitle),
+                      subtitle: Text(widget.response.meta.parser),
+                    ),
                   if (warnings.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(

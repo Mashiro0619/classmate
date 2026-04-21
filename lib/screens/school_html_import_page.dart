@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import '../config/app_config.dart';
 import '../l10n/app_localizations.dart';
 import '../models/school_import_models.dart';
+import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/school_import_api.dart';
 import '../services/school_import_content_sanitizer.dart';
 import '../widgets/school_web_import_result_sheet.dart';
+import 'school_import_parser_settings_page.dart';
 
 class SchoolHtmlImportPage extends StatefulWidget {
   const SchoolHtmlImportPage({
@@ -34,7 +36,37 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   bool _isSubmitting = false;
   bool _isCompressed = false;
 
-  bool get _isConfigured => AppConfig.hasSchoolImportApiBaseUrl;
+  bool _isConfigured(TimetableProvider provider) {
+    if (provider.schoolImportParserSource == schoolImportParserSourceCustomOpenAi) {
+      return provider.customSchoolImportBaseUrl.trim().isNotEmpty &&
+          provider.customSchoolImportApiKey.trim().isNotEmpty &&
+          provider.customSchoolImportModel.trim().isNotEmpty;
+    }
+    return AppConfig.hasSchoolImportApiBaseUrl;
+  }
+
+  String _buildParserSummary(
+    TimetableProvider provider,
+    AppLocalizations l10n,
+  ) {
+    if (provider.schoolImportParserSource == schoolImportParserSourceCustomOpenAi) {
+      final model = provider.customSchoolImportModel.trim();
+      return model.isEmpty
+          ? l10n.schoolImportParserSourceCustomOpenAi
+          : l10n.schoolImportParserCurrentSourceCustom(model);
+    }
+    return l10n.schoolImportParserCurrentSourceOfficial;
+  }
+
+  String _buildConfigMessage(
+    TimetableProvider provider,
+    AppLocalizations l10n,
+  ) {
+    if (provider.schoolImportParserSource == schoolImportParserSourceCustomOpenAi) {
+      return l10n.schoolImportParserCustomConfigIncomplete;
+    }
+    return l10n.schoolWebImportConfigMissing;
+  }
 
   @override
   void initState() {
@@ -53,6 +85,8 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final provider = context.watch<TimetableProvider>();
+    final isConfigured = _isConfigured(provider);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.schoolHtmlImportPageTitle),
@@ -64,11 +98,26 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
             ),
         ],
       ),
-      body: !_isConfigured
-          ? _buildMessage(l10n.schoolWebImportConfigMissing)
+      body: !isConfigured
+          ? _buildMessage(_buildConfigMessage(provider, l10n))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.tune_outlined),
+                  title: Text(l10n.schoolImportParserSettingsTitle),
+                  subtitle: Text(_buildParserSummary(provider, l10n)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SchoolImportParserSettingsPage(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _htmlController,
                   enabled: !_isSubmitting,
@@ -84,6 +133,13 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
                     hintText: l10n.schoolHtmlImportHtmlHint,
                     border: const OutlineInputBorder(),
                     alignLabelWithHint: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.schoolHtmlImportNonHtmlHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -148,6 +204,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     final provider = context.read<TimetableProvider>();
     final localeCode = provider.localeCode;
     final canReplaceCurrent = provider.activeTimetableOrNull != null;
+    final parserSettings = provider.schoolImportParserSettings;
     final html = _htmlController.text.trim();
     if (html.isEmpty) {
       _showMessage(l10n.schoolHtmlImportEmpty);
@@ -168,7 +225,9 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
           title: widget.initialTitle,
           html: sanitizedContent,
           locale: localeCode,
+          sourceHint: parserSettings.source,
         ),
+        parserSettings: parserSettings,
       );
       if (!mounted) {
         return;

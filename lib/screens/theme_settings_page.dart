@@ -40,10 +40,50 @@ String _formatOutlineWidthValue(BuildContext context, double width) {
   return '${_formatOutlineWidthNumber(width)} ${l10n.outlineWidthUnit}';
 }
 
+String _outlineModeLabel(BuildContext context, String mode) {
+  final l10n = AppLocalizations.of(context)!;
+  return switch (mode) {
+    liveCourseOutlineModeAllDisplayed =>
+      l10n.liveCourseOutlineTargetAllDisplayed,
+    _ => l10n.liveCourseOutlineTargetCurrentOrNext,
+  };
+}
+
 int _derivedOutlineColorValue(int themeSeedColorValue) {
   return deriveLiveCourseOutlineColorFromSeed(
     Color(themeSeedColorValue),
   ).toARGB32();
+}
+
+int _effectiveUiColorValue(
+  BuildContext context,
+  TimetableProvider provider,
+  String key,
+) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return switch (key) {
+    colorfulUiPrimaryKey =>
+      provider.colorfulUiColorValues[key] ?? colorScheme.primary.toARGB32(),
+    colorfulUiSecondaryKey =>
+      provider.colorfulUiColorValues[key] ?? colorScheme.secondary.toARGB32(),
+    colorfulUiTertiaryKey =>
+      provider.colorfulUiColorValues[key] ?? colorScheme.tertiary.toARGB32(),
+    colorfulCourseTextColorKey =>
+      provider.colorfulUiColorValues[key] ??
+      colorScheme.onSecondaryContainer.toARGB32(),
+    _ => provider.colorfulUiColorValues[key] ?? colorScheme.primary.toARGB32(),
+  };
+}
+
+String _uiColorLabel(BuildContext context, String key) {
+  final l10n = AppLocalizations.of(context)!;
+  return switch (key) {
+    colorfulUiPrimaryKey => l10n.themeColorPrimary,
+    colorfulUiSecondaryKey => l10n.themeColorSecondary,
+    colorfulUiTertiaryKey => l10n.themeColorTertiary,
+    colorfulCourseTextColorKey => l10n.themeColorCourseText,
+    _ => key,
+  };
 }
 
 class ThemeSettingsPage extends StatelessWidget {
@@ -68,10 +108,34 @@ class ThemeSettingsPage extends StatelessWidget {
             children: [
               _ThemeModeCard(provider: provider),
               const SizedBox(height: 12),
-              _ThemeColorCard(
+              _ThemeColorSettingsCard(
                 provider: provider,
                 hasCustomColor: hasCustomColor,
                 onPickCustomColor: () => _openCustomColorDialog(context, provider),
+                onPickUiColor: (key) {
+                  if (key == colorfulCourseTextColorKey) {
+                    _openCourseTextColorDialog(context, provider);
+                    return;
+                  }
+                  _openColorValueDialog(
+                    context,
+                    title: _uiColorLabel(context, key),
+                    previewTitle: l10n.themeColorUiColors,
+                    initialColorValue: _effectiveUiColorValue(context, provider, key),
+                    onApply: (colorValue) =>
+                        provider.updateColorfulUiColorValue(key, colorValue),
+                  );
+                },
+                onPickCourseColor: (courseName) => _openColorValueDialog(
+                  context,
+                  title: courseName,
+                  previewTitle: l10n.themeColorCourseColors,
+                  initialColorValue:
+                      provider.courseNameColorValues[courseName] ??
+                      provider.themeSeedColorValue,
+                  onApply: (colorValue) =>
+                      provider.updateCourseNameColorValue(courseName, colorValue),
+                ),
               ),
               const SizedBox(height: 12),
               _OutlineSettingsCard(
@@ -155,6 +219,201 @@ class ThemeSettingsPage extends StatelessWidget {
     );
   }
 
+  Future<void> _openColorValueDialog(
+    BuildContext context, {
+    required String title,
+    required String previewTitle,
+    required int initialColorValue,
+    required Future<void> Function(int colorValue) onApply,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    var selectedColor = Color(initialColorValue);
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final colorValue = selectedColor.toARGB32();
+            return AlertDialog(
+              title: Text(title),
+              content: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _PreviewBanner(
+                        title: previewTitle,
+                        value: _formatColorHex(colorValue),
+                        preview: _ThemeColorPreview(
+                          colorValue: colorValue,
+                          selected: true,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: _CompactColorPicker(
+                            colorValue: colorValue,
+                            onColorChanged: (updatedColorValue) => setState(() {
+                              selectedColor = Color(updatedColorValue);
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    await onApply(colorValue);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(l10n.themeApplySettings),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openCourseTextColorDialog(
+    BuildContext context,
+    TimetableProvider provider,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    var mode = provider.colorfulCourseTextColorMode;
+    var colorValue = _effectiveUiColorValue(
+      context,
+      provider,
+      colorfulCourseTextColorKey,
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final modeLabel = mode == colorfulCourseTextColorModeCustom
+                ? l10n.themeColorCourseTextCustom
+                : l10n.themeColorCourseTextAuto;
+            return AlertDialog(
+              title: Text(l10n.themeColorCourseText),
+              content: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _PreviewBanner(
+                        title: l10n.themeColorCourseText,
+                        value: mode == colorfulCourseTextColorModeCustom
+                            ? '$modeLabel · ${_formatColorHex(colorValue)}'
+                            : modeLabel,
+                        preview: _ThemeColorPreview(
+                          colorValue: colorValue,
+                          selected: true,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _SelectableOptionTile(
+                                title: l10n.themeColorCourseTextAuto,
+                                selected: mode == colorfulCourseTextColorModeAuto,
+                                onTap: () => setState(() {
+                                  mode = colorfulCourseTextColorModeAuto;
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              _SelectableOptionTile(
+                                title: l10n.themeColorCourseTextCustom,
+                                selected: mode == colorfulCourseTextColorModeCustom,
+                                onTap: () => setState(() {
+                                  mode = colorfulCourseTextColorModeCustom;
+                                }),
+                              ),
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.topCenter,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 180),
+                                  switchInCurve: Curves.easeOut,
+                                  switchOutCurve: Curves.easeIn,
+                                  child: mode == colorfulCourseTextColorModeCustom
+                                      ? Padding(
+                                          key: const ValueKey(
+                                            'course-text-color-picker',
+                                          ),
+                                          padding: const EdgeInsets.only(top: 12),
+                                          child: _CompactColorPicker(
+                                            colorValue: colorValue,
+                                            onColorChanged:
+                                                (updatedColorValue) => setState(() {
+                                                  colorValue = updatedColorValue;
+                                                }),
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(
+                                          key: ValueKey('course-text-color-auto'),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    if (mode == colorfulCourseTextColorModeCustom) {
+                      await provider.updateColorfulUiColorValue(
+                        colorfulCourseTextColorKey,
+                        colorValue,
+                      );
+                    }
+                    await provider.updateColorfulCourseTextColorMode(mode);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(l10n.themeApplySettings),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _openOutlineSettingsDialog(
     BuildContext context,
     TimetableProvider provider,
@@ -168,6 +427,7 @@ class ThemeSettingsPage extends StatelessWidget {
     var customColorValue = provider.liveCourseOutlineColorValue;
     var customColorInitialized =
         provider.liveCourseOutlineCustomColorInitialized;
+    var outlineMode = provider.liveCourseOutlineMode;
     var outlineWidth = provider.liveCourseOutlineWidth;
     await showDialog<void>(
       context: context,
@@ -236,6 +496,44 @@ class ThemeSettingsPage extends StatelessWidget {
                               }),
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card.outlined(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.liveCourseOutlineTarget,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 12),
+                              _SelectableOptionTile(
+                                title: l10n.liveCourseOutlineTargetCurrentOrNext,
+                                selected:
+                                    outlineMode ==
+                                    liveCourseOutlineModeCurrentOrNext,
+                                onTap: () => setState(() {
+                                  outlineMode =
+                                      liveCourseOutlineModeCurrentOrNext;
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              _SelectableOptionTile(
+                                title: l10n.liveCourseOutlineTargetAllDisplayed,
+                                selected:
+                                    outlineMode ==
+                                    liveCourseOutlineModeAllDisplayed,
+                                onTap: () => setState(() {
+                                  outlineMode =
+                                      liveCourseOutlineModeAllDisplayed;
+                                }),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -327,6 +625,7 @@ class ThemeSettingsPage extends StatelessWidget {
                       followTheme: followTheme,
                       colorValue: customColorValue,
                       customColorInitialized: customColorInitialized,
+                      mode: outlineMode,
                       width: outlineWidth,
                     );
                     if (context.mounted) {
@@ -385,8 +684,76 @@ class _ThemeModeCard extends StatelessWidget {
   }
 }
 
-class _ThemeColorCard extends StatelessWidget {
-  const _ThemeColorCard({
+class _ThemeColorSettingsCard extends StatelessWidget {
+  const _ThemeColorSettingsCard({
+    required this.provider,
+    required this.hasCustomColor,
+    required this.onPickCustomColor,
+    required this.onPickUiColor,
+    required this.onPickCourseColor,
+  });
+
+  final TimetableProvider provider;
+  final bool hasCustomColor;
+  final VoidCallback onPickCustomColor;
+  final ValueChanged<String> onPickUiColor;
+  final ValueChanged<String> onPickCourseColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isSingleMode = provider.themeColorMode == themeColorModeSingle;
+    final courseNames = provider.courseNameColorValues.keys.toList()..sort();
+    return Card.outlined(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.themeColor, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            _SelectableOptionTile(
+              title: l10n.themeColorModeSingle,
+              selected: isSingleMode,
+              onTap: () => provider.updateThemeColorMode(themeColorModeSingle),
+            ),
+            const SizedBox(height: 8),
+            _SelectableOptionTile(
+              title: l10n.themeColorModeColorful,
+              selected: !isSingleMode,
+              onTap: () => provider.updateThemeColorMode(themeColorModeColorful),
+            ),
+            const SizedBox(height: 16),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: isSingleMode
+                  ? _SingleThemeColorSection(
+                      key: const ValueKey('single-theme-color-section'),
+                      provider: provider,
+                      hasCustomColor: hasCustomColor,
+                      onPickCustomColor: onPickCustomColor,
+                    )
+                  : _ColorfulThemeSection(
+                      key: const ValueKey('colorful-theme-section'),
+                      provider: provider,
+                      courseNames: courseNames,
+                      onPickUiColor: onPickUiColor,
+                      onPickCourseColor: onPickCourseColor,
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SingleThemeColorSection extends StatelessWidget {
+  const _SingleThemeColorSection({
+    super.key,
     required this.provider,
     required this.hasCustomColor,
     required this.onPickCustomColor,
@@ -399,50 +766,157 @@ class _ThemeColorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Card.outlined(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _PreviewBanner(
+          title: l10n.themeColor,
+          value: _formatColorHex(provider.themeSeedColorValue),
+          preview: _ThemeColorPreview(
+            colorValue: provider.themeSeedColorValue,
+            selected: true,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            _PreviewBanner(
-              title: l10n.themeColor,
-              value: _formatColorHex(provider.themeSeedColorValue),
-              preview: _ThemeColorPreview(
-                colorValue: provider.themeSeedColorValue,
-                selected: true,
+            for (final colorValue in _themeSeedOptions)
+              _ThemeColorOption(
+                colorValue: colorValue,
+                selected: provider.themeSeedColorValue == colorValue,
+                onTap: () => provider.updateThemeSeedColorValue(colorValue),
               ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final colorValue in _themeSeedOptions)
-                  _ThemeColorOption(
-                    colorValue: colorValue,
-                    selected: provider.themeSeedColorValue == colorValue,
-                    onTap: () => provider.updateThemeSeedColorValue(colorValue),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _ActionOptionCard(
-              onTap: onPickCustomColor,
-              selected: hasCustomColor,
-              leading: _ThemeColorPreview(
-                colorValue: provider.themeSeedColorValue,
-                selected: hasCustomColor,
-              ),
-              title: l10n.themeCustomColor,
-              subtitle: hasCustomColor
-                  ? _formatColorHex(provider.themeSeedColorValue)
-                  : null,
-            ),
           ],
         ),
+        const SizedBox(height: 16),
+        _ActionOptionCard(
+          onTap: onPickCustomColor,
+          selected: hasCustomColor,
+          leading: _ThemeColorPreview(
+            colorValue: provider.themeSeedColorValue,
+            selected: hasCustomColor,
+          ),
+          title: l10n.themeCustomColor,
+          subtitle: hasCustomColor
+              ? _formatColorHex(provider.themeSeedColorValue)
+              : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _ColorfulThemeSection extends StatelessWidget {
+  const _ColorfulThemeSection({
+    super.key,
+    required this.provider,
+    required this.courseNames,
+    required this.onPickUiColor,
+    required this.onPickCourseColor,
+  });
+
+  final TimetableProvider provider;
+  final List<String> courseNames;
+  final ValueChanged<String> onPickUiColor;
+  final ValueChanged<String> onPickCourseColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ColorSettingsGroup(
+          title: AppLocalizations.of(context)!.themeColorUiColors,
+          children: [
+            for (final key in const [
+              colorfulUiPrimaryKey,
+              colorfulUiSecondaryKey,
+              colorfulUiTertiaryKey,
+              colorfulCourseTextColorKey,
+            ])
+              _ColorValueTile(
+                title: _uiColorLabel(context, key),
+                colorValue: _effectiveUiColorValue(context, provider, key),
+                onTap: () => onPickUiColor(key),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _ColorSettingsGroup(
+          title: AppLocalizations.of(context)!.themeColorCourseColors,
+          children: courseNames.isEmpty
+              ? [
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(
+                      AppLocalizations.of(context)!.themeColorCourseColorsEmpty,
+                    ),
+                  ),
+                ]
+              : [
+                  for (final courseName in courseNames)
+                    _ColorValueTile(
+                      title: courseName,
+                      colorValue: provider.courseNameColorValues[courseName] ??
+                          provider.themeSeedColorValue,
+                      onTap: () => onPickCourseColor(courseName),
+                    ),
+                ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ColorSettingsGroup extends StatelessWidget {
+  const _ColorSettingsGroup({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+        ),
+        const SizedBox(height: 8),
+        Card.outlined(
+          margin: EdgeInsets.zero,
+          child: Column(mainAxisSize: MainAxisSize.min, children: children),
+        ),
+      ],
+    );
+  }
+}
+
+class _ColorValueTile extends StatelessWidget {
+  const _ColorValueTile({
+    required this.title,
+    required this.colorValue,
+    required this.onTap,
+  });
+
+  final String title;
+  final int colorValue;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      title: Text(title),
+      subtitle: Text(_formatColorHex(colorValue)),
+      trailing: _ThemeColorPreview(
+        colorValue: colorValue,
+        selected: false,
       ),
+      onTap: onTap,
     );
   }
 }
@@ -522,6 +996,13 @@ class _OutlineSettingsCard extends StatelessWidget {
                   color: provider.liveCourseOutlineFollowTheme
                       ? colors.primary
                       : colors.outline,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: l10n.liveCourseOutlineTarget,
+                value: Text(
+                  _outlineModeLabel(context, provider.liveCourseOutlineMode),
                 ),
               ),
               const SizedBox(height: 10),
