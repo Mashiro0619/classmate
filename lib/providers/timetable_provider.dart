@@ -697,17 +697,34 @@ class TimetableProvider extends ChangeNotifier {
   Future<void> importSchoolWebResponseWithPeriodTimeSet(
     SchoolImportResponse response, {
     required TimetableImportMode mode,
-    required String periodTimeSetId,
+    required bool importBundledPeriodTimeSet,
+    String? targetPeriodTimeSetId,
   }) async {
-    final selectedPeriodTimeSet = periodTimeSetForId(periodTimeSetId);
-    if (selectedPeriodTimeSet == null) {
+    final manualTargetSetId = targetPeriodTimeSetId?.trim() ?? '';
+    if (!importBundledPeriodTimeSet) {
+      if (manualTargetSetId.isEmpty || periodTimeSetForId(manualTargetSetId) == null) {
+        throw FormatException(
+          noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
+        );
+      }
+    }
+
+    final existingSetIds = _appData.periodTimeSets.map((item) => item.id).toSet();
+    final bundledPeriodTimeSet = importBundledPeriodTimeSet
+        ? _copyImportedPeriodTimeSetWithUniqueId(
+            _buildImportedSchoolPeriodTimeSet(response),
+            existingSetIds,
+          )
+        : null;
+    final resolvedPeriodTimeSet = bundledPeriodTimeSet ?? periodTimeSetForId(manualTargetSetId);
+    if (resolvedPeriodTimeSet == null) {
       throw FormatException(
         noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
       );
     }
     final timetable = _buildSchoolImportedTimetable(
       response,
-      periodTimeSet: selectedPeriodTimeSet,
+      periodTimeSet: resolvedPeriodTimeSet,
     );
 
     if (mode == TimetableImportMode.replaceActive) {
@@ -721,9 +738,13 @@ class TimetableProvider extends ChangeNotifier {
       final updatedTimetables = _appData.timetables
           .map((item) => item.id == current.id ? replaced : item)
           .toList();
+      final nextPeriodTimeSets = bundledPeriodTimeSet == null
+          ? _appData.periodTimeSets
+          : [..._appData.periodTimeSets, bundledPeriodTimeSet];
       _appData = _appData.copyWith(
         activeTimetableId: current.id,
         timetables: updatedTimetables,
+        periodTimeSets: nextPeriodTimeSets,
         courseNameColorValues: _buildCourseNameColorValuesForTimetables(
           updatedTimetables,
           existing: _appData.courseNameColorValues,
@@ -735,9 +756,13 @@ class TimetableProvider extends ChangeNotifier {
     }
 
     final nextTimetables = [..._appData.timetables, timetable];
+    final nextPeriodTimeSets = bundledPeriodTimeSet == null
+        ? _appData.periodTimeSets
+        : [..._appData.periodTimeSets, bundledPeriodTimeSet];
     _appData = _appData.copyWith(
       activeTimetableId: timetable.id,
       timetables: nextTimetables,
+      periodTimeSets: nextPeriodTimeSets,
       courseNameColorValues: _buildCourseNameColorValuesForTimetables(
         nextTimetables,
         existing: _appData.courseNameColorValues,
@@ -769,6 +794,33 @@ class TimetableProvider extends ChangeNotifier {
     }
 
     return (matchedSlots.first.startMinutes, matchedSlots.last.endMinutes);
+  }
+
+  PeriodTimeSet _buildImportedSchoolPeriodTimeSet(
+    SchoolImportResponse response,
+  ) {
+    final draft = response.timetable.periodTimeSet;
+    final timetableName = response.timetable.name.trim().isEmpty
+        ? untitledTimetableName(localeCode: _appData.localeCode)
+        : response.timetable.name.trim();
+    return PeriodTimeSet(
+      id: '',
+      name: draft.name.trim().isEmpty
+          ? importedPeriodTimeSetName(
+              timetableName,
+              localeCode: _appData.localeCode,
+            )
+          : draft.name.trim(),
+      periodTimes: draft.periodTimes
+          .map(
+            (item) => CoursePeriodTime(
+              index: item.index,
+              startMinutes: item.startMinutes,
+              endMinutes: item.endMinutes,
+            ),
+          )
+          .toList(),
+    );
   }
 
   TimetableData _buildSchoolImportedTimetable(
@@ -808,7 +860,7 @@ class TimetableProvider extends ChangeNotifier {
         timeRange: buildTimeRange(startMinutes, endMinutes),
         credit: item.credit,
         remarks: item.remarks.trim(),
-        customFields: const {},
+        customFields: Map<String, dynamic>.from(item.customFields),
       );
     }).toList();
     final timetableName = draft.name.trim().isEmpty

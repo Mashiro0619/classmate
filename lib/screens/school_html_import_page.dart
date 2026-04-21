@@ -18,19 +18,21 @@ class SchoolHtmlImportPage extends StatefulWidget {
     this.initialUrl = '',
     this.initialTitle = '',
     this.showReturnToWebPageButton = false,
+    this.api,
   });
 
   final String initialContent;
   final String initialUrl;
   final String initialTitle;
   final bool showReturnToWebPageButton;
+  final SchoolImportApi? api;
 
   @override
   State<SchoolHtmlImportPage> createState() => _SchoolHtmlImportPageState();
 }
 
 class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
-  final SchoolImportApi _api = const SchoolImportApi();
+  late final SchoolImportApi _api;
   final TextEditingController _htmlController = TextEditingController();
 
   bool _isSubmitting = false;
@@ -71,6 +73,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   @override
   void initState() {
     super.initState();
+    _api = widget.api ?? const SchoolImportApi();
     if (widget.initialContent.isNotEmpty) {
       _htmlController.text = widget.initialContent;
     }
@@ -226,22 +229,39 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     setState(() => _isCompressed = true);
   }
 
+  String? _validateBeforeSubmit(
+    TimetableProvider provider,
+    AppLocalizations l10n,
+  ) {
+    final html = _htmlController.text.trim();
+    if (html.isEmpty) {
+      return l10n.schoolHtmlImportEmpty;
+    }
+    if (!_isConfigured(provider)) {
+      return _buildConfigMessage(provider, l10n);
+    }
+    if (!_isCompressed) {
+      return l10n.schoolHtmlImportCompressFirst;
+    }
+    return null;
+  }
+
   Future<void> _submit() async {
+    if (_isSubmitting) {
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<TimetableProvider>();
+    final validationMessage = _validateBeforeSubmit(provider, l10n);
+    if (validationMessage != null) {
+      _showMessage(validationMessage);
+      return;
+    }
+
     final localeCode = provider.localeCode;
     final canReplaceCurrent = provider.activeTimetableOrNull != null;
     final parserSettings = provider.schoolImportParserSettings;
-    final html = _htmlController.text.trim();
-    if (html.isEmpty) {
-      _showMessage(l10n.schoolHtmlImportEmpty);
-      return;
-    }
-    if (!_isCompressed) {
-      _showMessage(l10n.schoolHtmlImportCompressFirst);
-      return;
-    }
-    final sanitizedContent = html;
+    final sanitizedContent = _htmlController.text.trim();
 
     _showMessage(l10n.schoolHtmlImportParsingMayTakeLong);
     setState(() => _isSubmitting = true);
@@ -286,7 +306,9 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
       await provider.importSchoolWebResponseWithPeriodTimeSet(
         importResult.response,
         mode: importResult.mode,
-        periodTimeSetId: importResult.selectedPeriodTimeSetId,
+        importBundledPeriodTimeSet:
+            importResult.importBundledPeriodTimeSet,
+        targetPeriodTimeSetId: importResult.targetPeriodTimeSetId,
       );
       if (!mounted) {
         return;

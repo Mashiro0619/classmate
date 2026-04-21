@@ -10,12 +10,14 @@ class SchoolWebImportResult {
   const SchoolWebImportResult({
     required this.response,
     required this.mode,
-    required this.selectedPeriodTimeSetId,
+    required this.importBundledPeriodTimeSet,
+    this.targetPeriodTimeSetId,
   });
 
   final SchoolImportResponse response;
   final TimetableImportMode mode;
-  final String selectedPeriodTimeSetId;
+  final bool importBundledPeriodTimeSet;
+  final String? targetPeriodTimeSetId;
 }
 
 class SchoolWebImportResultSheet extends StatefulWidget {
@@ -43,18 +45,28 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
   late final TextEditingController _nameController;
   late DateTime _startDate;
   late String _selectedPeriodTimeSetId;
+  late bool _importBundledPeriodTimeSet;
+
+  bool get _hasBundledPeriodTimeSet =>
+      widget.response.timetable.periodTimeSet.periodTimes.isNotEmpty;
+
+  bool get _canDiscardBundledPeriodTimeSet => widget.periodTimeSets.isNotEmpty;
+
+  bool get _canSubmitImport =>
+      _importBundledPeriodTimeSet || _selectedPeriodTimeSetId.isNotEmpty;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.response.timetable.name)
       ..addListener(_handleNameChanged);
-    _startDate = DateTime(2026, 3, 2);
+    _startDate = normalizeDateOnly(widget.response.timetable.startDate);
     _selectedPeriodTimeSetId = widget.periodTimeSets.any(
           (item) => item.id == widget.initialPeriodTimeSetId,
         )
         ? widget.initialPeriodTimeSetId
         : (widget.periodTimeSets.isEmpty ? '' : widget.periodTimeSets.first.id);
+    _importBundledPeriodTimeSet = _hasBundledPeriodTimeSet;
   }
 
   void _handleNameChanged() {
@@ -77,13 +89,7 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
     final timetable = widget.response.timetable;
     final warnings = widget.response.meta.warnings;
     final theme = Theme.of(context);
-    PeriodTimeSet? selectedPeriodTimeSet;
-    for (final item in widget.periodTimeSets) {
-      if (item.id == _selectedPeriodTimeSetId) {
-        selectedPeriodTimeSet = item;
-        break;
-      }
-    }
+    final selectedPeriodTimeSet = _selectedExistingPeriodTimeSet();
 
     return SafeArea(
       top: false,
@@ -141,36 +147,75 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
                     ),
                     subtitle: Text(
                       '${l10n.schoolWebImportCourseCount(timetable.courses.length)} · '
-                      '${selectedPeriodTimeSet == null ? l10n.noPeriodTimeAvailable : l10n.periodTimeSetSummary(selectedPeriodTimeSet.name, selectedPeriodTimeSet.periodTimes.length)}',
+                      '${_buildActivePeriodTimeSetSummary(l10n, selectedPeriodTimeSet)}',
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.selectPeriodTimeSet),
-                    subtitle: Text(
-                      selectedPeriodTimeSet == null
-                          ? l10n.noPeriodTimeAvailable
-                          : l10n.periodTimeSetSummary(
-                              selectedPeriodTimeSet.name,
-                              selectedPeriodTimeSet.periodTimes.length,
-                            ),
+                  if (_hasBundledPeriodTimeSet) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.importPeriodTimeSetDialogTitle,
+                      style: theme.textTheme.titleMedium,
                     ),
-                    trailing: const Icon(Icons.keyboard_arrow_down),
-                    onTap: widget.periodTimeSets.isEmpty
-                        ? null
-                        : () async {
-                            final result = await showPeriodTimeSetPickerDialog(
-                              context,
-                              provider: widget.provider,
-                              selectedPeriodTimeSetId: _selectedPeriodTimeSetId,
-                            );
-                            if (!mounted || result == null) {
-                              return;
+                    const SizedBox(height: 8),
+                    _ImportChoiceTile(
+                      title: l10n.importBundledPeriodTimeSets,
+                      subtitle: l10n.periodTimeSetSummary(
+                        _resolvedBundledPeriodTimeSetName(),
+                        timetable.periodTimeSet.periodTimes.length,
+                      ),
+                      selected: _importBundledPeriodTimeSet,
+                      onTap: () {
+                        setState(() => _importBundledPeriodTimeSet = true);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _ImportChoiceTile(
+                      title: l10n.discardBundledPeriodTimeSets,
+                      subtitle: _canDiscardBundledPeriodTimeSet
+                          ? (selectedPeriodTimeSet == null
+                                ? l10n.noPeriodTimeAvailable
+                                : l10n.periodTimeSetSummary(
+                                    selectedPeriodTimeSet.name,
+                                    selectedPeriodTimeSet.periodTimes.length,
+                                  ))
+                          : l10n.importDiscardPeriodTimeSetUnavailable,
+                      selected: !_importBundledPeriodTimeSet,
+                      onTap: _canDiscardBundledPeriodTimeSet
+                          ? () {
+                              setState(() => _importBundledPeriodTimeSet = false);
                             }
-                            setState(() => _selectedPeriodTimeSetId = result);
-                          },
-                  ),
+                          : null,
+                    ),
+                  ],
+                  if (!_importBundledPeriodTimeSet) ...[
+                    const SizedBox(height: 8),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.selectPeriodTimeSet),
+                      subtitle: Text(
+                        selectedPeriodTimeSet == null
+                            ? l10n.noPeriodTimeAvailable
+                            : l10n.periodTimeSetSummary(
+                                selectedPeriodTimeSet.name,
+                                selectedPeriodTimeSet.periodTimes.length,
+                              ),
+                      ),
+                      trailing: const Icon(Icons.keyboard_arrow_down),
+                      onTap: widget.periodTimeSets.isEmpty
+                          ? null
+                          : () async {
+                              final result = await showPeriodTimeSetPickerDialog(
+                                context,
+                                provider: widget.provider,
+                                selectedPeriodTimeSetId: _selectedPeriodTimeSetId,
+                              );
+                              if (!mounted || result == null) {
+                                return;
+                              }
+                              setState(() => _selectedPeriodTimeSetId = result);
+                            },
+                    ),
+                  ],
                   if (widget.response.meta.pageTitle.trim().isNotEmpty)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -218,16 +263,16 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
                         child: Text(l10n.cancel),
                       ),
                       OutlinedButton(
-                        onPressed: _selectedPeriodTimeSetId.isEmpty
-                            ? null
-                            : () => _submit(TimetableImportMode.addAsNew),
+                        onPressed: _canSubmitImport
+                            ? () => _submit(TimetableImportMode.addAsNew)
+                            : null,
                         child: Text(l10n.importAsNewTimetable),
                       ),
                       if (widget.canReplaceCurrent)
                         FilledButton(
-                          onPressed: _selectedPeriodTimeSetId.isEmpty
-                              ? null
-                              : () => _submit(TimetableImportMode.replaceActive),
+                          onPressed: _canSubmitImport
+                              ? () => _submit(TimetableImportMode.replaceActive)
+                              : null,
                           child: Text(l10n.replaceCurrentTimetable),
                         ),
                     ],
@@ -238,6 +283,51 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
           ),
         ),
       ),
+    );
+  }
+
+  PeriodTimeSet? _selectedExistingPeriodTimeSet() {
+    for (final item in widget.periodTimeSets) {
+      if (item.id == _selectedPeriodTimeSetId) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  String _buildActivePeriodTimeSetSummary(
+    AppLocalizations l10n,
+    PeriodTimeSet? selectedPeriodTimeSet,
+  ) {
+    if (_importBundledPeriodTimeSet) {
+      return l10n.periodTimeSetSummary(
+        _resolvedBundledPeriodTimeSetName(),
+        widget.response.timetable.periodTimeSet.periodTimes.length,
+      );
+    }
+    if (selectedPeriodTimeSet == null) {
+      return l10n.noPeriodTimeAvailable;
+    }
+    return l10n.periodTimeSetSummary(
+      selectedPeriodTimeSet.name,
+      selectedPeriodTimeSet.periodTimes.length,
+    );
+  }
+
+  String _resolvedBundledPeriodTimeSetName() {
+    final bundledName = widget.response.timetable.periodTimeSet.name.trim();
+    if (bundledName.isNotEmpty) {
+      return bundledName;
+    }
+    final editedTimetableName = _nameController.text.trim();
+    final timetableName = editedTimetableName.isNotEmpty
+        ? editedTimetableName
+        : (widget.response.timetable.name.trim().isNotEmpty
+              ? widget.response.timetable.name.trim()
+              : untitledTimetableName(localeCode: widget.provider.localeCode));
+    return importedPeriodTimeSetName(
+      timetableName,
+      localeCode: widget.provider.localeCode,
     );
   }
 
@@ -266,7 +356,10 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
       SchoolWebImportResult(
         response: nextResponse,
         mode: mode,
-        selectedPeriodTimeSetId: _selectedPeriodTimeSetId,
+        importBundledPeriodTimeSet: _importBundledPeriodTimeSet,
+        targetPeriodTimeSetId: _importBundledPeriodTimeSet
+            ? null
+            : _selectedPeriodTimeSetId,
       ),
     );
   }
@@ -276,5 +369,73 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
     final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
     return '$year-$month-$day';
+  }
+}
+
+class _ImportChoiceTile extends StatelessWidget {
+  const _ImportChoiceTile({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveColor = selected
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
+    return Material(
+      color: effectiveColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_outlined
+                    : Icons.radio_button_unchecked_outlined,
+                color: onTap == null
+                    ? colorScheme.onSurfaceVariant
+                    : (selected
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

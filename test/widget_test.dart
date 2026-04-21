@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,6 +19,7 @@ import 'package:classmate/services/update_service.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
 import 'package:classmate/widgets/period_time_set_picker_dialog.dart';
+import 'package:classmate/widgets/school_web_import_result_sheet.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -98,6 +100,30 @@ class FakeThrowingUpdateService extends UpdateService {
   @override
   Future<UpdateCheckResult> checkForUpdates({Locale? preferredLocale}) async {
     throw error;
+  }
+}
+
+class FakeSchoolImportApi extends SchoolImportApi {
+  FakeSchoolImportApi({required this.onImport});
+
+  final Future<SchoolImportApiResult> Function(
+    SchoolImportPagePayload payload,
+    SchoolImportParserSettings? parserSettings,
+  ) onImport;
+
+  int callCount = 0;
+  SchoolImportPagePayload? lastPayload;
+  SchoolImportParserSettings? lastParserSettings;
+
+  @override
+  Future<SchoolImportApiResult> importCurrentPageWithRawResponse(
+    SchoolImportPagePayload payload, {
+    SchoolImportParserSettings? parserSettings,
+  }) async {
+    callCount += 1;
+    lastPayload = payload;
+    lastParserSettings = parserSettings;
+    return onImport(payload, parserSettings);
   }
 }
 
@@ -198,7 +224,14 @@ AppData _buildTestAppData() {
   );
 }
 
-Map<String, dynamic> _buildSchoolImportSuccessJson({String parser = 'official'}) {
+Map<String, dynamic> _buildSchoolImportSuccessJson({
+  String parser = 'official',
+  String timetableName = 'Imported timetable',
+  String startDate = '2026-02-23T00:00:00.000',
+  String periodTimeSetName = 'Imported periods',
+  List<Map<String, dynamic>>? periodTimes,
+  Map<String, dynamic>? customFields,
+}) {
   return {
     'ok': true,
     'meta': {
@@ -208,14 +241,15 @@ Map<String, dynamic> _buildSchoolImportSuccessJson({String parser = 'official'})
       'warnings': ['warning'],
     },
     'timetable': {
-      'name': 'Imported timetable',
-      'startDate': '2026-02-23T00:00:00.000',
+      'name': timetableName,
+      'startDate': startDate,
       'totalWeeks': 18,
       'periodTimeSet': {
-        'name': 'Imported periods',
-        'periodTimes': [
-          {'index': 1, 'startMinutes': 480, 'endMinutes': 525},
-        ],
+        'name': periodTimeSetName,
+        'periodTimes':
+            periodTimes ?? [
+              {'index': 1, 'startMinutes': 480, 'endMinutes': 525},
+            ],
       },
       'courses': [
         {
@@ -229,11 +263,31 @@ Map<String, dynamic> _buildSchoolImportSuccessJson({String parser = 'official'})
           'endMinutes': 525,
           'credit': 0,
           'remarks': '',
-          'customFields': {},
+          'customFields': customFields ?? {'qqGroup': '123456'},
         },
       ],
     },
   };
+}
+
+SchoolImportResponse _buildSchoolImportResponse({
+  String parser = 'official',
+  String timetableName = 'Imported timetable',
+  String startDate = '2026-02-23T00:00:00.000',
+  String periodTimeSetName = 'Imported periods',
+  List<Map<String, dynamic>>? periodTimes,
+  Map<String, dynamic>? customFields,
+}) {
+  return SchoolImportResponse.fromJson(
+    _buildSchoolImportSuccessJson(
+      parser: parser,
+      timetableName: timetableName,
+      startDate: startDate,
+      periodTimeSetName: periodTimeSetName,
+      periodTimes: periodTimes,
+      customFields: customFields,
+    ),
+  );
 }
 
 void main() {
@@ -1228,6 +1282,7 @@ void main() {
       expect(capturedBody['sourceHint'], 'official');
       expect(capturedBody.containsKey('customPrompt'), isFalse);
       expect(result.response.meta.parser, 'official');
+      expect(result.response.timetable.courses.first.customFields['qqGroup'], '123456');
     });
 
     test('SchoolImportApi 自定义分支会解析聊天响应并补全 parser 元信息', () async {
@@ -1284,6 +1339,7 @@ void main() {
         result.response.meta.parser,
         'custom-openai:gpt-4.1-mini',
       );
+      expect(result.response.timetable.courses.first.customFields['qqGroup'], '123456');
     });
 
     test('SchoolImportApi 可获取并排序去重模型列表', () async {
@@ -1697,6 +1753,362 @@ void main() {
 
       expect(find.text('解析并导入'), findsOneWidget);
       expect(find.textContaining('gpt-4.1-mini'), findsOneWidget);
+    });
+
+    test('网页解析导入会保留 customFields 并导入内含节次时间集', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      final response = _buildSchoolImportResponse(
+        periodTimes: const [
+          {'index': 1, 'startMinutes': 480, 'endMinutes': 525},
+          {'index': 2, 'startMinutes': 530, 'endMinutes': 575},
+        ],
+        customFields: const {'课程群': '654321'},
+      );
+
+      final beforeSetCount = provider.periodTimeSets.length;
+      await provider.importSchoolWebResponseWithPeriodTimeSet(
+        response,
+        mode: TimetableImportMode.addAsNew,
+        importBundledPeriodTimeSet: true,
+      );
+
+      expect(provider.periodTimeSets.length, beforeSetCount + 1);
+      expect(provider.activeTimetable.config.name, 'Imported timetable');
+      expect(provider.activeTimetable.config.startDate, DateTime(2026, 2, 23));
+      expect(provider.activeTimetable.courses.first.customFields['课程群'], '654321');
+      expect(provider.activePeriodTimeSet.periodTimes.length, 2);
+      expect(provider.activePeriodTimeSet.name, 'Imported periods');
+    });
+
+    test('网页解析导入丢弃内含节次时会复用现有节次时间集', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      final beforeSetIds = provider.periodTimeSets.map((item) => item.id).toList();
+      await provider.importSchoolWebResponseWithPeriodTimeSet(
+        _buildSchoolImportResponse(),
+        mode: TimetableImportMode.addAsNew,
+        importBundledPeriodTimeSet: false,
+        targetPeriodTimeSetId: 'set2',
+      );
+
+      expect(provider.periodTimeSets.map((item) => item.id).toList(), beforeSetIds);
+      expect(provider.activeTimetable.config.periodTimeSetId, 'set2');
+    });
+
+    test('网页解析导入覆盖当前课表时也能导入内含节次时间集', () async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      final currentId = provider.activeTimetable.id;
+      final beforeSetCount = provider.periodTimeSets.length;
+      await provider.importSchoolWebResponseWithPeriodTimeSet(
+        _buildSchoolImportResponse(
+          timetableName: 'Replaced timetable',
+          customFields: const {'备注': '覆盖导入'},
+        ),
+        mode: TimetableImportMode.replaceActive,
+        importBundledPeriodTimeSet: true,
+      );
+
+      expect(provider.activeTimetable.id, currentId);
+      expect(provider.activeTimetable.config.name, 'Replaced timetable');
+      expect(provider.activeTimetable.courses.first.customFields['备注'], '覆盖导入');
+      expect(provider.periodTimeSets.length, beforeSetCount + 1);
+    });
+
+    testWidgets('网页解析导入结果页默认显示解析结果中的开学时间并允许切换节次时间集策略', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+      final response = _buildSchoolImportResponse(
+        startDate: '2026-03-09T00:00:00.000',
+        periodTimes: const [
+          {'index': 1, 'startMinutes': 480, 'endMinutes': 525},
+          {'index': 2, 'startMinutes': 530, 'endMinutes': 575},
+        ],
+      );
+      SchoolWebImportResult? sheetResult;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('zh'), Locale('en')],
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () async {
+                    sheetResult = await showModalBottomSheet<SchoolWebImportResult>(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => SchoolWebImportResultSheet(
+                        response: response,
+                        canReplaceCurrent: true,
+                        periodTimeSets: provider.periodTimeSets,
+                        initialPeriodTimeSetId: provider.activePeriodTimeSet.id,
+                        provider: provider,
+                      ),
+                    );
+                  },
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2026-03-09'), findsOneWidget);
+      expect(find.text('导入并关联'), findsOneWidget);
+      expect(find.text('丢弃内含节次'), findsOneWidget);
+
+      await tester.tap(find.text('丢弃内含节次'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('选择节次时间集'), findsOneWidget);
+
+      final importAsNewText = find.text('作为新课表导入');
+      await tester.ensureVisible(importAsNewText);
+      await tester.pump();
+      await tester.tap(importAsNewText);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(sheetResult, isNotNull);
+      expect(sheetResult!.importBundledPeriodTimeSet, isFalse);
+      expect(sheetResult!.targetPeriodTimeSetId, provider.activePeriodTimeSet.id);
+    });
+
+    testWidgets('网页解析导入结果页在没有现有节次时间集时禁用丢弃内含节次', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+      final response = _buildSchoolImportResponse();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('zh'), Locale('en')],
+          home: Scaffold(
+            body: SchoolWebImportResultSheet(
+              response: response,
+              canReplaceCurrent: true,
+              periodTimeSets: const [],
+              initialPeriodTimeSetId: '',
+              provider: provider,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final discardChoice = find.text('丢弃内含节次');
+      expect(discardChoice, findsOneWidget);
+      await tester.tap(discardChoice);
+      await tester.pumpAndSettle();
+      expect(find.text('选择节次时间集'), findsNothing);
+      expect(find.textContaining('当前没有可用节次时间集'), findsOneWidget);
+    });
+
+    testWidgets('HTML 导入页在请求进行中会禁用重复提交并只请求一次', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: _buildTestAppData().copyWith(
+            schoolImportParserSettings: const SchoolImportParserSettings(
+              source: schoolImportParserSourceCustomOpenAi,
+              customBaseUrl: 'https://api.example.com/v1',
+              customApiKey: 'sk-test',
+              customModel: 'gpt-4.1-mini',
+            ),
+          ),
+        ),
+      );
+      await provider.load();
+      final completer = Completer<SchoolImportApiResult>();
+      final fakeApi = FakeSchoolImportApi(
+        onImport: (_, _) => completer.future,
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('zh'), Locale('en')],
+            home: SchoolHtmlImportPage(api: fakeApi),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '<table>demo</table>');
+      await tester.pump();
+      await tester.tap(find.widgetWithIcon(FilledButton, Icons.compress));
+      await tester.pumpAndSettle();
+
+      final submitButtonFinder = find.widgetWithText(FilledButton, '解析并导入');
+      await tester.ensureVisible(submitButtonFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(submitButtonFinder, warnIfMissed: false);
+      await tester.tap(submitButtonFinder, warnIfMissed: false);
+      await tester.pump();
+
+      expect(fakeApi.callCount, 1);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(
+        SchoolImportApiResult(
+          response: _buildSchoolImportResponse(),
+          rawBody: jsonEncode(_buildSchoolImportSuccessJson()),
+          statusCode: 200,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final confirmText = find.text('确定');
+      await tester.ensureVisible(confirmText);
+      await tester.pump();
+      await tester.tap(confirmText);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final cancelText = find.text('取消');
+      await tester.ensureVisible(cancelText);
+      await tester.pump();
+      await tester.tap(cancelText);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('HTML 导入页成功后会把导入结果写入 provider', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: _buildTestAppData().copyWith(
+            schoolImportParserSettings: const SchoolImportParserSettings(
+              source: schoolImportParserSourceCustomOpenAi,
+              customBaseUrl: 'https://api.example.com/v1',
+              customApiKey: 'sk-test',
+              customModel: 'gpt-4.1-mini',
+            ),
+          ),
+        ),
+      );
+      await provider.load();
+      final fakeApi = FakeSchoolImportApi(
+        onImport: (_, _) async => SchoolImportApiResult(
+          response: _buildSchoolImportResponse(
+            timetableName: 'Widget imported timetable',
+            customFields: const {'来源': 'widget-test'},
+          ),
+          rawBody: jsonEncode(
+            _buildSchoolImportSuccessJson(
+              timetableName: 'Widget imported timetable',
+              customFields: const {'来源': 'widget-test'},
+            ),
+          ),
+          statusCode: 200,
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('zh'), Locale('en')],
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+                        value: provider,
+                        child: SchoolHtmlImportPage(api: fakeApi),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '<table>demo</table>');
+      await tester.pump();
+      final compressButton = find.widgetWithIcon(FilledButton, Icons.compress);
+      await tester.ensureVisible(compressButton);
+      await tester.pumpAndSettle();
+      await tester.tap(compressButton);
+      await tester.pumpAndSettle();
+      final submitButton = find.widgetWithText(FilledButton, '解析并导入');
+      await tester.ensureVisible(submitButton);
+      await tester.pumpAndSettle();
+      await tester.tap(submitButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      final confirmText = find.text('确定');
+      await tester.ensureVisible(confirmText);
+      await tester.pump();
+      await tester.tap(confirmText);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      final importAsNewText = find.text('作为新课表导入');
+      await tester.ensureVisible(importAsNewText);
+      await tester.pump();
+      await tester.tap(importAsNewText);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(fakeApi.callCount, 1);
+      expect(provider.activeTimetable.config.name, 'Widget imported timetable');
+      expect(provider.activeTimetable.courses.first.customFields['来源'], 'widget-test');
+      expect(provider.periodTimeSets.length, 3);
+      expect(provider.activePeriodTimeSet.name, 'Imported periods');
     });
   });
 
