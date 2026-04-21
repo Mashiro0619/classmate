@@ -639,6 +639,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _showDataActions(TimetableProvider provider) async {
     final action = await showModalBottomSheet<_DataAction>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final l10n = AppLocalizations.of(sheetContext)!;
@@ -647,63 +648,61 @@ class _SettingsPageState extends State<SettingsPage> {
           maxWidth: 680,
           child: SafeArea(
             top: false,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.file_download_outlined),
-                    title: Text(l10n.importTimetableFiles),
-                    subtitle: Text(l10n.importTimetableFilesDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.importTimetables),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.paste_outlined),
-                    title: Text(l10n.importTimetableText),
-                    subtitle: Text(l10n.importTimetableTextDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.importTimetablesText),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.html_outlined),
-                    title: Text(l10n.schoolHtmlImportEntry),
-                    subtitle: Text(l10n.schoolHtmlImportEntryDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.importSchoolHtml),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.share_outlined),
-                    title: Text(l10n.shareTimetableFiles),
-                    subtitle: Text(l10n.shareTimetableFilesDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.exportTimetablesShare),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.save_alt_outlined),
-                    title: Text(l10n.saveTimetableFiles),
-                    subtitle: Text(l10n.saveTimetableFilesDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.exportTimetablesSave),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.text_snippet_outlined),
-                    title: Text(l10n.exportTimetableText),
-                    subtitle: Text(l10n.exportTimetableTextDesc),
-                    onTap: () => Navigator.of(
-                      sheetContext,
-                    ).pop(_DataAction.exportTimetablesText),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.file_download_outlined),
+                  title: Text(l10n.importTimetableFiles),
+                  subtitle: Text(l10n.importTimetableFilesDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.importTimetables),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.paste_outlined),
+                  title: Text(l10n.importTimetableText),
+                  subtitle: Text(l10n.importTimetableTextDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.importTimetablesText),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.html_outlined),
+                  title: Text(l10n.schoolHtmlImportEntry),
+                  subtitle: Text(l10n.schoolHtmlImportEntryDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.importSchoolHtml),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.share_outlined),
+                  title: Text(l10n.shareTimetableFiles),
+                  subtitle: Text(l10n.shareTimetableFilesDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesShare),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.save_alt_outlined),
+                  title: Text(l10n.saveTimetableFiles),
+                  subtitle: Text(l10n.saveTimetableFilesDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesSave),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.text_snippet_outlined),
+                  title: Text(l10n.exportTimetableText),
+                  subtitle: Text(l10n.exportTimetableTextDesc),
+                  onTap: () => Navigator.of(
+                    sheetContext,
+                  ).pop(_DataAction.exportTimetablesText),
+                ),
+              ],
             ),
           ),
         );

@@ -17,6 +17,7 @@ import 'package:classmate/services/school_import_api.dart';
 import 'package:classmate/services/update_service.dart';
 import 'package:classmate/widgets/course_details_sheet.dart';
 import 'package:classmate/widgets/course_editor_sheet.dart';
+import 'package:classmate/widgets/period_time_set_picker_dialog.dart';
 import 'package:classmate/widgets/timetable_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -1583,6 +1584,49 @@ void main() {
       expect(find.text('课表解析设置'), findsOneWidget);
     });
 
+    testWidgets('HTML 导入页在自定义解析配置不完整时显示跳转配置页按钮', (tester) async {
+      final incompleteProvider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: _buildTestAppData().copyWith(
+            schoolImportParserSettings: const SchoolImportParserSettings(
+              source: schoolImportParserSourceCustomOpenAi,
+              customBaseUrl: '',
+              customApiKey: '',
+              customModel: '',
+            ),
+          ),
+        ),
+      );
+      await incompleteProvider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: incompleteProvider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: SchoolHtmlImportPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('自定义解析配置不完整'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, '课表解析设置'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, '课表解析设置'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('课表解析设置'), findsWidgets);
+      expect(find.text('Base URL'), findsOneWidget);
+    });
+
     testWidgets('HTML 导入页会区分自定义配置缺失与完整状态', (tester) async {
       final incompleteProvider = TimetableProvider(
         storage: MemoryTimetableStorage(
@@ -1653,6 +1697,54 @@ void main() {
 
       expect(find.text('解析并导入'), findsOneWidget);
       expect(find.textContaining('gpt-4.1-mini'), findsOneWidget);
+    });
+  });
+
+  group('节次时间集选择', () {
+    testWidgets('当前选择的节次时间集不显示勾选图标', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(initialData: _buildTestAppData()),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('zh'), Locale('en')],
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () {
+                      showPeriodTimeSetPickerDialog(
+                        context,
+                        provider: provider,
+                        selectedPeriodTimeSetId: provider.activePeriodTimeSet.id,
+                      );
+                    },
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('选择节次时间集'), findsOneWidget);
+      expect(find.byIcon(Icons.check), findsNothing);
     });
   });
 
@@ -2606,7 +2698,10 @@ void main() {
         ],
       );
 
-      Future<List<BorderSide>> pumpGrid(String mode) async {
+      Future<List<BorderSide>> pumpGrid(
+        String mode, {
+        required TimetableLiveCourseTarget liveCourseTarget,
+      }) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -2627,11 +2722,7 @@ void main() {
                   themeColorMode: themeColorModeSingle,
                   courseNameColorValues: const {},
                   colorfulCourseTextColorMode: colorfulCourseTextColorModeAuto,
-                  liveCourseTarget: const TimetableLiveCourseTarget(
-                    week: 1,
-                    weekday: 1,
-                    courseId: 'course_a',
-                  ),
+                  liveCourseTarget: liveCourseTarget,
                   liveCourseOutlineEnabled: true,
                   liveCourseOutlineMode: mode,
                   onCourseTap: (_) {},
@@ -2659,20 +2750,52 @@ void main() {
 
       final currentOrNextSides = await pumpGrid(
         liveCourseOutlineModeCurrentOrNext,
+        liveCourseTarget: const TimetableLiveCourseTarget(
+          week: 1,
+          weekday: 1,
+          courseId: 'course_a',
+          isCurrentCourse: true,
+        ),
       );
-      expect(
-        currentOrNextSides.where((side) => side != BorderSide.none).length,
-        1,
-      );
-      expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
+      final currentOrNextHighlighted = currentOrNextSides
+          .where((side) => side != BorderSide.none)
+          .toList();
+      expect(currentOrNextHighlighted.length, 1);
+      final currentOrNextWidth = currentOrNextHighlighted.single.width;
+      expect(find.byIcon(Icons.notifications_active_outlined), findsNothing);
 
-      final allDisplayedSides = await pumpGrid(liveCourseOutlineModeAllDisplayed);
+      final nextCourseSides = await pumpGrid(
+        liveCourseOutlineModeCurrentOrNext,
+        liveCourseTarget: const TimetableLiveCourseTarget(
+          week: 1,
+          weekday: 2,
+          courseId: 'course_b',
+          isCurrentCourse: false,
+        ),
+      );
+      final nextCourseHighlighted = nextCourseSides
+          .where((side) => side != BorderSide.none)
+          .toList();
+      expect(nextCourseHighlighted.length, 1);
+      expect(nextCourseHighlighted.single.width, currentOrNextWidth);
+      expect(find.byIcon(Icons.notifications_active_outlined), findsNothing);
+
+      final allDisplayedSides = await pumpGrid(
+        liveCourseOutlineModeAllDisplayed,
+        liveCourseTarget: const TimetableLiveCourseTarget(
+          week: 1,
+          weekday: 1,
+          courseId: 'course_a',
+          isCurrentCourse: true,
+        ),
+      );
       final highlightedSides = allDisplayedSides
           .where((side) => side != BorderSide.none)
           .toList();
       expect(highlightedSides.length, 2);
       final widths = highlightedSides.map((side) => side.width).toList()..sort();
       expect(widths.last, greaterThan(widths.first));
+      expect(widths.last, greaterThan(currentOrNextWidth));
       expect(find.byIcon(Icons.notifications_active_outlined), findsNothing);
     });
 

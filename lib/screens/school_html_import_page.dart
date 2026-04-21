@@ -99,7 +99,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
         ],
       ),
       body: !isConfigured
-          ? _buildMessage(_buildConfigMessage(provider, l10n))
+          ? _buildConfigMissingState(provider, l10n)
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -171,11 +171,38 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     );
   }
 
-  Widget _buildMessage(String message) {
+  Widget _buildConfigMissingState(
+    TimetableProvider provider,
+    AppLocalizations l10n,
+  ) {
+    final isCustom =
+        provider.schoolImportParserSource == schoolImportParserSourceCustomOpenAi;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(message, textAlign: TextAlign.center),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _buildConfigMessage(provider, l10n),
+              textAlign: TextAlign.center,
+            ),
+            if (isCustom) ...[
+              const SizedBox(height: 16),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SchoolImportParserSettingsPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.tune_outlined),
+                label: Text(l10n.schoolImportParserSettingsTitle),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

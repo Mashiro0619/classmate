@@ -679,7 +679,9 @@ class _CourseCard extends StatelessWidget {
     final effectiveOutlineWidth = compact
         ? math.max(minLiveCourseOutlineWidth, outlineWidth - 0.5)
         : outlineWidth;
-    final effectivePrimaryOutlineWidth = layout.isPrimaryLiveTarget
+    final effectivePrimaryOutlineWidth =
+        liveCourseOutlineMode == liveCourseOutlineModeAllDisplayed &&
+            layout.isPrimaryLiveTarget
         ? effectiveOutlineWidth + (compact ? 1.2 : 1.6)
         : effectiveOutlineWidth;
 
@@ -776,32 +778,6 @@ class _CourseCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (layout.isPrimaryLiveTarget &&
-                        liveCourseOutlineMode != liveCourseOutlineModeAllDisplayed &&
-                        !layout.isFullConflict &&
-                        layout.priorityDepth == 0)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: compact ? 4 : 6,
-                            vertical: compact ? 2 : 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: outlineColor.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: outlineColor.withValues(alpha: 0.45),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.notifications_active_outlined,
-                            size: compact ? 12 : 14,
-                            color: outlineColor,
-                          ),
-                        ),
-                      ),
                     if (layout.isFullConflict)
                       Positioned(
                         right: 0,
@@ -839,6 +815,7 @@ class _CourseLayout {
     required this.displayState,
     required this.isLiveHighlighted,
     required this.isPrimaryLiveTarget,
+    required this.liveTargetIsCurrentCourse,
     this.conflictKey,
   });
 
@@ -849,6 +826,7 @@ class _CourseLayout {
   final _CourseDisplayState displayState;
   final bool isLiveHighlighted;
   final bool isPrimaryLiveTarget;
+  final bool liveTargetIsCurrentCourse;
   final String? conflictKey;
 }
 
@@ -989,6 +967,8 @@ List<_CourseLayout> _buildDayLayouts({
           displayState: displayState,
           isLiveHighlighted: isLiveHighlighted,
           isPrimaryLiveTarget: isPrimaryLiveTarget,
+          liveTargetIsCurrentCourse:
+              isPrimaryLiveTarget && (liveCourseTarget?.isCurrentCourse ?? false),
           conflictKey: conflictKey,
         ),
       );
@@ -1024,6 +1004,8 @@ List<_CourseLayout> _buildDayLayouts({
           displayState: displayState,
           isLiveHighlighted: isLiveHighlighted,
           isPrimaryLiveTarget: isPrimaryLiveTarget,
+          liveTargetIsCurrentCourse:
+              isPrimaryLiveTarget && (liveCourseTarget?.isCurrentCourse ?? false),
         ),
       );
     }

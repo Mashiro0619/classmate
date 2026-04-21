@@ -475,11 +475,13 @@ class TimetableLiveCourseTarget {
     required this.week,
     required this.weekday,
     required this.courseId,
+    required this.isCurrentCourse,
   });
 
   final int week;
   final int weekday;
   final String courseId;
+  final bool isCurrentCourse;
 }
 
 class TimetableExportData {
@@ -1531,6 +1533,7 @@ TimetableLiveCourseTarget? _courseTargetForDay({
           currentCourses,
           displayedCourseIdForConflict,
         ),
+        isCurrentCourse: true,
       );
     }
 
@@ -1555,6 +1558,7 @@ TimetableLiveCourseTarget? _courseTargetForDay({
             nextCourses,
             displayedCourseIdForConflict,
           ),
+          isCurrentCourse: false,
         );
       }
     }
@@ -1574,6 +1578,7 @@ TimetableLiveCourseTarget? _courseTargetForDay({
       firstCourses,
       displayedCourseIdForConflict,
     ),
+    isCurrentCourse: false,
   );
 }
 

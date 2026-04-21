@@ -71,29 +71,22 @@ Future<String?> showPeriodTimeSetPickerDialog(
                         item.periodTimes.length,
                       ),
                     ),
-                    trailing: Wrap(
-                      spacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        if (selected) const Icon(Icons.check),
-                        IconButton(
-                          tooltip: l10n.editPeriodTimeSet,
-                          onPressed: () async {
-                            await openPeriodTimePage(item.id);
-                            if (!dialogContext.mounted) {
-                              return;
-                            }
-                            final stillExists =
-                                provider.periodTimeSetForId(item.id) != null;
-                            if (!stillExists && currentSelectedId == item.id) {
-                              currentSelectedId =
-                                  provider.activePeriodTimeSetOrNull?.id ?? '';
-                            }
-                            refreshDialog(() {});
-                          },
-                          icon: const Icon(Icons.edit_outlined),
-                        ),
-                      ],
+                    trailing: IconButton(
+                      tooltip: l10n.editPeriodTimeSet,
+                      onPressed: () async {
+                        await openPeriodTimePage(item.id);
+                        if (!dialogContext.mounted) {
+                          return;
+                        }
+                        final stillExists =
+                            provider.periodTimeSetForId(item.id) != null;
+                        if (!stillExists && currentSelectedId == item.id) {
+                          currentSelectedId =
+                              provider.activePeriodTimeSetOrNull?.id ?? '';
+                        }
+                        refreshDialog(() {});
+                      },
+                      icon: const Icon(Icons.edit_outlined),
                     ),
                     onTap: () => Navigator.of(dialogContext).pop(item.id),
                   );
