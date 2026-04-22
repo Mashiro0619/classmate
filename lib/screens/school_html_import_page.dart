@@ -7,7 +7,9 @@ import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import '../services/school_import_api.dart';
+import '../services/school_import_apply_service.dart';
 import '../services/school_import_content_sanitizer.dart';
+import '../services/school_import_parser_service.dart';
 import '../widgets/school_web_import_result_sheet.dart';
 import 'school_import_parser_settings_page.dart';
 
@@ -33,6 +35,8 @@ class SchoolHtmlImportPage extends StatefulWidget {
 
 class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   late final SchoolImportApi _api;
+  late final SchoolImportParserService _parserService;
+  final SchoolImportApplyService _applyService = const SchoolImportApplyService();
   final TextEditingController _htmlController = TextEditingController();
 
   bool _isSubmitting = false;
@@ -74,6 +78,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   void initState() {
     super.initState();
     _api = widget.api ?? const SchoolImportApi();
+    _parserService = SchoolImportParserService(api: _api);
     if (widget.initialContent.isNotEmpty) {
       _htmlController.text = widget.initialContent;
     }
@@ -266,11 +271,13 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     _showMessage(l10n.schoolHtmlImportParsingMayTakeLong);
     setState(() => _isSubmitting = true);
     try {
-      final result = await _api.importCurrentPageWithRawResponse(
-        SchoolImportPagePayload(
-          url: widget.initialUrl,
-          title: widget.initialTitle,
-          html: sanitizedContent,
+      final result = await _parserService.parse(
+        request: SchoolImportParseRequest(
+          source: SchoolImportSourcePayload(
+            url: widget.initialUrl,
+            title: widget.initialTitle,
+            content: sanitizedContent,
+          ),
           locale: localeCode,
           sourceHint: parserSettings.source,
         ),
@@ -288,7 +295,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
       final selectedPeriodTimeSetId =
           provider.activePeriodTimeSetOrNull?.id ??
           (periodTimeSets.isEmpty ? '' : periodTimeSets.first.id);
-      final importResult = await showModalBottomSheet<SchoolWebImportResult>(
+      final importResult = await showModalBottomSheet<SchoolImportApplyRequest>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -303,13 +310,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
       if (importResult == null || !mounted) {
         return;
       }
-      await provider.importSchoolWebResponseWithPeriodTimeSet(
-        importResult.response,
-        mode: importResult.mode,
-        importBundledPeriodTimeSet:
-            importResult.importBundledPeriodTimeSet,
-        targetPeriodTimeSetId: importResult.targetPeriodTimeSetId,
-      );
+      await _applyService.apply(provider, importResult);
       if (!mounted) {
         return;
       }
@@ -341,7 +342,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('API Response'),
+          title: Text(l10n.apiResponseTitle),
           content: SingleChildScrollView(child: SelectableText(message)),
           actions: [
             FilledButton(

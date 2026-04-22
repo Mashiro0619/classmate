@@ -375,18 +375,21 @@ void main() {
       expect(secondProvider.activeTimetable.config.name, '空课表');
     });
 
-    test('首次启动语言检测仅对繁体中文映射为中文', () {
+    test('首次启动语言检测会优先命中受支持语言或中文系回退中文', () {
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en', 'US')), 'en');
     });
 
-    test('首次启动语言检测对其他语言一律映射为英文', () {
-      expect(app_locale.resolveFirstLaunchLocaleCode(null), 'en');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ja')), 'en');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'en');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh')), 'en');
+    test('首次启动语言检测对空值或不受支持语言回退默认语言或同语言匹配', () {
+      expect(app_locale.resolveFirstLaunchLocaleCode(null), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ja')), 'ja');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('fr', 'CA')), 'fr');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ru')), 'ru');
     });
 
     test('中文系语言默认使用配置的更新接口', () {
@@ -923,9 +926,11 @@ void main() {
     test('locale helper 会标准化 code 并映射到受支持语言', () {
       expect(app_locale.normalizeLocaleCode('en_US'), 'en');
       expect(app_locale.normalizeLocaleCode('zh-Hant'), 'zh');
-      expect(app_locale.normalizeLocaleCode('ja'), 'zh');
+      expect(app_locale.normalizeLocaleCode('zh-CN'), 'zh');
+      expect(app_locale.normalizeLocaleCode('ja'), 'ja');
       expect(app_locale.appLocaleFromCode('en-US'), const Locale('en'));
       expect(app_locale.appLocaleFromCode('zh_TW'), const Locale('zh'));
+      expect(app_locale.languageLabelForLocaleCode('ja'), '日本語');
     });
 
     test('已有本地语言设置时不会被系统语言覆盖', () async {
@@ -1427,7 +1432,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolImportParserSettingsPage(),
           ),
         ),
@@ -1511,7 +1516,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolImportParserSettingsPage(),
           ),
         ),
@@ -1548,7 +1553,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolImportParserSettingsPage(),
           ),
         ),
@@ -1603,7 +1608,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolHtmlImportPage(),
           ),
         ),
@@ -1620,7 +1625,7 @@ void main() {
       expect(find.text('Base URL'), findsOneWidget);
     });
 
-    testWidgets('设置页语言入口会根据受支持语言列表渲染并更新 provider', (tester) async {
+    testWidgets('设置页语言入口会进入独立页面并更新 provider', (tester) async {
       final provider = TimetableProvider(
         storage: MemoryTimetableStorage(
           initialData: _buildTestAppData().copyWith(localeCode: 'en'),
@@ -1639,20 +1644,30 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SettingsPage(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('English'), findsOneWidget);
+      expect(find.text('英语'), findsOneWidget);
 
       await tester.tap(find.text('语言'));
       await tester.pumpAndSettle();
 
+      expect(find.byType(SearchBar), findsNothing);
       expect(find.text('中文'), findsOneWidget);
-      expect(find.text('English'), findsWidgets);
+      expect(find.text('英语'), findsWidgets);
+      expect(find.text('意大利语'), findsOneWidget);
+      expect(find.text('葡萄牙语'), findsOneWidget);
+      expect(find.text('俄语'), findsOneWidget);
+      expect(find.text('日语'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SearchBar), findsOneWidget);
 
       await tester.tap(find.text('中文').last);
       await tester.pumpAndSettle();
@@ -1687,7 +1702,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SettingsPage(),
           ),
         ),
@@ -1737,7 +1752,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolHtmlImportPage(),
           ),
         ),
@@ -1780,7 +1795,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolHtmlImportPage(),
           ),
         ),
@@ -1815,7 +1830,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolHtmlImportPage(),
           ),
         ),
@@ -1841,10 +1856,12 @@ void main() {
       );
 
       final beforeSetCount = provider.periodTimeSets.length;
-      await provider.importSchoolWebResponseWithPeriodTimeSet(
-        response,
-        mode: TimetableImportMode.addAsNew,
-        importBundledPeriodTimeSet: true,
+      await provider.applySchoolImportRequest(
+        SchoolImportApplyRequest(
+          response: response,
+          mode: TimetableImportMode.addAsNew,
+          importBundledPeriodTimeSet: true,
+        ),
       );
 
       expect(provider.periodTimeSets.length, beforeSetCount + 1);
@@ -1862,11 +1879,13 @@ void main() {
       await provider.load();
 
       final beforeSetIds = provider.periodTimeSets.map((item) => item.id).toList();
-      await provider.importSchoolWebResponseWithPeriodTimeSet(
-        _buildSchoolImportResponse(),
-        mode: TimetableImportMode.addAsNew,
-        importBundledPeriodTimeSet: false,
-        targetPeriodTimeSetId: 'set2',
+      await provider.applySchoolImportRequest(
+        SchoolImportApplyRequest(
+          response: _buildSchoolImportResponse(),
+          mode: TimetableImportMode.addAsNew,
+          importBundledPeriodTimeSet: false,
+          targetPeriodTimeSetId: 'set2',
+        ),
       );
 
       expect(provider.periodTimeSets.map((item) => item.id).toList(), beforeSetIds);
@@ -1881,13 +1900,15 @@ void main() {
 
       final currentId = provider.activeTimetable.id;
       final beforeSetCount = provider.periodTimeSets.length;
-      await provider.importSchoolWebResponseWithPeriodTimeSet(
-        _buildSchoolImportResponse(
-          timetableName: 'Replaced timetable',
-          customFields: const {'备注': '覆盖导入'},
+      await provider.applySchoolImportRequest(
+        SchoolImportApplyRequest(
+          response: _buildSchoolImportResponse(
+            timetableName: 'Replaced timetable',
+            customFields: const {'备注': '覆盖导入'},
+          ),
+          mode: TimetableImportMode.replaceActive,
+          importBundledPeriodTimeSet: true,
         ),
-        mode: TimetableImportMode.replaceActive,
-        importBundledPeriodTimeSet: true,
       );
 
       expect(provider.activeTimetable.id, currentId);
@@ -1908,7 +1929,7 @@ void main() {
           {'index': 2, 'startMinutes': 530, 'endMinutes': 575},
         ],
       );
-      SchoolWebImportResult? sheetResult;
+      SchoolImportApplyRequest? sheetResult;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -1919,13 +1940,13 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('zh'), Locale('en')],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Builder(
             builder: (context) => Scaffold(
               body: Center(
                 child: FilledButton(
                   onPressed: () async {
-                    sheetResult = await showModalBottomSheet<SchoolWebImportResult>(
+                    sheetResult = await showModalBottomSheet<SchoolImportApplyRequest>(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
@@ -1987,7 +2008,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('zh'), Locale('en')],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SchoolWebImportResultSheet(
               response: response,
@@ -2039,7 +2060,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: SchoolHtmlImportPage(api: fakeApi),
           ),
         ),
@@ -2125,7 +2146,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('zh'), Locale('en')],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
@@ -2201,7 +2222,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Builder(
               builder: (context) => Scaffold(
                 body: Center(
@@ -2249,7 +2270,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2300,7 +2321,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2340,7 +2361,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2384,7 +2405,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2425,7 +2446,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2454,7 +2475,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2495,7 +2516,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2537,7 +2558,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: ThemeSettingsPage(),
           ),
         ),
@@ -2642,7 +2663,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HomeScreen(),
           ),
         ),
@@ -2680,7 +2701,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [Locale('zh'), Locale('en')],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HomeScreen(),
           ),
         ),
@@ -2774,7 +2795,7 @@ void main() {
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('官网'), findsOneWidget);
       expect(find.text('Google Play'), findsOneWidget);
-      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('GitHub 仓库'), findsOneWidget);
       expect(find.text('网盘'), findsOneWidget);
       expect(find.text('忽略此版本'), findsNothing);
 
@@ -2802,7 +2823,7 @@ void main() {
       expect(find.text('检测更新失败'), findsOneWidget);
       expect(find.text('官网'), findsOneWidget);
       expect(find.text('Google Play'), findsOneWidget);
-      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('GitHub 仓库'), findsOneWidget);
       expect(find.text('网盘'), findsOneWidget);
       expect(find.text('忽略此版本'), findsNothing);
 
@@ -2831,7 +2852,7 @@ void main() {
       expect(find.text('忽略此版本'), findsOneWidget);
       expect(find.text('官网'), findsOneWidget);
       expect(find.text('Google Play'), findsOneWidget);
-      expect(find.text('GitHub'), findsOneWidget);
+      expect(find.text('GitHub 仓库'), findsOneWidget);
       expect(find.text('网盘'), findsOneWidget);
 
       await tester.tap(find.text('取消'));

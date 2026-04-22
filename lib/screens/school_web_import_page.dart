@@ -8,8 +8,8 @@ import '../config/app_config.dart';
 import '../l10n/app_localizations.dart';
 import '../models/school_site_models.dart';
 import '../screens/school_html_import_page.dart';
-import '../services/school_import_content_sanitizer.dart';
 import '../services/school_site_service.dart';
+import '../services/school_web_import_page_service.dart';
 
 class SchoolWebImportPage extends StatefulWidget {
   const SchoolWebImportPage({super.key, required this.site});
@@ -21,20 +21,11 @@ class SchoolWebImportPage extends StatefulWidget {
 }
 
 class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
-  static const _extractImportHtmlScript = '''
-(() => {
-  const root = document.documentElement;
-  if (!root) {
-    return '';
-  }
-  const cloned = root.cloneNode(true);
-  cloned.querySelectorAll('script,style,noscript,svg,canvas,iframe,template').forEach((node) => node.remove());
-  return cloned.outerHTML;
-})()
-''';
   static const _pageLoadTimeout = Duration(seconds: 15);
 
   final SchoolSiteService _siteService = const SchoolSiteService();
+  final SchoolWebImportPageService _pageService =
+      const SchoolWebImportPageService();
 
   InAppWebViewController? _controller;
   Timer? _pageLoadWatchdog;
@@ -361,26 +352,20 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
     }
     setState(() => _isParsing = true);
     try {
-      final html = await controller.evaluateJavascript(
-        source: _extractImportHtmlScript,
+      final source = await _pageService.extractSource(
+        controller,
+        fallbackUrl: _currentUrl,
+        fallbackTitle: _currentTitle,
       );
-      final title = await _safeGetTitle(controller);
-      final currentUrl = (await controller.getUrl())?.toString() ?? _currentUrl;
-      final normalizedHtml = SchoolImportContentSanitizer.sanitize(
-        _normalizeJavaScriptResult(html).trim(),
-      );
-      if (normalizedHtml.isEmpty) {
-        throw FormatException(l10n.schoolWebImportEmptyPage);
-      }
       if (!mounted) {
         return;
       }
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => SchoolHtmlImportPage(
-            initialContent: normalizedHtml,
-            initialUrl: currentUrl,
-            initialTitle: title,
+            initialContent: source.content,
+            initialUrl: source.url,
+            initialTitle: source.title,
             showReturnToWebPageButton: true,
           ),
         ),
@@ -389,9 +374,12 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       if (!mounted) {
         return;
       }
+      final message = error.message == 'Import content is empty.'
+          ? l10n.schoolWebImportEmptyPage
+          : error.message;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) {
         return;
@@ -404,25 +392,6 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
         setState(() => _isParsing = false);
       }
     }
-  }
-
-  Future<String> _safeGetTitle(InAppWebViewController controller) async {
-    try {
-      return await controller.getTitle() ?? _currentTitle;
-    } catch (_) {
-      return _currentTitle;
-    }
-  }
-
-  String _normalizeJavaScriptResult(Object value) {
-    if (value is String) {
-      return value;
-    }
-    final text = value.toString();
-    if (text.length >= 2 && text.startsWith('"') && text.endsWith('"')) {
-      return text.substring(1, text.length - 1);
-    }
-    return text;
   }
 }
 

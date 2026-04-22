@@ -274,10 +274,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get language => '语言';
 
   @override
+  String get languagePageDescription => '请选择应用当前真正支持的语言。';
+
+  @override
   String get languageChinese => '中文';
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+
+  @override
+  String get apiResponseTitle => 'API 响应';
 
   @override
   String get theme => '主题';

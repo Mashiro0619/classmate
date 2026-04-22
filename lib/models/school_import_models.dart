@@ -5,6 +5,32 @@ Map<String, dynamic> _asStringKeyedMap(Object? value) {
   return const <String, dynamic>{};
 }
 
+enum TimetableImportMode { addAsNew, replaceActive }
+
+class SchoolImportSourcePayload {
+  const SchoolImportSourcePayload({
+    required this.url,
+    required this.title,
+    required this.content,
+  });
+
+  final String url;
+  final String title;
+  final String content;
+}
+
+class SchoolImportParseRequest {
+  const SchoolImportParseRequest({
+    required this.source,
+    required this.locale,
+    this.sourceHint,
+  });
+
+  final SchoolImportSourcePayload source;
+  final String locale;
+  final String? sourceHint;
+}
+
 class SchoolImportPagePayload {
   const SchoolImportPagePayload({
     required this.url,
@@ -13,6 +39,18 @@ class SchoolImportPagePayload {
     required this.locale,
     this.sourceHint,
   });
+
+  factory SchoolImportPagePayload.fromParseRequest(
+    SchoolImportParseRequest request,
+  ) {
+    return SchoolImportPagePayload(
+      url: request.source.url,
+      title: request.source.title,
+      html: request.source.content,
+      locale: request.locale,
+      sourceHint: request.sourceHint,
+    );
+  }
 
   final String url;
   final String title;
@@ -225,4 +263,18 @@ class SchoolImportResponse {
       timetable: timetable ?? this.timetable,
     );
   }
+}
+
+class SchoolImportApplyRequest {
+  const SchoolImportApplyRequest({
+    required this.response,
+    required this.mode,
+    required this.importBundledPeriodTimeSet,
+    this.targetPeriodTimeSetId,
+  });
+
+  final SchoolImportResponse response;
+  final TimetableImportMode mode;
+  final bool importBundledPeriodTimeSet;
+  final String? targetPeriodTimeSetId;
 }

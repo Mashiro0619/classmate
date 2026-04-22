@@ -13,6 +13,7 @@ import '../providers/timetable_provider.dart';
 import '../services/export_service.dart';
 import '../services/update_service.dart';
 import '../widgets/period_time_set_picker_dialog.dart';
+import 'language_settings_page.dart';
 import 'privacy_policy_page.dart';
 import 'school_html_import_page.dart';
 import 'theme_settings_page.dart';
@@ -203,7 +204,7 @@ class AppUpdateCoordinator {
       ),
       FilledButton(
         onPressed: () => Navigator.of(context).pop(_UpdateAction.github),
-        child: const Text('GitHub'),
+        child: Text(l10n.githubRepository),
       ),
     ];
   }
@@ -321,7 +322,6 @@ class _SettingsPageState extends State<SettingsPage> {
         final currentLanguageLabel = _languageLabelForCode(
           languageOptions,
           provider.localeCode,
-          l10n,
         );
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
@@ -404,18 +404,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                leading: const Icon(Icons.translate_outlined),
-                title: Text(l10n.language),
-                subtitle: Text(currentLanguageLabel),
-                trailing: const Icon(Icons.keyboard_arrow_down),
-                onTap: () => _pickLanguage(provider),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.import_export),
                 title: Text(l10n.dataImportExport),
                 subtitle: Text(l10n.dataImportExportDesc),
                 onTap: () => _showDataActions(provider),
+              ),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: const Icon(Icons.translate_outlined),
+                title: Text(l10n.language),
+                subtitle: Text(currentLanguageLabel),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () => _openLanguageSettingsPage(provider),
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -448,7 +453,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const FaIcon(FontAwesomeIcons.github),
                 title: Text(l10n.githubRepository),
-                subtitle: const Text('github.com/Mashiro0619/classmate'),
+                subtitle: Text(l10n.githubRepositoryUrl),
                 onTap: _openGithubRepo,
               ),
             ],
@@ -482,47 +487,20 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _pickLanguage(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context);
-    final languageOptions = supportedLanguageOptions(l10n);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.language),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final option in languageOptions)
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(option.label),
-                  trailing: normalizeLocaleCode(provider.localeCode) == option.code
-                      ? const Icon(Icons.check)
-                      : null,
-                  onTap: () => Navigator.of(context).pop(option.code),
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.cancel),
-            ),
-          ],
-        );
-      },
+  Future<void> _openLanguageSettingsPage(TimetableProvider provider) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const LanguageSettingsPage(),
+        ),
+      ),
     );
-    if (result == null || result == provider.localeCode) {
-      return;
-    }
-    await provider.updateLocaleCode(result);
   }
 
   String _languageLabelForCode(
     List<AppLanguageOption> options,
     String localeCode,
-    AppLocalizations l10n,
   ) {
     final normalizedCode = normalizeLocaleCode(localeCode);
     for (final option in options) {
@@ -530,7 +508,7 @@ class _SettingsPageState extends State<SettingsPage> {
         return option.label;
       }
     }
-    return languageLabelForLocaleCode(l10n, normalizedCode);
+    return languageLabelForLocaleCode(normalizedCode, l10n: AppLocalizations.of(context));
   }
 
   Future<void> _pickPeriodTimeSet(

@@ -1,0 +1,1221 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Portuguese (`pt`).
+class AppLocalizationsPt extends AppLocalizations {
+  AppLocalizationsPt([String locale = 'pt']) : super(locale);
+
+  @override
+  String get appTitle => 'Classmate';
+
+  @override
+  String weekLabel(int week) {
+    return 'Semana $week';
+  }
+
+  @override
+  String get addCourse => 'Adicionar disciplina';
+
+  @override
+  String get settings => 'Configurações';
+
+  @override
+  String get multiTimetableSwitch => 'Alternar horários';
+
+  @override
+  String currentTimetableWeeks(int weeks) {
+    return 'Horário atual · $weeks semanas';
+  }
+
+  @override
+  String tapToSwitchWeeks(int weeks) {
+    return 'Toque para alternar · $weeks semanas';
+  }
+
+  @override
+  String get editTimetable => 'Editar horário';
+
+  @override
+  String get createTimetable => 'Novo horário';
+
+  @override
+  String get jumpToWeek => 'Ir para a semana';
+
+  @override
+  String get timetable => 'Horário';
+
+  @override
+  String get timetableName => 'Nome do horário';
+
+  @override
+  String get totalWeeks => 'Total de semanas';
+
+  @override
+  String get delete => 'Excluir';
+
+  @override
+  String get cancel => 'Cancelar';
+
+  @override
+  String get save => 'Salvar';
+
+  @override
+  String get deleteTimetableTitle => 'Excluir horário';
+
+  @override
+  String deleteTimetableMessage(Object name) {
+    return 'Excluir \"$name\"?';
+  }
+
+  @override
+  String get noTimetableTitle => 'Ainda não há horário';
+
+  @override
+  String get noTimetableMessage =>
+      'Crie um horário ou importe um de um arquivo JSON.';
+
+  @override
+  String get importTimetable => 'Importar horário';
+
+  @override
+  String get courseName => 'Nome da disciplina';
+
+  @override
+  String get location => 'Local';
+
+  @override
+  String get dayOfWeek => 'Dia';
+
+  @override
+  String get semesterWeeks => 'Semanas';
+
+  @override
+  String get startTime => 'Horário de início';
+
+  @override
+  String get endTime => 'Horário de término';
+
+  @override
+  String get linkedPeriods => 'Períodos vinculados';
+
+  @override
+  String get linkedPeriodsUnmatched =>
+      'Nenhum período corresponde ao horário atual. Toque para escolher manualmente.';
+
+  @override
+  String periodRangeLabel(int start, int end) {
+    return 'Período $start-$end';
+  }
+
+  @override
+  String get teacherName => 'Professor';
+
+  @override
+  String get credits => 'Créditos';
+
+  @override
+  String get remarks => 'Observações';
+
+  @override
+  String get customFields => 'Campos personalizados';
+
+  @override
+  String get customFieldsHint => 'Um por linha, formato: chave:valor';
+
+  @override
+  String get selectDayOfWeek => 'Escolher dia';
+
+  @override
+  String get selectSemesterWeeks => 'Escolher semanas';
+
+  @override
+  String get selectAll => 'Selecionar tudo';
+
+  @override
+  String get clear => 'Limpar';
+
+  @override
+  String get confirm => 'Confirmar';
+
+  @override
+  String get selectLinkedPeriods => 'Escolher períodos vinculados';
+
+  @override
+  String get addCourseTitle => 'Adicionar disciplina';
+
+  @override
+  String get editCourseTitle => 'Editar disciplina';
+
+  @override
+  String get editCourseTooltip => 'Editar disciplina';
+
+  @override
+  String get place => 'Local';
+
+  @override
+  String get time => 'Horário';
+
+  @override
+  String get notFilled => 'Não preenchido';
+
+  @override
+  String get none => 'Nenhum';
+
+  @override
+  String get conflictCourses => 'Disciplinas em conflito';
+
+  @override
+  String get locationNotFilled => 'Local não preenchido';
+
+  @override
+  String get setAsDisplayed => 'Definir como exibido';
+
+  @override
+  String get editThisCourse => 'Editar esta disciplina';
+
+  @override
+  String get settingsTitle => 'Configurações';
+
+  @override
+  String get noTimetableSettings =>
+      'Nenhum horário está disponível no momento para configurações.';
+
+  @override
+  String get semesterStartDate => 'Data de início do semestre';
+
+  @override
+  String get periodTimeSets => 'Conjunto de horários dos períodos';
+
+  @override
+  String get noPeriodTimeAvailable =>
+      'Nenhum conjunto de horários dos períodos disponível';
+
+  @override
+  String periodTimeSetSummary(Object name, int count) {
+    return '$name · $count períodos';
+  }
+
+  @override
+  String get coursePopupDismissSetting =>
+      'Permitir toque fora para fechar o pop-up da disciplina';
+
+  @override
+  String get coursePopupDismissSettingHint =>
+      'Desativar isso também desativa o fechamento ao deslizar para baixo.';
+
+  @override
+  String get preserveTimetableGaps => 'Preservar intervalos no horário';
+
+  @override
+  String get preserveTimetableGapsHint =>
+      'Quando desativado, os intervalos de almoço e descanso são recolhidos para que as aulas seguintes subam.';
+
+  @override
+  String get showPastEndedCourses => 'Mostrar disciplinas já encerradas';
+
+  @override
+  String get showPastEndedCoursesHint =>
+      'Mostra disciplinas que já terminaram na semana atual real com um estilo cinza mais claro.';
+
+  @override
+  String get showFutureCourses => 'Mostrar disciplinas futuras';
+
+  @override
+  String get showFutureCoursesHint =>
+      'Mostra disciplinas que não estão ativas nesta semana, mas aparecerão nas semanas seguintes, com um estilo cinza.';
+
+  @override
+  String get timetableDisplaySettings => 'Exibição e interação do horário';
+
+  @override
+  String get timetableDisplaySettingsDesc =>
+      'Fechamento do pop-up, intervalos, disciplinas em cinza e linhas da grade';
+
+  @override
+  String get showTimetableGridLines => 'Mostrar linhas da grade do horário';
+
+  @override
+  String get showTimetableGridLinesHint =>
+      'Controla se as linhas horizontais e verticais da grade ficam visíveis no horário.';
+
+  @override
+  String get liveCourseOutlineColor => 'Cor do contorno da disciplina';
+
+  @override
+  String get liveCourseOutlineColorHint =>
+      'Escolha se os contornos destacam a disciplina atual/próxima ou todas as disciplinas exibidas na página atual.';
+
+  @override
+  String get liveCourseOutlineSettings => 'Contorno da disciplina';
+
+  @override
+  String get liveCourseOutlineSettingsHint =>
+      'Configure se o contorno está ativado, o que ele destaca, se segue a cor do tema e qual é a cor efetiva do contorno.';
+
+  @override
+  String get liveCourseOutlineEnabled => 'Ativar contorno';
+
+  @override
+  String get liveCourseOutlineFollowTheme => 'Seguir a cor do tema';
+
+  @override
+  String get liveCourseOutlineTarget => 'Alvo do contorno';
+
+  @override
+  String get liveCourseOutlineTargetCurrentOrNext => 'Disciplina atual/próxima';
+
+  @override
+  String get liveCourseOutlineTargetAllDisplayed =>
+      'Todas as disciplinas exibidas';
+
+  @override
+  String get liveCourseOutlineEffectiveColor => 'Cor efetiva';
+
+  @override
+  String get liveCourseOutlineCustomColor => 'Cor personalizada do contorno';
+
+  @override
+  String get liveCourseOutlineWidth => 'Largura do contorno';
+
+  @override
+  String get outlineWidthUnit => 'px';
+
+  @override
+  String get language => 'Idioma';
+
+  @override
+  String get languagePageDescription =>
+      'Escolha um dos idiomas que realmente estão disponíveis no app.';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+
+  @override
+  String get apiResponseTitle => 'Resposta da API';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get themeFollowSystem => 'Seguir o sistema';
+
+  @override
+  String get themeLight => 'Claro';
+
+  @override
+  String get themeDark => 'Escuro';
+
+  @override
+  String get themeColor => 'Cor do tema';
+
+  @override
+  String get themeColorModeSingle => 'Uma única cor de tema';
+
+  @override
+  String get themeColorModeColorful => 'Colorido';
+
+  @override
+  String get themeColorUiColors => 'Cores da interface';
+
+  @override
+  String get themeColorCourseColors => 'Cores das disciplinas';
+
+  @override
+  String get themeColorPrimary => 'Primária';
+
+  @override
+  String get themeColorSecondary => 'Secundária';
+
+  @override
+  String get themeColorTertiary => 'Terciária';
+
+  @override
+  String get themeColorCourseText => 'Texto da disciplina';
+
+  @override
+  String get themeColorCourseTextAuto => 'Automático';
+
+  @override
+  String get themeColorCourseTextCustom => 'Cor personalizada';
+
+  @override
+  String get themeColorCourseColorsEmpty =>
+      'As cores das disciplinas serão geradas após importar um horário.';
+
+  @override
+  String get themeCustomColor => 'Cor personalizada';
+
+  @override
+  String get themeApplyCustomColor => 'Aplicar cor';
+
+  @override
+  String get themeApplySettings => 'Aplicar configurações';
+
+  @override
+  String get dataImportExport => 'Importar e exportar dados';
+
+  @override
+  String get dataImportExportDesc =>
+      'Importe todos os dados ou horários individuais, ou exporte o horário atual/todos os horários.';
+
+  @override
+  String get openSourceLicenses => 'Licenças de código aberto';
+
+  @override
+  String get openSourceLicensesDesc =>
+      'Veja as licenças das dependências do Flutter e dos recursos do ícone do app incluídos.';
+
+  @override
+  String get checkForUpdates => 'Verificar atualizações';
+
+  @override
+  String get checkForUpdatesDesc =>
+      'GitHub / Site oficial / Google Play / Nuvem';
+
+  @override
+  String alreadyLatestVersion(Object version) {
+    return 'Já está na versão mais recente ($version)';
+  }
+
+  @override
+  String get currentVersionLabel => 'Versão atual';
+
+  @override
+  String get newVersionAvailable => 'Atualização disponível';
+
+  @override
+  String get latestVersionLabel => 'Versão mais recente';
+
+  @override
+  String get updateContentLabel => 'Detalhes da atualização';
+
+  @override
+  String get officialWebsite => 'Site oficial';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get cloudDrive => 'Nuvem';
+
+  @override
+  String get ignoreThisVersion => 'Ignorar esta versão';
+
+  @override
+  String get openUpdatesFailed =>
+      'Não foi possível abrir o link de atualização';
+
+  @override
+  String get updateCheckFailedTitle => 'Falha ao verificar atualizações';
+
+  @override
+  String get updateCheckFailedMessage =>
+      'Não foi possível obter informações válidas de atualização de nenhuma fonte. Você ainda pode usar os links abaixo para atualizar manualmente.';
+
+  @override
+  String get githubRepository => 'Repositório no GitHub';
+
+  @override
+  String get openGithubFailed =>
+      'Não foi possível abrir o link do repositório no GitHub';
+
+  @override
+  String get selectPeriodTimeSet =>
+      'Escolher conjunto de horários dos períodos';
+
+  @override
+  String get newItem => 'Novo';
+
+  @override
+  String get editPeriodTimeSet => 'Editar conjunto de horários dos períodos';
+
+  @override
+  String get importTimetableFiles => 'Importar horário';
+
+  @override
+  String get importTimetableFilesDesc =>
+      'Suporta um ou vários arquivos de horário.';
+
+  @override
+  String get importTimetableText => 'Importar horário a partir de texto';
+
+  @override
+  String get importTimetableTextDesc =>
+      'Cole o conteúdo JSON do horário e importe.';
+
+  @override
+  String get shareTimetableFiles => 'Compartilhar arquivos de horário';
+
+  @override
+  String get shareTimetableFilesDesc => 'Escolha um ou mais horários primeiro.';
+
+  @override
+  String get saveTimetableFiles => 'Salvar arquivos de horário';
+
+  @override
+  String get saveTimetableFilesDesc => 'Escolha um ou mais horários primeiro.';
+
+  @override
+  String get exportTimetableText => 'Exportar horário como texto';
+
+  @override
+  String get exportTimetableTextDesc =>
+      'Escolha um ou mais horários e depois copie o conteúdo JSON.';
+
+  @override
+  String get jsonContent => 'Conteúdo JSON';
+
+  @override
+  String get pasteJsonContentHint => 'Cole o conteúdo JSON para importar.';
+
+  @override
+  String get jsonContentEmpty => 'Cole primeiro o conteúdo JSON.';
+
+  @override
+  String get copyText => 'Copiar';
+
+  @override
+  String get copiedToClipboard => 'Copiado para a área de transferência';
+
+  @override
+  String get share => 'Compartilhar';
+
+  @override
+  String get selectTimetablesToExport => 'Escolher horários para exportar';
+
+  @override
+  String get selectTimetablesToImport => 'Escolher horários para importar';
+
+  @override
+  String timetableCourseCount(int count) {
+    return '$count disciplinas';
+  }
+
+  @override
+  String get importAction => 'Importar';
+
+  @override
+  String get importTimetableDialogTitle => 'Importar horário';
+
+  @override
+  String get chooseImportMethod => 'Escolha como importar.';
+
+  @override
+  String get importAsNewTimetable => 'Importar como novo horário';
+
+  @override
+  String get replaceCurrentTimetable => 'Substituir o horário atual';
+
+  @override
+  String get importPeriodTimeSetDialogTitle =>
+      'Importar conjuntos de horários dos períodos';
+
+  @override
+  String get importPeriodTimeSetDialogBody =>
+      'Este arquivo contém conjuntos de horários dos períodos incluídos. Deseja importá-los e associá-los?';
+
+  @override
+  String get importBundledPeriodTimeSets => 'Importar e associar';
+
+  @override
+  String get discardBundledPeriodTimeSets => 'Descartar conjuntos incluídos';
+
+  @override
+  String get importDiscardPeriodTimeSetUnavailable =>
+      'Nenhum conjunto de horários dos períodos existente está disponível, portanto os conjuntos incluídos não podem ser descartados.';
+
+  @override
+  String savedToPath(Object path) {
+    return 'Salvo em $path';
+  }
+
+  @override
+  String get saveCancelled => 'Salvamento cancelado';
+
+  @override
+  String get fileSaveRestrictedTitle => 'Salvamento de arquivo restrito';
+
+  @override
+  String get fileSaveRestrictedRetryMessage =>
+      'O sistema não pôde salvar o arquivo. Você pode tentar novamente ou usar o compartilhamento.';
+
+  @override
+  String get retrySave => 'Tentar salvar novamente';
+
+  @override
+  String get fileSaveRestrictedSettingsMessage =>
+      'Ative o acesso a arquivos nas configurações do sistema e depois volte para tentar exportar novamente.';
+
+  @override
+  String get openSettings => 'Abrir configurações';
+
+  @override
+  String get browserDownloadRestrictedTitle => 'Download no navegador restrito';
+
+  @override
+  String get browserDownloadRestrictedMessage =>
+      'Este navegador não oferece suporte para salvar diretamente em um arquivo local. Verifique as permissões de download do navegador ou use o compartilhamento de arquivos.';
+
+  @override
+  String get switchToShare => 'Usar compartilhamento em vez disso';
+
+  @override
+  String get fileSaveFailedTitle => 'Falha ao salvar arquivo';
+
+  @override
+  String get fileSaveFailedWindowsMessage =>
+      'Não foi possível gravar no caminho atual. A pasta de destino pode estar protegida, o arquivo pode estar em uso ou o caminho pode não permitir gravação.';
+
+  @override
+  String get fileSaveFailedGenericMessage =>
+      'O sistema não pôde salvar o arquivo. Você pode tentar novamente, verificar as configurações do sistema ou usar o compartilhamento de arquivos.';
+
+  @override
+  String get retryLater => 'Tente novamente mais tarde';
+
+  @override
+  String get exportSwitchedToShare =>
+      'Exportação alterada para compartilhamento de arquivos';
+
+  @override
+  String get saveFailedRetry => 'Falha ao salvar. Tente novamente mais tarde.';
+
+  @override
+  String get importFailedCheckContent =>
+      'Falha na importação. Verifique o conteúdo do arquivo.';
+
+  @override
+  String get noImportableTimetables =>
+      'Nenhum horário utilizável foi encontrado no arquivo importado.';
+
+  @override
+  String importedTimetablesCount(int count) {
+    return '$count horários importados';
+  }
+
+  @override
+  String get periodTimesTitle => 'Horários dos períodos';
+
+  @override
+  String get importExport => 'Importar e exportar';
+
+  @override
+  String get importPeriodTemplate => 'Importar modelo de períodos';
+
+  @override
+  String get importPeriodTemplateText =>
+      'Importar modelo de períodos a partir de texto';
+
+  @override
+  String get sharePeriodTemplate => 'Compartilhar modelo de períodos';
+
+  @override
+  String get saveTemplateToFile => 'Salvar modelo em arquivo';
+
+  @override
+  String get exportPeriodTemplateText =>
+      'Exportar modelo de períodos como texto';
+
+  @override
+  String get deletePeriodTimeSet => 'Excluir conjunto de horários dos períodos';
+
+  @override
+  String get periodTimeSetName => 'Nome do conjunto de horários dos períodos';
+
+  @override
+  String get addOnePeriod => 'Adicionar período';
+
+  @override
+  String periodNumberLabel(int index) {
+    return 'Período $index';
+  }
+
+  @override
+  String get deleteThisPeriod => 'Excluir este período';
+
+  @override
+  String durationMinutes(int minutes) {
+    return 'Duração $minutes min';
+  }
+
+  @override
+  String gapFromPrevious(int minutes) {
+    return 'Intervalo desde o anterior $minutes min';
+  }
+
+  @override
+  String get endTimeMustBeLater =>
+      'O horário de término deve ser posterior ao de início';
+
+  @override
+  String get periodOverlapPrevious => 'Este período se sobrepõe ao anterior';
+
+  @override
+  String get periodTimesSaved => 'Horários dos períodos salvos';
+
+  @override
+  String get deletePeriodTimeSetTitle =>
+      'Excluir conjunto de horários dos períodos';
+
+  @override
+  String deletePeriodTimeSetMessage(Object name) {
+    return 'Excluir \"$name\"?';
+  }
+
+  @override
+  String get currentPeriodTimeSet => 'conjunto atual de horários dos períodos';
+
+  @override
+  String importedPeriodTimesCount(int count) {
+    return '$count horários de períodos importados';
+  }
+
+  @override
+  String get periodFilePermissionTitle => 'Permissão de arquivo necessária';
+
+  @override
+  String get androidFilePermissionMessage =>
+      'A exportação no Android exige permissão de acesso a arquivos. Conceda a permissão para continuar salvando.';
+
+  @override
+  String get reauthorize => 'Autorizar novamente';
+
+  @override
+  String get permissionPermanentlyDeniedTitle =>
+      'Permissão negada permanentemente';
+
+  @override
+  String get permissionSettingsExportMessage =>
+      'Ative o acesso a arquivos nas configurações do sistema e depois volte para tentar exportar novamente.';
+
+  @override
+  String get privacyPolicyTitle => 'Política de Privacidade';
+
+  @override
+  String get privacyPolicyEntryDesc =>
+      'Saiba como o app lida com armazenamento local, configuração de sites escolares, importação/exportação de arquivos, análise de páginas web e links externos.';
+
+  @override
+  String privacyPolicyAcceptedVersionLabel(Object version) {
+    return 'Versão aceita: $version';
+  }
+
+  @override
+  String get privacyPolicyIntro =>
+      'O Classmate armazena horários, configurações de horários, conjuntos de horários dos períodos e configurações de sites escolares apenas no seu dispositivo ou no seu navegador. O app só lê arquivos locais, envia conteúdo de páginas web para análise, abre links externos ou usa o compartilhamento do sistema quando você inicia essas ações explicitamente.';
+
+  @override
+  String get privacyPolicyLocalStorageTitle => 'Armazenamento local';
+
+  @override
+  String get privacyPolicyLocalStorageBody =>
+      'Os dados do horário e as configurações relacionadas são armazenados em um arquivo local chamado classmate_data.json dentro do diretório de documentos do app. A configuração editável de sites escolares é armazenada separadamente em classmate_school_sites.json. As configurações personalizadas do analisador de horários, incluindo qualquer URL base personalizada, chave de API e modelo selecionado, também são armazenadas localmente nos mesmos dados do app e não são protegidas por um cofre de credenciais do sistema. Quando usado em um navegador, os mesmos tipos de dados são armazenados no armazenamento do navegador. O app não envia automaticamente esses dados locais para um servidor controlado pelo desenvolvedor.';
+
+  @override
+  String get privacyPolicyImportExportTitle => 'Importação e exportação';
+
+  @override
+  String get privacyPolicyImportExportBody =>
+      'O app lê ou grava arquivos JSON de horário, arquivos JSON de sites escolares e arquivos de modelo de períodos somente quando você escolhe explicitamente um arquivo ou inicia uma ação de exportação. Importar esses arquivos é uma operação local, a menos que você também escolha a análise de página web. Buscar uma lista de modelos personalizados também é uma ação de rede explícita e contata apenas o endpoint personalizado que você configurou.';
+
+  @override
+  String get privacyPolicySharingTitle => 'Compartilhamento';
+
+  @override
+  String get privacyPolicySharingBody =>
+      'Quando você usa o compartilhamento explicitamente, o app passa o arquivo exportado para a folha de compartilhamento do sistema ou para o app de destino que você escolher. Como esse arquivo será tratado depois disso depende do app ou serviço de destino selecionado.';
+
+  @override
+  String get privacyPolicyExternalLinksTitle => 'Links externos';
+
+  @override
+  String get privacyPolicyExternalLinksBody =>
+      'Quando você abre links externos, como o repositório do GitHub, o app entrega essa ação ao seu navegador ou a outro aplicativo externo. O tratamento de dados a partir desse ponto é regido pelo terceiro que você abrir.';
+
+  @override
+  String get privacyPolicyNoCollectionTitle => 'O que o app não coleta';
+
+  @override
+  String get privacyPolicyNoCollectionBody =>
+      'O app não exige uma conta do Classmate e não ativa análise, identificadores de publicidade nem backup em nuvem. Ele também não fornece um campo dedicado para coletar senhas de contas escolares. Se você entrar em um site escolar dentro do app, essa interação acontece na página escolar que você abriu.';
+
+  @override
+  String get privacyPolicyFutureFeatureTitle => 'Análise de página web';
+
+  @override
+  String get privacyPolicyFutureFeatureBody =>
+      'Quando você usa a importação por página web da escola ou cola HTML para análise, o app primeiro comprime o conteúdo localmente e depois envia o conteúdo da página enviada, o título e a URL opcionais, o idioma atual do app e o conteúdo do prompt do analisador para o endpoint de análise selecionado. Se você usar o analisador oficial, a solicitação vai para o backend oficial configurado do app. Se ativar um analisador personalizado compatível com OpenAI, o mesmo conteúdo será enviado diretamente ao endpoint de terceiros que você configurou, e a busca da lista de modelos também consultará esse mesmo endpoint. Um endpoint personalizado pode encaminhar a solicitação para outros serviços de IA conforme o próprio design desse provedor. O backend oficial implantado atualmente limita cada carga enviada a 300 KB, usa o tempo limite configurado e permite no máximo 5 solicitações de análise por IP por dia.';
+
+  @override
+  String get privacyPolicyUpdatesTitle => 'Atualizações da política';
+
+  @override
+  String privacyPolicyUpdatesBody(Object version) {
+    return 'A versão atual da política de privacidade é $version. Se uma versão posterior alterar como os dados são tratados, o app poderá pedir que você leia e concorde novamente com a política atualizada.';
+  }
+
+  @override
+  String get privacyGateTitle =>
+      'Concorde com a política de privacidade antes de usar o app';
+
+  @override
+  String get privacyGateSummaryStorage =>
+      'Horários, conjuntos de horários dos períodos e configurações de sites escolares são armazenados apenas localmente e não são enviados automaticamente para um servidor do desenvolvedor.';
+
+  @override
+  String get privacyGateSummaryImportExport =>
+      'Importação, exportação e compartilhamento só acontecem quando você os inicia explicitamente; a análise de página web envia apenas o conteúdo compactado que você enviar ao endpoint configurado, e você pode revisar o horário analisado antes de salvar.';
+
+  @override
+  String get privacyGateSummaryExternal =>
+      'Abrir o GitHub ou outros links externos entrega a ação ao seu navegador ou a outro app.';
+
+  @override
+  String get privacyGateSummaryUpdates =>
+      'Se uma versão posterior alterar como os dados são tratados, o app poderá pedir que você revise novamente a política de privacidade atualizada.';
+
+  @override
+  String get schoolWebImportEntry => 'Importar da página web da escola';
+
+  @override
+  String get schoolWebImportEntryDesc =>
+      'Importe a página atual do horário a partir do site da escola.';
+
+  @override
+  String get schoolSitesManageEntry => 'Gerenciar sites escolares';
+
+  @override
+  String get schoolSitesManageEntryDesc =>
+      'Adicione, edite e exclua URLs de login escolar, com importação e exportação em JSON.';
+
+  @override
+  String get schoolSitesPageTitle => 'Gerenciamento de sites escolares';
+
+  @override
+  String get schoolSitesImportJson => 'Importar JSON de escolas';
+
+  @override
+  String get schoolSitesShareJson => 'Compartilhar JSON de escolas';
+
+  @override
+  String get schoolSitesSaveJson => 'Salvar JSON de escolas';
+
+  @override
+  String get schoolSitesSaved => 'Sites escolares salvos';
+
+  @override
+  String get schoolSitesImported => 'Sites escolares importados';
+
+  @override
+  String get schoolSitesEmpty => 'Ainda não há configuração de site escolar.';
+
+  @override
+  String get schoolSitesNameLabel => 'Nome da escola';
+
+  @override
+  String get schoolSitesLoginUrlLabel => 'URL de login';
+
+  @override
+  String get schoolSitesAdd => 'Adicionar escola';
+
+  @override
+  String get schoolSitesEdit => 'Editar escola';
+
+  @override
+  String get schoolSitesDeleteTitle => 'Excluir escola';
+
+  @override
+  String schoolSitesDeleteMessage(Object name) {
+    return 'Excluir \"$name\"?';
+  }
+
+  @override
+  String get schoolSitesFormInvalid =>
+      'Preencha primeiro o nome da escola e a URL de login.';
+
+  @override
+  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+
+  @override
+  String get schoolHtmlImportEntry =>
+      'Importar colando o conteúdo da página do horário';
+
+  @override
+  String get schoolHtmlImportEntryDesc =>
+      'Cole manualmente o código-fonte ou o conteúdo bruto da página que contém as informações do horário.';
+
+  @override
+  String get schoolHtmlImportPageTitle =>
+      'Analisar horário a partir do conteúdo da página';
+
+  @override
+  String get schoolHtmlImportUrlLabel => 'URL de origem (opcional)';
+
+  @override
+  String get schoolHtmlImportTitleLabel => 'Título da página (opcional)';
+
+  @override
+  String get schoolHtmlImportHtmlLabel => 'Conteúdo da página';
+
+  @override
+  String get schoolHtmlImportHtmlHint =>
+      'Cole aqui o código-fonte ou o conteúdo bruto da página que contém as informações do horário.';
+
+  @override
+  String get schoolHtmlImportNonHtmlHint =>
+      'Qualquer conteúdo que contenha informações do horário pode ser analisado e importado, não apenas HTML.';
+
+  @override
+  String get schoolHtmlImportCompress => 'Compactar conteúdo';
+
+  @override
+  String get schoolHtmlImportCompressed => 'Conteúdo compactado';
+
+  @override
+  String get schoolHtmlImportCompressFirst => 'Compacte o conteúdo primeiro.';
+
+  @override
+  String get schoolHtmlImportSubmit => 'Analisar e importar';
+
+  @override
+  String get schoolHtmlImportParsingMayTakeLong =>
+      'A análise pode demorar um pouco. Aguarde.';
+
+  @override
+  String get schoolHtmlImportEmpty => 'Cole primeiro o HTML da página.';
+
+  @override
+  String get schoolHtmlImportReturnToWebPage => 'Voltar para a página web';
+
+  @override
+  String get schoolWebImportPageTitle => 'Importação da página web da escola';
+
+  @override
+  String get schoolWebImportPreview => 'Pré-visualização da importação';
+
+  @override
+  String schoolWebImportCourseCount(int count) {
+    return '$count disciplinas';
+  }
+
+  @override
+  String schoolWebImportPeriodCount(int count) {
+    return '$count períodos';
+  }
+
+  @override
+  String get schoolWebImportPageTitleLabel => 'Título da página';
+
+  @override
+  String get schoolWebImportParserUsed => 'Analisador';
+
+  @override
+  String get schoolWebImportWarnings => 'Observações da importação';
+
+  @override
+  String get schoolWebImportOpenPageHint =>
+      'Entre no site da escola dentro do app e depois navegue manualmente até a página do horário.';
+
+  @override
+  String get schoolWebImportConfigMissing =>
+      'A API de backend da importação web ainda não está configurada.';
+
+  @override
+  String get schoolWebImportUnsupportedPlatform =>
+      'Esta plataforma ainda não oferece suporte para login web incorporado. Use uma plataforma com suporte a WebView.';
+
+  @override
+  String get schoolWebImportSelectSchool => 'Escolher escola';
+
+  @override
+  String get schoolWebImportNoSchools =>
+      'Nenhuma configuração de escola está disponível. Verifique primeiro o school_sites.json.';
+
+  @override
+  String get schoolWebImportSchoolLoadFailed =>
+      'Falha ao carregar a configuração da escola. Verifique o formato do arquivo JSON.';
+
+  @override
+  String get schoolWebImportImportCurrentPage => 'Importar página atual';
+
+  @override
+  String get schoolWebImportGoBack => 'Página anterior';
+
+  @override
+  String get schoolWebImportLoadingPage => 'Carregando página…';
+
+  @override
+  String get schoolWebImportParsing => 'Analisando a página atual…';
+
+  @override
+  String get schoolWebImportLoadFailed =>
+      'Falha ao carregar a página. Atualize ou tente novamente mais tarde.';
+
+  @override
+  String get schoolWebImportLoadTimedOut =>
+      'O carregamento da página expirou. Atualize e tente novamente.';
+
+  @override
+  String get schoolWebImportEmptyPage =>
+      'O conteúdo da página atual está vazio e ainda não pode ser importado.';
+
+  @override
+  String get schoolWebImportSuccess => 'Horário web importado';
+
+  @override
+  String get schoolImportParserSettingsTitle =>
+      'Configurações do analisador de horários';
+
+  @override
+  String get schoolImportParserSettingsDesc =>
+      'Escolha o analisador oficial ou um endpoint personalizado compatível com OpenAI.';
+
+  @override
+  String get schoolImportParserSourceTitle => 'Origem do analisador';
+
+  @override
+  String get schoolImportParserSourceOfficial => 'Analisador oficial';
+
+  @override
+  String get schoolImportParserSourceOfficialDesc =>
+      'Use o serviço oficial de análise integrado configurado pelo app.';
+
+  @override
+  String get schoolImportParserSourceOfficialInfo =>
+      'O analisador oficial usa o backend de análise configurado pelo app e mantém inalterado o fluxo atual de importação.';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAi =>
+      'Compatível com OpenAI personalizado';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAiDesc =>
+      'Envie o conteúdo da página diretamente para seu próprio endpoint compatível com OpenAI.';
+
+  @override
+  String get schoolImportParserCustomOpenAi =>
+      'Analisador personalizado compatível com OpenAI';
+
+  @override
+  String get schoolImportParserCustomPromptTitle => 'Prompt personalizado';
+
+  @override
+  String get schoolImportParserCustomPromptDescription =>
+      'Edite aqui o prompt integrado do analisador. As alterações afetam apenas o analisador personalizado compatível com OpenAI.';
+
+  @override
+  String get schoolImportParserCustomPromptHint =>
+      'O prompt integrado é carregado aqui por padrão. Limpe-o para voltar à versão integrada.';
+
+  @override
+  String get schoolImportParserResetDefaultPrompt => 'Restaurar prompt padrão';
+
+  @override
+  String get schoolImportParserBaseUrl => 'URL base';
+
+  @override
+  String get schoolImportParserApiKey => 'Chave de API';
+
+  @override
+  String get schoolImportParserModel => 'Modelo';
+
+  @override
+  String get schoolImportParserFetchModels => 'Buscar lista de modelos';
+
+  @override
+  String get schoolImportParserFetchingModels => 'Buscando modelos...';
+
+  @override
+  String get schoolImportParserNoModelsFound =>
+      'Nenhum modelo foi retornado pelo endpoint.';
+
+  @override
+  String schoolImportParserModelsFetched(int count) {
+    return '$count modelos obtidos';
+  }
+
+  @override
+  String get schoolImportParserPlaintextWarning =>
+      'A chave de API personalizada é armazenada em texto simples nas configurações locais do app na implementação atual. Use-a apenas em um dispositivo ou ambiente de navegador em que você confia.';
+
+  @override
+  String get schoolImportParserCustomConfigIncomplete =>
+      'A configuração do analisador personalizado está incompleta. Preencha primeiro a URL base, a chave de API e o modelo.';
+
+  @override
+  String get schoolImportParserCurrentSourceOfficial => 'Analisador: oficial';
+
+  @override
+  String schoolImportParserCurrentSourceCustom(Object model) {
+    return 'Analisador: personalizado ($model)';
+  }
+
+  @override
+  String get privacyViewFullPolicy => 'Ver política de privacidade completa';
+
+  @override
+  String get privacyAgreeAndContinue => 'Concordar e continuar';
+
+  @override
+  String get privacyDecline => 'Recusar';
+
+  @override
+  String get privacyDeclineWebHint =>
+      'Este ambiente de navegador não permite que o app feche a página por você. Se não concordar, feche esta aba ou janela manualmente.';
+
+  @override
+  String get defaultPeriodTimeSetName => 'Períodos padrão';
+
+  @override
+  String get periodTimeSetFallbackName => 'Horários dos períodos';
+
+  @override
+  String get untitledTimetableName => 'Horário sem título';
+
+  @override
+  String get newTimetableName => 'Novo horário';
+
+  @override
+  String get newPeriodTimeSetName => 'Novo conjunto de horários dos períodos';
+
+  @override
+  String get emptyTimetableName => 'Horário vazio';
+
+  @override
+  String importedPeriodTimeSetName(Object name) {
+    return 'Períodos de $name';
+  }
+
+  @override
+  String get importFileTypeMismatchMessage =>
+      'O tipo de arquivo importado não corresponde.';
+
+  @override
+  String get importFileVersionUnsupportedMessage =>
+      'Esta versão do arquivo de importação ainda não é compatível.';
+
+  @override
+  String get noPeriodTimesInImportMessage =>
+      'Nenhum horário de período foi encontrado no arquivo importado.';
+
+  @override
+  String get selectAtLeastOneTimetableMessage =>
+      'Selecione pelo menos um horário.';
+
+  @override
+  String get noExportableTimetableMessage =>
+      'Não há horário disponível para exportar.';
+
+  @override
+  String get replaceActiveRequiresSingleTimetableMessage =>
+      'Substituir o horário atual permite selecionar apenas um horário.';
+
+  @override
+  String get noActiveTimetableToReplaceMessage =>
+      'Não há horário atual para substituir.';
+
+  @override
+  String periodTimeSetInUseMessage(int count) {
+    return 'Este conjunto de horários dos períodos ainda é usado por $count horário(s). Reatribua-os antes de excluir.';
+  }
+
+  @override
+  String get weekdayMonday => 'Segunda-feira';
+
+  @override
+  String get weekdayTuesday => 'Terça-feira';
+
+  @override
+  String get weekdayWednesday => 'Quarta-feira';
+
+  @override
+  String get weekdayThursday => 'Quinta-feira';
+
+  @override
+  String get weekdayFriday => 'Sexta-feira';
+
+  @override
+  String get weekdaySaturday => 'Sábado';
+
+  @override
+  String get weekdaySunday => 'Domingo';
+
+  @override
+  String get weekdayShortMonday => 'Seg';
+
+  @override
+  String get weekdayShortTuesday => 'Ter';
+
+  @override
+  String get weekdayShortWednesday => 'Qua';
+
+  @override
+  String get weekdayShortThursday => 'Qui';
+
+  @override
+  String get weekdayShortFriday => 'Sex';
+
+  @override
+  String get weekdayShortSaturday => 'Sáb';
+
+  @override
+  String get weekdayShortSunday => 'Dom';
+
+  @override
+  String get monthJanuary => 'Jan';
+
+  @override
+  String get monthFebruary => 'Fev';
+
+  @override
+  String get monthMarch => 'Mar';
+
+  @override
+  String get monthApril => 'Abr';
+
+  @override
+  String get monthMay => 'Mai';
+
+  @override
+  String get monthJune => 'Jun';
+
+  @override
+  String get monthJuly => 'Jul';
+
+  @override
+  String get monthAugust => 'Ago';
+
+  @override
+  String get monthSeptember => 'Set';
+
+  @override
+  String get monthOctober => 'Out';
+
+  @override
+  String get monthNovember => 'Nov';
+
+  @override
+  String get monthDecember => 'Dez';
+
+  @override
+  String get semesterWeeksWholeTerm => 'Todo o semestre';
+
+  @override
+  String semesterWeeksRange(Object start, Object end) {
+    return 'Semanas $start-$end';
+  }
+
+  @override
+  String semesterWeeksList(Object value) {
+    return 'Semanas $value';
+  }
+}

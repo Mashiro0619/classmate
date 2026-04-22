@@ -285,10 +285,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get languagePageDescription =>
+      'Choose one of the languages that is truly available in the app.';
+
+  @override
   String get languageChinese => '中文';
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+
+  @override
+  String get apiResponseTitle => 'API response';
 
   @override
   String get theme => 'Theme';

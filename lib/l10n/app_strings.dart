@@ -160,6 +160,6 @@ class _GeneratedAppStrings implements AppStrings {
   }
 
   String get _semesterWeeksSeparator {
-    return _l10n.localeName.startsWith('en') ? ', ' : '、';
+    return _l10n.localeName.startsWith('zh') ? '、' : ', ';
   }
 }

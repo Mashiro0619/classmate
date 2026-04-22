@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
+import '../services/timetable_json_import_service.dart';
 import '../widgets/period_time_set_picker_dialog.dart';
 import 'school_sites_page.dart';
 
@@ -22,6 +24,9 @@ class _TimetableImportChoice {
 
 class TimetableImportFlow {
   const TimetableImportFlow._();
+
+  static const TimetableJsonImportService _jsonImportService =
+      TimetableJsonImportService();
 
   static Future<void> importTimetables(
     BuildContext context,
@@ -41,17 +46,21 @@ class TimetableImportFlow {
   ) async {
     final l10n = AppLocalizations.of(context);
 
-    List<TimetableData> candidates;
+    TimetableJsonImportPreview preview;
     try {
-      candidates = provider.previewImportTimetables(source);
+      preview = _jsonImportService.preview(provider, source);
     } on FormatException catch (error) {
-      _showMessage(context, error.message);
+      final message = error.message == 'Unsupported import file type.'
+          ? importFileTypeMismatchMessage(localeCode: provider.localeCode)
+          : error.message;
+      _showMessage(context, message);
       return false;
     } catch (_) {
       _showMessage(context, l10n.importFailedCheckContent);
       return false;
     }
 
+    final candidates = preview.candidates;
     if (candidates.isEmpty) {
       _showMessage(context, l10n.noImportableTimetables);
       return false;
@@ -107,19 +116,22 @@ class TimetableImportFlow {
     final importChoice = await _pickImportBundledPeriodTimeSets(
       context,
       provider,
-      source,
+      hasBundledPeriodTimeSets: preview.hasBundledPeriodTimeSets,
     );
     if (importChoice == null) {
       return false;
     }
 
     try {
-      final count = await provider.importSelectedTimetablesJson(
-        source,
-        timetableIds: selectedIds,
-        mode: mode,
-        importBundledPeriodTimeSets: importChoice.importBundledPeriodTimeSets,
-        targetPeriodTimeSetId: importChoice.targetPeriodTimeSetId,
+      final count = await _jsonImportService.apply(
+        provider,
+        TimetableJsonImportRequest(
+          source: source,
+          timetableIds: selectedIds,
+          mode: mode,
+          importBundledPeriodTimeSets: importChoice.importBundledPeriodTimeSets,
+          targetPeriodTimeSetId: importChoice.targetPeriodTimeSetId,
+        ),
       );
       if (context.mounted) {
         _showMessage(context, l10n.importedTimetablesCount(count));
@@ -154,21 +166,9 @@ class TimetableImportFlow {
 
   static Future<_TimetableImportChoice?> _pickImportBundledPeriodTimeSets(
     BuildContext context,
-    TimetableProvider provider,
-    String source,
-  ) async {
-    final envelope = ImportExportEnvelope.decode(source);
-    final hasBundledPeriodTimeSets = switch (envelope.schema) {
-      timetableDataSchema =>
-        (envelope.data['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
-            .isNotEmpty ||
-        (envelope.data.containsKey('config') &&
-            envelope.data.containsKey('courses')),
-      appDataSchema =>
-        (envelope.data['periodTimeSets'] as List<dynamic>? ?? const <dynamic>[])
-            .isNotEmpty,
-      _ => false,
-    };
+    TimetableProvider provider, {
+    required bool hasBundledPeriodTimeSets,
+  }) async {
     if (!hasBundledPeriodTimeSets) {
       return const _TimetableImportChoice(importBundledPeriodTimeSets: true);
     }

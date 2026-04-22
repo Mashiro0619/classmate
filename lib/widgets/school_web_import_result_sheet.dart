@@ -6,20 +6,6 @@ import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
 import 'period_time_set_picker_dialog.dart';
 
-class SchoolWebImportResult {
-  const SchoolWebImportResult({
-    required this.response,
-    required this.mode,
-    required this.importBundledPeriodTimeSet,
-    this.targetPeriodTimeSetId,
-  });
-
-  final SchoolImportResponse response;
-  final TimetableImportMode mode;
-  final bool importBundledPeriodTimeSet;
-  final String? targetPeriodTimeSetId;
-}
-
 class SchoolWebImportResultSheet extends StatefulWidget {
   const SchoolWebImportResultSheet({
     super.key,
@@ -353,7 +339,7 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
       ),
     );
     Navigator.of(context).pop(
-      SchoolWebImportResult(
+      SchoolImportApplyRequest(
         response: nextResponse,
         mode: mode,
         importBundledPeriodTimeSet: _importBundledPeriodTimeSet,

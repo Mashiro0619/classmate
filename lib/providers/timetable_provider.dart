@@ -29,8 +29,6 @@ const _colorfulCoursePalette = <int>[
 
 enum AppImportMode { replaceAll, addAll }
 
-enum TimetableImportMode { addAsNew, replaceActive }
-
 String resolveFirstLaunchLocaleCode(Locale? locale) {
   return app_locale.resolveFirstLaunchLocaleCode(locale);
 }
@@ -684,14 +682,11 @@ class TimetableProvider extends ChangeNotifier {
     return selected.config.name;
   }
 
-  Future<void> importSchoolWebResponseWithPeriodTimeSet(
-    SchoolImportResponse response, {
-    required TimetableImportMode mode,
-    required bool importBundledPeriodTimeSet,
-    String? targetPeriodTimeSetId,
-  }) async {
-    final manualTargetSetId = targetPeriodTimeSetId?.trim() ?? '';
-    if (!importBundledPeriodTimeSet) {
+  Future<void> applySchoolImportRequest(
+    SchoolImportApplyRequest request,
+  ) async {
+    final manualTargetSetId = request.targetPeriodTimeSetId?.trim() ?? '';
+    if (!request.importBundledPeriodTimeSet) {
       if (manualTargetSetId.isEmpty || periodTimeSetForId(manualTargetSetId) == null) {
         throw FormatException(
           noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
@@ -700,24 +695,25 @@ class TimetableProvider extends ChangeNotifier {
     }
 
     final existingSetIds = _appData.periodTimeSets.map((item) => item.id).toSet();
-    final bundledPeriodTimeSet = importBundledPeriodTimeSet
+    final bundledPeriodTimeSet = request.importBundledPeriodTimeSet
         ? _copyImportedPeriodTimeSetWithUniqueId(
-            _buildImportedSchoolPeriodTimeSet(response),
+            _buildImportedSchoolPeriodTimeSet(request.response),
             existingSetIds,
           )
         : null;
-    final resolvedPeriodTimeSet = bundledPeriodTimeSet ?? periodTimeSetForId(manualTargetSetId);
+    final resolvedPeriodTimeSet =
+        bundledPeriodTimeSet ?? periodTimeSetForId(manualTargetSetId);
     if (resolvedPeriodTimeSet == null) {
       throw FormatException(
         noPeriodTimeAvailableMessage(localeCode: _appData.localeCode),
       );
     }
     final timetable = _buildSchoolImportedTimetable(
-      response,
+      request.response,
       periodTimeSet: resolvedPeriodTimeSet,
     );
 
-    if (mode == TimetableImportMode.replaceActive) {
+    if (request.mode == TimetableImportMode.replaceActive) {
       final current = activeTimetableOrNull;
       if (current == null) {
         throw FormatException(
