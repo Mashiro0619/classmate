@@ -449,5 +449,73 @@
   "privacyViewFullPolicy": "查看完整隐私政策",
   "privacyAgreeAndContinue": "同意并继续",
   "privacyDecline": "不同意",
-  "privacyDeclineWebHint": "当前浏览器环境无法由应用主动关闭页面。若你不同意，请直接关闭此标签页或窗口。"
+  "privacyDeclineWebHint": "当前浏览器环境无法由应用主动关闭页面。若你不同意，请直接关闭此标签页或窗口。",
+  "defaultPeriodTimeSetName": "默认节次",
+  "periodTimeSetFallbackName": "节次时间",
+  "untitledTimetableName": "未命名课表",
+  "newTimetableName": "新课表",
+  "newPeriodTimeSetName": "新节次时间",
+  "emptyTimetableName": "空课表",
+  "importedPeriodTimeSetName": "{name} 节次",
+  "@importedPeriodTimeSetName": {
+    "description": "根据导入课表名称生成的节次时间集兜底名称。",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "importFileTypeMismatchMessage": "导入文件类型不匹配",
+  "importFileVersionUnsupportedMessage": "导入文件版本暂不支持",
+  "noPeriodTimesInImportMessage": "导入文件中没有节次时间",
+  "selectAtLeastOneTimetableMessage": "请选择至少一个课表",
+  "noExportableTimetableMessage": "当前没有可导出的课表",
+  "replaceActiveRequiresSingleTimetableMessage": "覆盖当前课表时只能选择一个课表",
+  "noActiveTimetableToReplaceMessage": "当前没有可覆盖的课表",
+  "periodTimeSetInUseMessage": "该节次时间仍被 {count} 个课表使用，请先改关联再删除",
+  "@periodTimeSetInUseMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weekdayMonday": "星期一",
+  "weekdayTuesday": "星期二",
+  "weekdayWednesday": "星期三",
+  "weekdayThursday": "星期四",
+  "weekdayFriday": "星期五",
+  "weekdaySaturday": "星期六",
+  "weekdaySunday": "星期日",
+  "weekdayShortMonday": "一",
+  "weekdayShortTuesday": "二",
+  "weekdayShortWednesday": "三",
+  "weekdayShortThursday": "四",
+  "weekdayShortFriday": "五",
+  "weekdayShortSaturday": "六",
+  "weekdayShortSunday": "日",
+  "monthJanuary": "1月",
+  "monthFebruary": "2月",
+  "monthMarch": "3月",
+  "monthApril": "4月",
+  "monthMay": "5月",
+  "monthJune": "6月",
+  "monthJuly": "7月",
+  "monthAugust": "8月",
+  "monthSeptember": "9月",
+  "monthOctober": "10月",
+  "monthNovember": "11月",
+  "monthDecember": "12月",
+  "semesterWeeksWholeTerm": "全学期",
+  "semesterWeeksRange": "第 {start}-{end} 周",
+  "@semesterWeeksRange": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "semesterWeeksList": "第 {value} 周",
+  "@semesterWeeksList": {
+    "placeholders": {
+      "value": {}
+    }
+  }
 }

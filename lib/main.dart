@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_locale.dart';
 import 'l10n/app_localizations.dart';
 import 'models/timetable_models.dart';
 import 'providers/timetable_provider.dart';
@@ -13,6 +13,7 @@ import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   _registerLicenses();
   final provider = TimetableProvider();
   unawaited(provider.load());
@@ -90,15 +91,10 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             onGenerateTitle: (context) =>
-                AppLocalizations.of(context)!.appTitle,
-            locale: Locale(timetableProvider.localeCode),
-            supportedLocales: const [Locale('zh'), Locale('en')],
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+                AppLocalizations.of(context).appTitle,
+            locale: appLocaleFromCode(timetableProvider.localeCode),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             themeMode: _themeModeFromValue(timetableProvider.themeMode),
             theme: _buildTheme(
               seedColor: Color(timetableProvider.themeSeedColorValue),

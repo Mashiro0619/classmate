@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locale.dart';
+import '../l10n/app_strings.dart';
+
 const defaultPeriodTimesAssetPath = 'assets/default_period_times.json';
 const defaultPeriodTimeSetId = 'period_set_default';
-const defaultLocaleCode = 'zh';
 const defaultThemeMode = 'system';
 const defaultThemeColorMode = 'single';
 const themeColorModeSingle = 'single';
@@ -33,8 +35,9 @@ const maxLiveCourseOutlineWidth = 4.0;
 const maxTimetableWeeks = 100;
 const currentPrivacyPolicyVersion = '2026-04-20';
 
-bool _isEnglishLocale(String localeCode) =>
-    normalizeLocaleCode(localeCode) == 'en';
+AppStrings _stringsForLocale(String localeCode) {
+  return AppStrings.forLocaleCode(localeCode);
+}
 
 Color deriveLiveCourseOutlineColorFromSeed(Color seedColor) {
   final hsl = HSLColor.fromColor(seedColor);
@@ -71,101 +74,82 @@ String normalizeColorfulCourseTextColorMode(String? mode) {
 }
 
 String defaultPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'Default periods' : '默认节次';
+  return _stringsForLocale(localeCode).defaultPeriodTimeSetName;
 }
 
 String periodTimeSetFallbackName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'Period times' : '节次时间';
+  return _stringsForLocale(localeCode).periodTimeSetFallbackName;
 }
 
 String untitledTimetableName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'Untitled timetable' : '未命名课表';
+  return _stringsForLocale(localeCode).untitledTimetableName;
 }
 
 String newTimetableName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'New timetable' : '新课表';
+  return _stringsForLocale(localeCode).newTimetableName;
 }
 
 String newPeriodTimeSetName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'New period time set' : '新节次时间';
+  return _stringsForLocale(localeCode).newPeriodTimeSetName;
 }
 
 String emptyTimetableName({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode) ? 'Empty timetable' : '空课表';
+  return _stringsForLocale(localeCode).emptyTimetableName;
 }
 
 String importedPeriodTimeSetName(
   String timetableName, {
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? '$timetableName periods'
-      : '$timetableName 节次';
+  return _stringsForLocale(localeCode).importedPeriodTimeSetName(timetableName);
 }
 
 String importFileTypeMismatchMessage({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode)
-      ? 'Import file type does not match.'
-      : '导入文件类型不匹配';
+  return _stringsForLocale(localeCode).importFileTypeMismatchMessage;
 }
 
 String importFileVersionUnsupportedMessage({
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? 'This import file version is not supported yet.'
-      : '导入文件版本暂不支持';
+  return _stringsForLocale(localeCode).importFileVersionUnsupportedMessage;
 }
 
 String noPeriodTimesInImportMessage({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode)
-      ? 'No period times found in the import file.'
-      : '导入文件中没有节次时间';
+  return _stringsForLocale(localeCode).noPeriodTimesInImportMessage;
 }
 
 String noPeriodTimeAvailableMessage({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode)
-      ? 'No available period time set.'
-      : '暂无可用节次时间';
+  return _stringsForLocale(localeCode).noPeriodTimeAvailableMessage;
 }
 
 String selectAtLeastOneTimetableMessage({
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? 'Please select at least one timetable.'
-      : '请选择至少一个课表';
+  return _stringsForLocale(localeCode).selectAtLeastOneTimetableMessage;
 }
 
 String noExportableTimetableMessage({String localeCode = defaultLocaleCode}) {
-  return _isEnglishLocale(localeCode)
-      ? 'There is no timetable available to export.'
-      : '当前没有可导出的课表';
+  return _stringsForLocale(localeCode).noExportableTimetableMessage;
 }
 
 String replaceActiveRequiresSingleTimetableMessage({
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? 'Replacing the current timetable only supports selecting one timetable.'
-      : '覆盖当前课表时只能选择一个课表';
+  return _stringsForLocale(localeCode)
+      .replaceActiveRequiresSingleTimetableMessage;
 }
 
 String noActiveTimetableToReplaceMessage({
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? 'There is no current timetable to replace.'
-      : '当前没有可覆盖的课表';
+  return _stringsForLocale(localeCode).noActiveTimetableToReplaceMessage;
 }
 
 String periodTimeSetInUseMessage(
   int count, {
   String localeCode = defaultLocaleCode,
 }) {
-  return _isEnglishLocale(localeCode)
-      ? 'This period time set is still used by $count timetable(s). Reassign them before deleting.'
-      : '该节次时间仍被 $count 个课表使用，请先改关联再删除';
+  return _stringsForLocale(localeCode).periodTimeSetInUseMessage(count);
 }
 
 class CoursePeriodTime {
@@ -1193,9 +1177,6 @@ int normalizeDayOfWeek(int? dayOfWeek) {
   return value.clamp(1, 7);
 }
 
-String normalizeLocaleCode(String? localeCode) {
-  return localeCode == 'en' ? 'en' : defaultLocaleCode;
-}
 
 String normalizeThemeMode(String? themeMode) {
   switch (themeMode) {
@@ -1272,20 +1253,7 @@ String formatDayOfWeekLabel(
   String localeCode = defaultLocaleCode,
 }) {
   final normalizedDay = normalizeDayOfWeek(dayOfWeek);
-  if (normalizeLocaleCode(localeCode) == 'en') {
-    const labels = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return labels[normalizedDay - 1];
-  }
-  const labels = ['一', '二', '三', '四', '五', '六', '日'];
-  return '星期${labels[normalizedDay - 1]}';
+  return _stringsForLocale(localeCode).formatDayOfWeekLabel(normalizedDay);
 }
 
 String formatWeekdayShortLabel(
@@ -1293,34 +1261,11 @@ String formatWeekdayShortLabel(
   String localeCode = defaultLocaleCode,
 }) {
   final normalizedDay = normalizeDayOfWeek(dayOfWeek);
-  if (normalizeLocaleCode(localeCode) == 'en') {
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return labels[normalizedDay - 1];
-  }
-  const labels = ['一', '二', '三', '四', '五', '六', '日'];
-  return labels[normalizedDay - 1];
+  return _stringsForLocale(localeCode).formatWeekdayShortLabel(normalizedDay);
 }
 
 String formatMonthLabel(int month, {String localeCode = defaultLocaleCode}) {
-  final normalizedMonth = month.clamp(1, 12);
-  if (normalizeLocaleCode(localeCode) == 'en') {
-    const labels = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return labels[normalizedMonth - 1];
-  }
-  return '$normalizedMonth月';
+  return _stringsForLocale(localeCode).formatMonthLabel(month);
 }
 
 String formatSemesterWeeksLabel(
@@ -1329,26 +1274,9 @@ String formatSemesterWeeksLabel(
   String localeCode = defaultLocaleCode,
 }) {
   final normalized = normalizeSemesterWeeks(semesterWeeks);
-  final isEnglish = normalizeLocaleCode(localeCode) == 'en';
-  if (normalized.isEmpty) {
-    if (totalWeeks == null) {
-      return isEnglish ? 'All semester' : '全学期';
-    }
-    return isEnglish ? 'Weeks 1-$totalWeeks' : '第 1-$totalWeeks 周';
-  }
-  final ranges = <String>[];
-  var start = normalized.first;
-  var previous = normalized.first;
-  for (final week in normalized.skip(1)) {
-    if (week == previous + 1) {
-      previous = week;
-      continue;
-    }
-    ranges.add(start == previous ? '$start' : '$start-$previous');
-    start = previous = week;
-  }
-  ranges.add(start == previous ? '$start' : '$start-$previous');
-  return isEnglish ? 'Weeks ${ranges.join(', ')}' : '第 ${ranges.join('、')} 周';
+  return _stringsForLocale(
+    localeCode,
+  ).formatSemesterWeeksLabel(normalized, totalWeeks: totalWeeks);
 }
 
 /// 只有时间段能和连续节次严丝合缝对上时才回填节次；对不上就宁可不显示。

@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:classmate/config/app_config.dart';
 import 'package:classmate/data/timetable_storage.dart';
+import 'package:classmate/l10n/app_locale.dart' as app_locale;
 import 'package:classmate/l10n/app_localizations.dart';
+import 'package:classmate/l10n/app_strings.dart';
 import 'package:classmate/main.dart' hide main;
 import 'package:classmate/models/school_import_models.dart';
 import 'package:classmate/models/timetable_models.dart';
@@ -130,13 +132,8 @@ class FakeSchoolImportApi extends SchoolImportApi {
 Widget _buildLocalizedApp(Widget child, {Locale locale = const Locale('zh')}) {
   return MaterialApp(
     locale: locale,
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: const [Locale('zh'), Locale('en')],
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );
 }
@@ -379,17 +376,17 @@ void main() {
     });
 
     test('首次启动语言检测仅对繁体中文映射为中文', () {
-      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh');
-      expect(resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh');
-      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh');
     });
 
     test('首次启动语言检测对其他语言一律映射为英文', () {
-      expect(resolveFirstLaunchLocaleCode(null), 'en');
-      expect(resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
-      expect(resolveFirstLaunchLocaleCode(const Locale('ja')), 'en');
-      expect(resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'en');
-      expect(resolveFirstLaunchLocaleCode(const Locale('zh')), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(null), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ja')), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'en');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh')), 'en');
     });
 
     test('中文系语言默认使用配置的更新接口', () {
@@ -896,6 +893,39 @@ void main() {
 
       expect(provider.localeCode, 'en');
       expect(provider.activePeriodTimeSet.name, 'Default periods');
+    });
+
+    test('非 UI 字符串助手会复用生成本地化内容', () {
+      final zhStrings = AppStrings.forLocaleCode('zh');
+      final enStrings = AppStrings.forLocaleCode('en');
+
+      expect(zhStrings.defaultPeriodTimeSetName, '默认节次');
+      expect(enStrings.defaultPeriodTimeSetName, 'Default periods');
+      expect(zhStrings.importedPeriodTimeSetName('测试课表'), '测试课表 节次');
+      expect(enStrings.importedPeriodTimeSetName('Test Timetable'), 'Test Timetable periods');
+      expect(zhStrings.formatDayOfWeekLabel(1), '星期一');
+      expect(enStrings.formatDayOfWeekLabel(1), 'Monday');
+      expect(zhStrings.formatWeekdayShortLabel(7), '日');
+      expect(enStrings.formatWeekdayShortLabel(7), 'Sun');
+      expect(zhStrings.formatMonthLabel(3), '3月');
+      expect(enStrings.formatMonthLabel(3), 'Mar');
+      expect(zhStrings.formatSemesterWeeksLabel(const [], totalWeeks: 18), '第 1-18 周');
+      expect(enStrings.formatSemesterWeeksLabel(const [], totalWeeks: 18), 'Weeks 1-18');
+      expect(zhStrings.formatSemesterWeeksLabel(const [1, 2, 4]), '第 1-2、4 周');
+      expect(enStrings.formatSemesterWeeksLabel(const [1, 2, 4]), 'Weeks 1-2, 4');
+      expect(zhStrings.periodTimeSetInUseMessage(2), '该节次时间仍被 2 个课表使用，请先改关联再删除');
+      expect(
+        enStrings.periodTimeSetInUseMessage(2),
+        'This period time set is still used by 2 timetable(s). Reassign them before deleting.',
+      );
+    });
+
+    test('locale helper 会标准化 code 并映射到受支持语言', () {
+      expect(app_locale.normalizeLocaleCode('en_US'), 'en');
+      expect(app_locale.normalizeLocaleCode('zh-Hant'), 'zh');
+      expect(app_locale.normalizeLocaleCode('ja'), 'zh');
+      expect(app_locale.appLocaleFromCode('en-US'), const Locale('en'));
+      expect(app_locale.appLocaleFromCode('zh_TW'), const Locale('zh'));
     });
 
     test('已有本地语言设置时不会被系统语言覆盖', () async {
@@ -1588,6 +1618,47 @@ void main() {
 
       expect(find.text('课表解析设置'), findsWidgets);
       expect(find.text('Base URL'), findsOneWidget);
+    });
+
+    testWidgets('设置页语言入口会根据受支持语言列表渲染并更新 provider', (tester) async {
+      final provider = TimetableProvider(
+        storage: MemoryTimetableStorage(
+          initialData: _buildTestAppData().copyWith(localeCode: 'en'),
+        ),
+      );
+      await provider.load();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TimetableProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            locale: Locale('zh'),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('zh'), Locale('en')],
+            home: SettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('English'), findsOneWidget);
+
+      await tester.tap(find.text('语言'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('中文'), findsOneWidget);
+      expect(find.text('English'), findsWidgets);
+
+      await tester.tap(find.text('中文').last);
+      await tester.pumpAndSettle();
+
+      expect(provider.localeCode, 'zh');
+      expect(find.text('中文'), findsOneWidget);
     });
 
     testWidgets('设置-导入导出数据中可进入解析课表页面', (tester) async {

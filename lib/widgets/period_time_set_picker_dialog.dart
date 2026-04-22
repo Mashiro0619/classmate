@@ -28,7 +28,7 @@ Future<String?> showPeriodTimeSetPickerDialog(
 
       return StatefulBuilder(
         builder: (dialogContext, refreshDialog) {
-          final l10n = AppLocalizations.of(dialogContext)!;
+          final l10n = AppLocalizations.of(dialogContext);
           return AlertDialog(
             title: Row(
               children: [

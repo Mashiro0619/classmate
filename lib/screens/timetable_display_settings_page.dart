@@ -11,7 +11,7 @@ class TimetableDisplaySettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         return Scaffold(
           appBar: AppBar(title: Text(l10n.timetableDisplaySettings)),
           body: ListView(

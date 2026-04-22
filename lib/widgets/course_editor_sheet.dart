@@ -114,7 +114,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final linkedPeriods = _selectedPeriods;
     final linkedPeriodsLabel = _formatPeriodsLabel(linkedPeriods, l10n);
 
@@ -315,7 +315,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.selectDayOfWeek),
+          title: Text(AppLocalizations.of(context).selectDayOfWeek),
           content: SizedBox(
             width: 320,
             child: Wrap(
@@ -352,7 +352,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final l10n = AppLocalizations.of(context)!;
+            final l10n = AppLocalizations.of(context);
             return AlertDialog(
               title: Text(l10n.selectSemesterWeeks),
               content: SizedBox(
@@ -496,7 +496,7 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final l10n = AppLocalizations.of(context)!;
+            final l10n = AppLocalizations.of(context);
             return AlertDialog(
               title: Text(l10n.selectLinkedPeriods),
               content: SizedBox(

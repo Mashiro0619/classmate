@@ -449,5 +449,73 @@
   "privacyViewFullPolicy": "View full privacy policy",
   "privacyAgreeAndContinue": "Agree and continue",
   "privacyDecline": "Decline",
-  "privacyDeclineWebHint": "This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself."
+  "privacyDeclineWebHint": "This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.",
+  "defaultPeriodTimeSetName": "Default periods",
+  "periodTimeSetFallbackName": "Period times",
+  "untitledTimetableName": "Untitled timetable",
+  "newTimetableName": "New timetable",
+  "newPeriodTimeSetName": "New period time set",
+  "emptyTimetableName": "Empty timetable",
+  "importedPeriodTimeSetName": "{name} periods",
+  "@importedPeriodTimeSetName": {
+    "description": "Fallback period time set name generated from an imported timetable name.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "importFileTypeMismatchMessage": "Import file type does not match.",
+  "importFileVersionUnsupportedMessage": "This import file version is not supported yet.",
+  "noPeriodTimesInImportMessage": "No period times found in the import file.",
+  "selectAtLeastOneTimetableMessage": "Please select at least one timetable.",
+  "noExportableTimetableMessage": "There is no timetable available to export.",
+  "replaceActiveRequiresSingleTimetableMessage": "Replacing the current timetable only supports selecting one timetable.",
+  "noActiveTimetableToReplaceMessage": "There is no current timetable to replace.",
+  "periodTimeSetInUseMessage": "This period time set is still used by {count} timetable(s). Reassign them before deleting.",
+  "@periodTimeSetInUseMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday",
+  "weekdayShortMonday": "Mon",
+  "weekdayShortTuesday": "Tue",
+  "weekdayShortWednesday": "Wed",
+  "weekdayShortThursday": "Thu",
+  "weekdayShortFriday": "Fri",
+  "weekdayShortSaturday": "Sat",
+  "weekdayShortSunday": "Sun",
+  "monthJanuary": "Jan",
+  "monthFebruary": "Feb",
+  "monthMarch": "Mar",
+  "monthApril": "Apr",
+  "monthMay": "May",
+  "monthJune": "Jun",
+  "monthJuly": "Jul",
+  "monthAugust": "Aug",
+  "monthSeptember": "Sep",
+  "monthOctober": "Oct",
+  "monthNovember": "Nov",
+  "monthDecember": "Dec",
+  "semesterWeeksWholeTerm": "All semester",
+  "semesterWeeksRange": "Weeks {start}-{end}",
+  "@semesterWeeksRange": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "semesterWeeksList": "Weeks {value}",
+  "@semesterWeeksList": {
+    "placeholders": {
+      "value": {}
+    }
+  }
 }

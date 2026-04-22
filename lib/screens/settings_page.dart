@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/text_transfer_widgets.dart';
 
+import '../l10n/app_locale.dart';
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 import '../providers/timetable_provider.dart';
@@ -45,7 +46,7 @@ class AppUpdateCoordinator {
     required UpdateCheckSource source,
     UpdateService updateService = _updateService,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final showIgnoreButton = source == UpdateCheckSource.startup;
     try {
       final result = await updateService.checkForUpdates(
@@ -117,7 +118,7 @@ class AppUpdateCoordinator {
     UpdateCheckResult result, {
     required bool showIgnoreButton,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final updateContent = result.updateContent.trim();
     return showDialog<_UpdateAction>(
       context: context,
@@ -157,7 +158,7 @@ class AppUpdateCoordinator {
     BuildContext context, {
     required bool showIgnoreButton,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return showDialog<_UpdateAction>(
       context: context,
       builder: (context) {
@@ -177,7 +178,7 @@ class AppUpdateCoordinator {
     BuildContext context, {
     required bool showIgnoreButton,
   }) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return [
       TextButton(
         onPressed: () => Navigator.of(context).pop(_UpdateAction.cancel),
@@ -267,7 +268,7 @@ class AppUpdateCoordinator {
     final uri = Uri.parse(url);
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
-      _showMessage(context, AppLocalizations.of(context)!.openUpdatesFailed);
+      _showMessage(context, AppLocalizations.of(context).openUpdatesFailed);
     }
   }
 
@@ -315,7 +316,13 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
+        final languageOptions = supportedLanguageOptions(l10n);
+        final currentLanguageLabel = _languageLabelForCode(
+          languageOptions,
+          provider.localeCode,
+          l10n,
+        );
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
           return Scaffold(
@@ -399,11 +406,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: const Icon(Icons.translate_outlined),
                 title: Text(l10n.language),
-                subtitle: Text(
-                  provider.localeCode == 'en'
-                      ? l10n.languageEnglish
-                      : l10n.languageChinese,
-                ),
+                subtitle: Text(currentLanguageLabel),
                 trailing: const Icon(Icons.keyboard_arrow_down),
                 onTap: () => _pickLanguage(provider),
               ),
@@ -480,7 +483,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _pickLanguage(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    final languageOptions = supportedLanguageOptions(l10n);
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -489,22 +493,15 @@ class _SettingsPageState extends State<SettingsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.languageChinese),
-                trailing: provider.localeCode == 'zh'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => Navigator.of(context).pop('zh'),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: Text(l10n.languageEnglish),
-                trailing: provider.localeCode == 'en'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => Navigator.of(context).pop('en'),
-              ),
+              for (final option in languageOptions)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  title: Text(option.label),
+                  trailing: normalizeLocaleCode(provider.localeCode) == option.code
+                      ? const Icon(Icons.check)
+                      : null,
+                  onTap: () => Navigator.of(context).pop(option.code),
+                ),
             ],
           ),
           actions: [
@@ -520,6 +517,20 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     await provider.updateLocaleCode(result);
+  }
+
+  String _languageLabelForCode(
+    List<AppLanguageOption> options,
+    String localeCode,
+    AppLocalizations l10n,
+  ) {
+    final normalizedCode = normalizeLocaleCode(localeCode);
+    for (final option in options) {
+      if (option.code == normalizedCode) {
+        return option.label;
+      }
+    }
+    return languageLabelForLocaleCode(l10n, normalizedCode);
   }
 
   Future<void> _pickPeriodTimeSet(
@@ -632,7 +643,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
-      _showMessage(AppLocalizations.of(context)!.openGithubFailed);
+      _showMessage(AppLocalizations.of(context).openGithubFailed);
     }
   }
 
@@ -642,7 +653,7 @@ class _SettingsPageState extends State<SettingsPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        final l10n = AppLocalizations.of(sheetContext)!;
+        final l10n = AppLocalizations.of(sheetContext);
         return _buildAdaptiveBottomSheet(
           sheetContext,
           maxWidth: 680,
@@ -738,7 +749,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _importTimetablesFromText(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TextImportPage(
@@ -767,7 +778,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _exportTimetablesAsText(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final activeId = provider.activeTimetableOrNull?.id;
     final selectedIds = await _pickTimetableIds(
       timetables: provider.timetables,
@@ -800,7 +811,7 @@ class _SettingsPageState extends State<SettingsPage> {
     TimetableProvider provider, {
     required bool share,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final activeId = provider.activeTimetableOrNull?.id;
     final selectedIds = await _pickTimetableIds(
       timetables: provider.timetables,
@@ -850,7 +861,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final l10n = AppLocalizations.of(context)!;
+            final l10n = AppLocalizations.of(context);
             return AlertDialog(
               title: Text(title),
               content: SizedBox(
@@ -950,7 +961,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _saveJsonToFile(String fileName, String content) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final result = await _exportService.saveFile(
       ExportPayload(fileName: fileName, content: content),
     );
@@ -1032,7 +1043,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -1057,11 +1068,11 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.retryLater),
+              child: Text(AppLocalizations.of(context).retryLater),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.switchToShare),
+              child: Text(AppLocalizations.of(context).switchToShare),
             ),
           ],
         );

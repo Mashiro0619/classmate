@@ -87,7 +87,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final provider = context.watch<TimetableProvider>();
     final isConfigured = _isConfigured(provider);
     return Scaffold(
@@ -211,7 +211,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
   }
 
   Future<void> _compressContent() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final html = _htmlController.text.trim();
     if (html.isEmpty) {
       _showMessage(l10n.schoolHtmlImportEmpty);
@@ -250,7 +250,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     if (_isSubmitting) {
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final provider = context.read<TimetableProvider>();
     final validationMessage = _validateBeforeSubmit(provider, l10n);
     if (validationMessage != null) {
@@ -336,7 +336,7 @@ class _SchoolHtmlImportPageState extends State<SchoolHtmlImportPage> {
     if (!mounted) {
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     await showDialog<void>(
       context: context,
       builder: (context) {

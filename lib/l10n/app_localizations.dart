@@ -62,15 +62,17 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
-  static AppLocalizations? of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('zh')
+    Locale('zh'),
   ];
 
   /// No description provided for @appTitle.
@@ -518,25 +521,25 @@ abstract class AppLocalizations {
   /// No description provided for @liveCourseOutlineColor.
   ///
   /// In en, this message translates to:
-  /// **'Current/next course outline color'**
+  /// **'Course outline color'**
   String get liveCourseOutlineColor;
 
   /// No description provided for @liveCourseOutlineColorHint.
   ///
   /// In en, this message translates to:
-  /// **'Outline the current course during class time, the next upcoming course later today, or tomorrow's first course after today's classes are over.'**
+  /// **'Choose whether outlines target the current/next course or all displayed courses on the current page.'**
   String get liveCourseOutlineColorHint;
 
   /// No description provided for @liveCourseOutlineSettings.
   ///
   /// In en, this message translates to:
-  /// **'Current/next course outline'**
+  /// **'Course outline'**
   String get liveCourseOutlineSettings;
 
   /// No description provided for @liveCourseOutlineSettingsHint.
   ///
   /// In en, this message translates to:
-  /// **'Configure whether the outline is enabled, whether it follows the theme color, and the effective outline color.'**
+  /// **'Configure whether the outline is enabled, what it targets, whether it follows the theme color, and the effective outline color.'**
   String get liveCourseOutlineSettingsHint;
 
   /// No description provided for @liveCourseOutlineEnabled.
@@ -758,7 +761,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkForUpdatesDesc.
   ///
   /// In en, this message translates to:
-  /// **'GitHub / Official website'**
+  /// **'GitHub / Official website / Google Play / Cloud drive'**
   String get checkForUpdatesDesc;
 
   /// No description provided for @alreadyLatestVersion.
@@ -1328,7 +1331,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyIntro.
   ///
   /// In en, this message translates to:
-  /// **'Classmate is a local-first app. Timetables, timetable settings, period-time sets, and school-site configuration are stored on your device or in your browser by default. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.'**
+  /// **'Classmate stores timetables, timetable settings, period-time sets, and school-site configuration only on your device or in your browser. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.'**
   String get privacyPolicyIntro;
 
   /// No description provided for @privacyPolicyLocalStorageTitle.
@@ -1340,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyLocalStorageBody.
   ///
   /// In en, this message translates to:
-  /// **'On Android, iOS, Windows, macOS, and Linux, timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. On the web, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.'**
+  /// **'Timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. Custom timetable parser settings, including any custom Base URL, API key, and selected model, are also stored locally in the same app data and are not protected by a system credential vault. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.'**
   String get privacyPolicyLocalStorageBody;
 
   /// No description provided for @privacyPolicyImportExportTitle.
@@ -1352,7 +1355,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyImportExportBody.
   ///
   /// In en, this message translates to:
-  /// **'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing.'**
+  /// **'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing. Fetching a custom model list is also an explicit network action and only contacts the custom endpoint you configured.'**
   String get privacyPolicyImportExportBody;
 
   /// No description provided for @privacyPolicySharingTitle.
@@ -1382,13 +1385,13 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyNoCollectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'What the app does not collect by default'**
+  /// **'What the app does not collect'**
   String get privacyPolicyNoCollectionTitle;
 
   /// No description provided for @privacyPolicyNoCollectionBody.
   ///
   /// In en, this message translates to:
-  /// **'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup by default. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.'**
+  /// **'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.'**
   String get privacyPolicyNoCollectionBody;
 
   /// No description provided for @privacyPolicyFutureFeatureTitle.
@@ -1400,7 +1403,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyFutureFeatureBody.
   ///
   /// In en, this message translates to:
-  /// **'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.'**
+  /// **'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, the current app language, and parser prompt content to the selected parsing endpoint. If you use the official parser, the request goes to the app\'s configured official backend. If you enable a custom OpenAI-compatible parser, the same content is sent directly to the third-party endpoint you configured, and fetching the model list also requests that same endpoint. A custom endpoint may forward the request to other AI services according to that provider\'s own design. The deployed official backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.'**
   String get privacyPolicyFutureFeatureBody;
 
   /// No description provided for @privacyPolicyUpdatesTitle.
@@ -1424,7 +1427,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyGateSummaryStorage.
   ///
   /// In en, this message translates to:
-  /// **'Timetables, period-time sets, and school-site configuration are stored locally by default and are not automatically uploaded to a developer server.'**
+  /// **'Timetables, period-time sets, and school-site configuration are only stored locally and are not automatically uploaded to a developer server.'**
   String get privacyGateSummaryStorage;
 
   /// No description provided for @privacyGateSummaryImportExport.
@@ -1454,7 +1457,7 @@ abstract class AppLocalizations {
   /// No description provided for @schoolWebImportEntryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Open the school site in-app and import the current page after you reach the timetable.'**
+  /// **'Import the current timetable page from the school site.'**
   String get schoolWebImportEntryDesc;
 
   /// No description provided for @schoolSitesManageEntry.
@@ -1562,19 +1565,19 @@ abstract class AppLocalizations {
   /// No description provided for @schoolHtmlImportEntry.
   ///
   /// In en, this message translates to:
-  /// **'Import by pasting timetable HTML'**
+  /// **'Import by pasting timetable page content'**
   String get schoolHtmlImportEntry;
 
   /// No description provided for @schoolHtmlImportEntryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Paste timetable page HTML manually. Useful on Windows and web.'**
+  /// **'Paste source code or raw page content containing timetable information manually.'**
   String get schoolHtmlImportEntryDesc;
 
   /// No description provided for @schoolHtmlImportPageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import timetable from HTML'**
+  /// **'Parse timetable from page content'**
   String get schoolHtmlImportPageTitle;
 
   /// No description provided for @schoolHtmlImportUrlLabel.
@@ -1592,19 +1595,19 @@ abstract class AppLocalizations {
   /// No description provided for @schoolHtmlImportHtmlLabel.
   ///
   /// In en, this message translates to:
-  /// **'Page HTML'**
+  /// **'Page content'**
   String get schoolHtmlImportHtmlLabel;
 
   /// No description provided for @schoolHtmlImportHtmlHint.
   ///
   /// In en, this message translates to:
-  /// **'Paste the full timetable page HTML here.'**
+  /// **'Paste source code or raw page content containing timetable information here.'**
   String get schoolHtmlImportHtmlHint;
 
   /// No description provided for @schoolHtmlImportNonHtmlHint.
   ///
   /// In en, this message translates to:
-  /// **'Non-HTML source content can also be tried for parsing and import. Prefer pasting the raw page content related to the timetable.'**
+  /// **'Any content containing timetable information can be parsed and imported, not just HTML.'**
   String get schoolHtmlImportNonHtmlHint;
 
   /// No description provided for @schoolHtmlImportCompress.
@@ -1808,7 +1811,7 @@ abstract class AppLocalizations {
   /// No description provided for @schoolImportParserSourceOfficialInfo.
   ///
   /// In en, this message translates to:
-  /// **'The official parser uses the app's configured parsing backend and keeps the current import flow unchanged.'**
+  /// **'The official parser uses the app\'s configured parsing backend and keeps the current import flow unchanged.'**
   String get schoolImportParserSourceOfficialInfo;
 
   /// No description provided for @schoolImportParserSourceCustomOpenAi.
@@ -1838,13 +1841,13 @@ abstract class AppLocalizations {
   /// No description provided for @schoolImportParserCustomPromptDescription.
   ///
   /// In en, this message translates to:
-  /// **'Optional. Appended after the built-in parser prompt and only affects the custom OpenAI-compatible parser.'**
+  /// **'Edit the built-in parser prompt here. Changes only affect the custom OpenAI-compatible parser.'**
   String get schoolImportParserCustomPromptDescription;
 
   /// No description provided for @schoolImportParserCustomPromptHint.
   ///
   /// In en, this message translates to:
-  /// **'Add extra extraction rules or output constraints here.'**
+  /// **'The built-in prompt is loaded here by default. Clear it to fall back to the built-in version.'**
   String get schoolImportParserCustomPromptHint;
 
   /// No description provided for @schoolImportParserResetDefaultPrompt.
@@ -1898,7 +1901,7 @@ abstract class AppLocalizations {
   /// No description provided for @schoolImportParserPlaintextWarning.
   ///
   /// In en, this message translates to:
-  /// **'The custom API key is stored in the app's local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.'**
+  /// **'The custom API key is stored in the app\'s local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.'**
   String get schoolImportParserPlaintextWarning;
 
   /// No description provided for @schoolImportParserCustomConfigIncomplete.
@@ -1942,9 +1945,274 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.'**
   String get privacyDeclineWebHint;
+
+  /// No description provided for @defaultPeriodTimeSetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Default periods'**
+  String get defaultPeriodTimeSetName;
+
+  /// No description provided for @periodTimeSetFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Period times'**
+  String get periodTimeSetFallbackName;
+
+  /// No description provided for @untitledTimetableName.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled timetable'**
+  String get untitledTimetableName;
+
+  /// No description provided for @newTimetableName.
+  ///
+  /// In en, this message translates to:
+  /// **'New timetable'**
+  String get newTimetableName;
+
+  /// No description provided for @newPeriodTimeSetName.
+  ///
+  /// In en, this message translates to:
+  /// **'New period time set'**
+  String get newPeriodTimeSetName;
+
+  /// No description provided for @emptyTimetableName.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty timetable'**
+  String get emptyTimetableName;
+
+  /// Fallback period time set name generated from an imported timetable name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} periods'**
+  String importedPeriodTimeSetName(Object name);
+
+  /// No description provided for @importFileTypeMismatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Import file type does not match.'**
+  String get importFileTypeMismatchMessage;
+
+  /// No description provided for @importFileVersionUnsupportedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This import file version is not supported yet.'**
+  String get importFileVersionUnsupportedMessage;
+
+  /// No description provided for @noPeriodTimesInImportMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No period times found in the import file.'**
+  String get noPeriodTimesInImportMessage;
+
+  /// No description provided for @selectAtLeastOneTimetableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one timetable.'**
+  String get selectAtLeastOneTimetableMessage;
+
+  /// No description provided for @noExportableTimetableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no timetable available to export.'**
+  String get noExportableTimetableMessage;
+
+  /// No description provided for @replaceActiveRequiresSingleTimetableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing the current timetable only supports selecting one timetable.'**
+  String get replaceActiveRequiresSingleTimetableMessage;
+
+  /// No description provided for @noActiveTimetableToReplaceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no current timetable to replace.'**
+  String get noActiveTimetableToReplaceMessage;
+
+  /// No description provided for @periodTimeSetInUseMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This period time set is still used by {count} timetable(s). Reassign them before deleting.'**
+  String periodTimeSetInUseMessage(int count);
+
+  /// No description provided for @weekdayMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get weekdayMonday;
+
+  /// No description provided for @weekdayTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday'**
+  String get weekdayTuesday;
+
+  /// No description provided for @weekdayWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wednesday'**
+  String get weekdayWednesday;
+
+  /// No description provided for @weekdayThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thursday'**
+  String get weekdayThursday;
+
+  /// No description provided for @weekdayFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'Friday'**
+  String get weekdayFriday;
+
+  /// No description provided for @weekdaySaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get weekdaySaturday;
+
+  /// No description provided for @weekdaySunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get weekdaySunday;
+
+  /// No description provided for @weekdayShortMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get weekdayShortMonday;
+
+  /// No description provided for @weekdayShortTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get weekdayShortTuesday;
+
+  /// No description provided for @weekdayShortWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get weekdayShortWednesday;
+
+  /// No description provided for @weekdayShortThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get weekdayShortThursday;
+
+  /// No description provided for @weekdayShortFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get weekdayShortFriday;
+
+  /// No description provided for @weekdayShortSaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get weekdayShortSaturday;
+
+  /// No description provided for @weekdayShortSunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get weekdayShortSunday;
+
+  /// No description provided for @monthJanuary.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get monthJanuary;
+
+  /// No description provided for @monthFebruary.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get monthFebruary;
+
+  /// No description provided for @monthMarch.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get monthMarch;
+
+  /// No description provided for @monthApril.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get monthApril;
+
+  /// No description provided for @monthMay.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get monthMay;
+
+  /// No description provided for @monthJune.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get monthJune;
+
+  /// No description provided for @monthJuly.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get monthJuly;
+
+  /// No description provided for @monthAugust.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get monthAugust;
+
+  /// No description provided for @monthSeptember.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get monthSeptember;
+
+  /// No description provided for @monthOctober.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get monthOctober;
+
+  /// No description provided for @monthNovember.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get monthNovember;
+
+  /// No description provided for @monthDecember.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get monthDecember;
+
+  /// No description provided for @semesterWeeksWholeTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'All semester'**
+  String get semesterWeeksWholeTerm;
+
+  /// No description provided for @semesterWeeksRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks {start}-{end}'**
+  String semesterWeeksRange(Object start, Object end);
+
+  /// No description provided for @semesterWeeksList.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks {value}'**
+  String semesterWeeksList(Object value);
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1953,25 +2221,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'zh': return AppLocalizationsZh();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

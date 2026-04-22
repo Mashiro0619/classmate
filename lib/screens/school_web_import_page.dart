@@ -71,7 +71,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(_selectedSite?.name ?? widget.site.name),
@@ -189,7 +189,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
                               return;
                             }
                             _handlePageLoadFailure(
-                              AppLocalizations.of(context)!
+                              AppLocalizations.of(context)
                                   .schoolWebImportLoadFailed,
                             );
                           },
@@ -198,7 +198,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
                               return;
                             }
                             _handlePageLoadFailure(
-                              AppLocalizations.of(context)!
+                              AppLocalizations.of(context)
                                   .schoolWebImportLoadFailed,
                             );
                           },
@@ -219,7 +219,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
   }
 
   Future<void> _loadSchools() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     try {
       final sites = await _siteService.loadSites();
       if (!mounted) {
@@ -275,7 +275,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       return;
     }
     final loadFailedMessage =
-        AppLocalizations.of(context)!.schoolWebImportLoadFailed;
+        AppLocalizations.of(context).schoolWebImportLoadFailed;
     _startPageLoadWatchdog();
     if (mounted) {
       setState(() {
@@ -323,7 +323,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
         return;
       }
       setState(() => _isLoadingPage = false);
-      _showMessage(AppLocalizations.of(context)!.schoolWebImportLoadTimedOut);
+      _showMessage(AppLocalizations.of(context).schoolWebImportLoadTimedOut);
     });
   }
 
@@ -353,7 +353,7 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
   }
 
   Future<void> _importCurrentPage() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final controller = _controller;
     final selectedSite = _selectedSite;
     if (controller == null || selectedSite == null) {

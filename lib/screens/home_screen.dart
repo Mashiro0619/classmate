@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           context: context,
           barrierDismissible: false,
           builder: (dialogContext) {
-            final l10n = AppLocalizations.of(dialogContext)!;
+            final l10n = AppLocalizations.of(dialogContext);
             return PopScope(
               canPop: false,
               child: AlertDialog(
@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         if (!provider.isLoaded) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -561,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const chipHeight = 40.0;
         final maxGridHeight = mediaQuery.size.height * 0.5;
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.jumpToWeek),
+          title: Text(AppLocalizations.of(context).jumpToWeek),
           contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           content: SizedBox(
             width: dialogWidth,
@@ -665,7 +665,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         final viewInsets = MediaQuery.of(context).viewInsets;
         String formatDate(DateTime date) {
           final year = date.year.toString().padLeft(4, '0');
@@ -827,7 +827,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final confirmed = await showDialog<bool>(
         context: this.context,
         builder: (context) {
-          final l10n = AppLocalizations.of(context)!;
+          final l10n = AppLocalizations.of(context);
           return AlertDialog(
             title: Text(l10n.deleteTimetableTitle),
             content: Text(l10n.deleteTimetableMessage(timetable.config.name)),
@@ -863,7 +863,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TextImportPage(
@@ -920,7 +920,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.privacyDeclineWebHint,
+            AppLocalizations.of(context).privacyDeclineWebHint,
           ),
         ),
       );
@@ -1008,7 +1008,7 @@ class _EmptyTimetableState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),

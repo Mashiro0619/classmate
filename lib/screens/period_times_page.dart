@@ -54,7 +54,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
             .map((item) => item.copyWith())
             .toList();
       } else {
-        _nameController.text = AppLocalizations.of(context)!.periodTimesTitle;
+        _nameController.text = AppLocalizations.of(context).periodTimesTitle;
         _periodTimes = buildPeriodTimesForCount(10);
       }
       _loading = false;
@@ -69,7 +69,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -137,7 +137,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Widget _buildPeriodCard(int index) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final period = _periodTimes[index];
     final previous = index == 0 ? null : _periodTimes[index - 1];
     final duration = period.endMinutes - period.startMinutes;
@@ -272,7 +272,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
       ),
     );
     if (mounted) {
-      _showMessage(AppLocalizations.of(context)!.periodTimesSaved);
+      _showMessage(AppLocalizations.of(context).periodTimesSaved);
     }
   }
 
@@ -282,7 +282,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         final name = _nameController.text.trim().isEmpty
             ? l10n.currentPeriodTimeSet
             : _nameController.text.trim();
@@ -317,7 +317,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
 
   Future<void> _importTemplate() async {
     final provider = context.read<TimetableProvider>();
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
@@ -349,7 +349,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Future<void> _importTemplateFromText() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TextImportPage(
@@ -395,7 +395,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Future<void> _exportTemplateAsText() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     await showTextExportDialog(
       context,
       title: l10n.exportPeriodTemplateText,
@@ -404,7 +404,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   }
 
   Future<void> _saveTemplateToFile() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final result = await _exportService.saveFile(
       ExportPayload(
         fileName: 'classmate_period_times.json',
@@ -493,7 +493,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -518,11 +518,11 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.retryLater),
+              child: Text(AppLocalizations.of(context).retryLater),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.switchToShare),
+              child: Text(AppLocalizations.of(context).switchToShare),
             ),
           ],
         );

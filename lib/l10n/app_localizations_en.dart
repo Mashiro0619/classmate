@@ -74,7 +74,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTimetableTitle => 'No timetable yet';
 
   @override
-  String get noTimetableMessage => 'Create a timetable or import one from a JSON file.';
+  String get noTimetableMessage =>
+      'Create a timetable or import one from a JSON file.';
 
   @override
   String get importTimetable => 'Import timetable';
@@ -101,7 +102,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkedPeriods => 'Linked periods';
 
   @override
-  String get linkedPeriodsUnmatched => 'No periods matched for the current time. Tap to choose manually.';
+  String get linkedPeriodsUnmatched =>
+      'No periods matched for the current time. Tap to choose manually.';
 
   @override
   String periodRangeLabel(int start, int end) {
@@ -178,7 +180,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get noTimetableSettings => 'No timetable is currently available for settings.';
+  String get noTimetableSettings =>
+      'No timetable is currently available for settings.';
 
   @override
   String get semesterStartDate => 'Semester start date';
@@ -195,52 +198,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get coursePopupDismissSetting => 'Allow outside tap to close course popup';
+  String get coursePopupDismissSetting =>
+      'Allow outside tap to close course popup';
 
   @override
-  String get coursePopupDismissSettingHint => 'Turning this off also disables swipe-down dismissal.';
+  String get coursePopupDismissSettingHint =>
+      'Turning this off also disables swipe-down dismissal.';
 
   @override
   String get preserveTimetableGaps => 'Preserve timetable gaps';
 
   @override
-  String get preserveTimetableGapsHint => 'When off, lunch and break gaps are collapsed so later classes move upward.';
+  String get preserveTimetableGapsHint =>
+      'When off, lunch and break gaps are collapsed so later classes move upward.';
 
   @override
   String get showPastEndedCourses => 'Show past-ended courses';
 
   @override
-  String get showPastEndedCoursesHint => 'Show courses that have already finished by the real current week with a lighter gray style.';
+  String get showPastEndedCoursesHint =>
+      'Show courses that have already finished by the real current week with a lighter gray style.';
 
   @override
   String get showFutureCourses => 'Show future courses';
 
   @override
-  String get showFutureCoursesHint => 'Show courses that are not active this week but will appear in later weeks with a gray style.';
+  String get showFutureCoursesHint =>
+      'Show courses that are not active this week but will appear in later weeks with a gray style.';
 
   @override
   String get timetableDisplaySettings => 'Timetable display and interaction';
 
   @override
-  String get timetableDisplaySettingsDesc => 'Popup dismissal, gaps, gray courses, and grid lines';
+  String get timetableDisplaySettingsDesc =>
+      'Popup dismissal, gaps, gray courses, and grid lines';
 
   @override
   String get showTimetableGridLines => 'Show timetable grid lines';
 
   @override
-  String get showTimetableGridLinesHint => 'Control whether horizontal and vertical grid lines are visible in the timetable.';
+  String get showTimetableGridLinesHint =>
+      'Control whether horizontal and vertical grid lines are visible in the timetable.';
 
   @override
   String get liveCourseOutlineColor => 'Course outline color';
 
   @override
-  String get liveCourseOutlineColorHint => 'Choose whether outlines target the current/next course or all displayed courses on the current page.';
+  String get liveCourseOutlineColorHint =>
+      'Choose whether outlines target the current/next course or all displayed courses on the current page.';
 
   @override
   String get liveCourseOutlineSettings => 'Course outline';
 
   @override
-  String get liveCourseOutlineSettingsHint => 'Configure whether the outline is enabled, what it targets, whether it follows the theme color, and the effective outline color.';
+  String get liveCourseOutlineSettingsHint =>
+      'Configure whether the outline is enabled, what it targets, whether it follows the theme color, and the effective outline color.';
 
   @override
   String get liveCourseOutlineEnabled => 'Enable outline';
@@ -324,7 +336,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeColorCourseTextCustom => 'Custom color';
 
   @override
-  String get themeColorCourseColorsEmpty => 'Course colors will be generated after importing a timetable.';
+  String get themeColorCourseColorsEmpty =>
+      'Course colors will be generated after importing a timetable.';
 
   @override
   String get themeCustomColor => 'Custom color';
@@ -339,19 +352,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataImportExport => 'Import and export data';
 
   @override
-  String get dataImportExportDesc => 'Import full data or single timetables, or export current/all timetables.';
+  String get dataImportExportDesc =>
+      'Import full data or single timetables, or export current/all timetables.';
 
   @override
   String get openSourceLicenses => 'Open-source licenses';
 
   @override
-  String get openSourceLicensesDesc => 'View licenses for Flutter dependencies and bundled app icon assets.';
+  String get openSourceLicensesDesc =>
+      'View licenses for Flutter dependencies and bundled app icon assets.';
 
   @override
   String get checkForUpdates => 'Check for updates';
 
   @override
-  String get checkForUpdatesDesc => 'GitHub / Official website';
+  String get checkForUpdatesDesc =>
+      'GitHub / Official website / Google Play / Cloud drive';
 
   @override
   String alreadyLatestVersion(Object version) {
@@ -411,13 +427,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importTimetableFiles => 'Import timetable';
 
   @override
-  String get importTimetableFilesDesc => 'Supports one or multiple timetable files.';
+  String get importTimetableFilesDesc =>
+      'Supports one or multiple timetable files.';
 
   @override
   String get importTimetableText => 'Import timetable from text';
 
   @override
-  String get importTimetableTextDesc => 'Paste timetable JSON content and import it.';
+  String get importTimetableTextDesc =>
+      'Paste timetable JSON content and import it.';
 
   @override
   String get shareTimetableFiles => 'Share timetable files';
@@ -435,7 +453,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportTimetableText => 'Export timetable as text';
 
   @override
-  String get exportTimetableTextDesc => 'Choose one or more timetables, then copy the JSON content.';
+  String get exportTimetableTextDesc =>
+      'Choose one or more timetables, then copy the JSON content.';
 
   @override
   String get jsonContent => 'JSON content';
@@ -510,13 +529,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileSaveRestrictedTitle => 'File saving restricted';
 
   @override
-  String get fileSaveRestrictedRetryMessage => 'The system could not save the file. You can retry or use sharing instead.';
+  String get fileSaveRestrictedRetryMessage =>
+      'The system could not save the file. You can retry or use sharing instead.';
 
   @override
   String get retrySave => 'Retry save';
 
   @override
-  String get fileSaveRestrictedSettingsMessage => 'Enable file access in system settings, then return and try exporting again.';
+  String get fileSaveRestrictedSettingsMessage =>
+      'Enable file access in system settings, then return and try exporting again.';
 
   @override
   String get openSettings => 'Open settings';
@@ -525,7 +546,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get browserDownloadRestrictedTitle => 'Browser download restricted';
 
   @override
-  String get browserDownloadRestrictedMessage => 'This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.';
+  String get browserDownloadRestrictedMessage =>
+      'This browser does not support directly saving to a local file. Check browser download permissions or use file sharing instead.';
 
   @override
   String get switchToShare => 'Use sharing instead';
@@ -534,10 +556,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileSaveFailedTitle => 'File save failed';
 
   @override
-  String get fileSaveFailedWindowsMessage => 'Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.';
+  String get fileSaveFailedWindowsMessage =>
+      'Unable to write to the current path. The target folder may be protected, the file may be in use, or the path may be unwritable.';
 
   @override
-  String get fileSaveFailedGenericMessage => 'The system could not save the file. You can retry, check system settings, or use file sharing instead.';
+  String get fileSaveFailedGenericMessage =>
+      'The system could not save the file. You can retry, check system settings, or use file sharing instead.';
 
   @override
   String get retryLater => 'Try again later';
@@ -549,10 +573,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveFailedRetry => 'Save failed. Please try again later.';
 
   @override
-  String get importFailedCheckContent => 'Import failed. Please check the file content.';
+  String get importFailedCheckContent =>
+      'Import failed. Please check the file content.';
 
   @override
-  String get noImportableTimetables => 'No usable timetables were found in the imported file.';
+  String get noImportableTimetables =>
+      'No usable timetables were found in the imported file.';
 
   @override
   String importedTimetablesCount(int count) {
@@ -636,22 +662,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get periodFilePermissionTitle => 'File permission needed';
 
   @override
-  String get androidFilePermissionMessage => 'Android export requires file access permission. Grant permission to continue saving.';
+  String get androidFilePermissionMessage =>
+      'Android export requires file access permission. Grant permission to continue saving.';
 
   @override
   String get reauthorize => 'Authorize again';
 
   @override
-  String get permissionPermanentlyDeniedTitle => 'Permission permanently denied';
+  String get permissionPermanentlyDeniedTitle =>
+      'Permission permanently denied';
 
   @override
-  String get permissionSettingsExportMessage => 'Enable file access in system settings, then return and try exporting again.';
+  String get permissionSettingsExportMessage =>
+      'Enable file access in system settings, then return and try exporting again.';
 
   @override
   String get privacyPolicyTitle => 'Privacy Policy';
 
   @override
-  String get privacyPolicyEntryDesc => 'Learn how the app handles local storage, school-site configuration, file import/export, webpage parsing, and external links.';
+  String get privacyPolicyEntryDesc =>
+      'Learn how the app handles local storage, school-site configuration, file import/export, webpage parsing, and external links.';
 
   @override
   String privacyPolicyAcceptedVersionLabel(Object version) {
@@ -659,43 +689,50 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => 'Classmate stores timetables, timetable settings, period-time sets, and school-site configuration only on your device or in your browser. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.';
+  String get privacyPolicyIntro =>
+      'Classmate stores timetables, timetable settings, period-time sets, and school-site configuration only on your device or in your browser. The app only reads local files, sends webpage content for parsing, opens external links, or uses system sharing when you explicitly start those actions.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Local storage';
 
   @override
-  String get privacyPolicyLocalStorageBody => 'Timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.';
+  String get privacyPolicyLocalStorageBody =>
+      'Timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. Custom timetable parser settings, including any custom Base URL, API key, and selected model, are also stored locally in the same app data and are not protected by a system credential vault. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Import and export';
 
   @override
-  String get privacyPolicyImportExportBody => 'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing.';
+  String get privacyPolicyImportExportBody =>
+      'The app reads or writes timetable JSON files, school-site JSON files, and period-template files only when you explicitly choose a file or start an export action. Importing these files is a local operation unless you also choose webpage parsing. Fetching a custom model list is also an explicit network action and only contacts the custom endpoint you configured.';
 
   @override
   String get privacyPolicySharingTitle => 'Sharing';
 
   @override
-  String get privacyPolicySharingBody => 'When you explicitly use sharing, the app passes the exported file to the system share sheet or to the target app you choose. How that file is handled afterward depends on the target app or service you selected.';
+  String get privacyPolicySharingBody =>
+      'When you explicitly use sharing, the app passes the exported file to the system share sheet or to the target app you choose. How that file is handled afterward depends on the target app or service you selected.';
 
   @override
   String get privacyPolicyExternalLinksTitle => 'External links';
 
   @override
-  String get privacyPolicyExternalLinksBody => 'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.';
+  String get privacyPolicyExternalLinksBody =>
+      'When you open external links such as the GitHub repository, the app hands the action off to your browser or another external application. Data handling after that point is governed by the third party you open.';
 
   @override
   String get privacyPolicyNoCollectionTitle => 'What the app does not collect';
 
   @override
-  String get privacyPolicyNoCollectionBody => 'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.';
+  String get privacyPolicyNoCollectionBody =>
+      'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.';
 
   @override
   String get privacyPolicyFutureFeatureTitle => 'Webpage parsing';
 
   @override
-  String get privacyPolicyFutureFeatureBody => 'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, and the current app language to your configured parsing endpoint. That endpoint may forward the request to the AI service configured by the person who deployed it. The deployed backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.';
+  String get privacyPolicyFutureFeatureBody =>
+      'When you use school webpage import or paste HTML for parsing, the app first compresses the content locally, then sends the submitted page content, optional page title and URL, the current app language, and parser prompt content to the selected parsing endpoint. If you use the official parser, the request goes to the app\'s configured official backend. If you enable a custom OpenAI-compatible parser, the same content is sent directly to the third-party endpoint you configured, and fetching the model list also requests that same endpoint. A custom endpoint may forward the request to other AI services according to that provider\'s own design. The deployed official backend currently limits each submitted payload to 300KB, uses its configured timeout, and allows at most 5 parsing requests per IP per day.';
 
   @override
   String get privacyPolicyUpdatesTitle => 'Policy updates';
@@ -706,31 +743,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyGateTitle => 'Please agree to the privacy policy before using the app';
+  String get privacyGateTitle =>
+      'Please agree to the privacy policy before using the app';
 
   @override
-  String get privacyGateSummaryStorage => 'Timetables, period-time sets, and school-site configuration are only stored locally and are not automatically uploaded to a developer server.';
+  String get privacyGateSummaryStorage =>
+      'Timetables, period-time sets, and school-site configuration are only stored locally and are not automatically uploaded to a developer server.';
 
   @override
-  String get privacyGateSummaryImportExport => 'Import, export, and sharing only happen when you explicitly start them; webpage parsing sends only the compressed content you submit to your configured parsing endpoint, and you can review the parsed timetable before saving.';
+  String get privacyGateSummaryImportExport =>
+      'Import, export, and sharing only happen when you explicitly start them; webpage parsing sends only the compressed content you submit to your configured parsing endpoint, and you can review the parsed timetable before saving.';
 
   @override
-  String get privacyGateSummaryExternal => 'Opening GitHub or other external links hands the action to your browser or another app.';
+  String get privacyGateSummaryExternal =>
+      'Opening GitHub or other external links hands the action to your browser or another app.';
 
   @override
-  String get privacyGateSummaryUpdates => 'If a later version changes how data is handled, the app may ask you to review the updated privacy policy again.';
+  String get privacyGateSummaryUpdates =>
+      'If a later version changes how data is handled, the app may ask you to review the updated privacy policy again.';
 
   @override
   String get schoolWebImportEntry => 'Import from school webpage';
 
   @override
-  String get schoolWebImportEntryDesc => 'Import the current timetable page from the school site.';
+  String get schoolWebImportEntryDesc =>
+      'Import the current timetable page from the school site.';
 
   @override
   String get schoolSitesManageEntry => 'Manage school sites';
 
   @override
-  String get schoolSitesManageEntryDesc => 'Add, edit, and delete school login URLs, with JSON import and export.';
+  String get schoolSitesManageEntryDesc =>
+      'Add, edit, and delete school login URLs, with JSON import and export.';
 
   @override
   String get schoolSitesPageTitle => 'School site management';
@@ -774,13 +818,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get schoolSitesFormInvalid => 'Fill in the school name and login URL first.';
+  String get schoolSitesFormInvalid =>
+      'Fill in the school name and login URL first.';
 
   @override
   String get schoolSitesJsonFileName => 'classmate_school_sites.json';
 
   @override
-  String get schoolHtmlImportEntry => 'Import by pasting timetable page content';
+  String get schoolHtmlImportEntry =>
+      'Import by pasting timetable page content';
 
   @override
   String get schoolHtmlImportEntryDesc =>
@@ -854,22 +900,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolWebImportWarnings => 'Import notes';
 
   @override
-  String get schoolWebImportOpenPageHint => 'Sign in to the school site in-app, then navigate to the timetable page manually.';
+  String get schoolWebImportOpenPageHint =>
+      'Sign in to the school site in-app, then navigate to the timetable page manually.';
 
   @override
-  String get schoolWebImportConfigMissing => 'Web import backend API is not configured yet.';
+  String get schoolWebImportConfigMissing =>
+      'Web import backend API is not configured yet.';
 
   @override
-  String get schoolWebImportUnsupportedPlatform => 'This platform does not support embedded web login yet. Please use a platform with WebView support.';
+  String get schoolWebImportUnsupportedPlatform =>
+      'This platform does not support embedded web login yet. Please use a platform with WebView support.';
 
   @override
   String get schoolWebImportSelectSchool => 'Choose school';
 
   @override
-  String get schoolWebImportNoSchools => 'No school configuration is available. Check school_sites.json first.';
+  String get schoolWebImportNoSchools =>
+      'No school configuration is available. Check school_sites.json first.';
 
   @override
-  String get schoolWebImportSchoolLoadFailed => 'Failed to load school configuration. Check the JSON file format.';
+  String get schoolWebImportSchoolLoadFailed =>
+      'Failed to load school configuration. Check the JSON file format.';
 
   @override
   String get schoolWebImportImportCurrentPage => 'Import current page';
@@ -884,13 +935,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolWebImportParsing => 'Parsing current page…';
 
   @override
-  String get schoolWebImportLoadFailed => 'Page load failed. Please refresh or try again later.';
+  String get schoolWebImportLoadFailed =>
+      'Page load failed. Please refresh or try again later.';
 
   @override
-  String get schoolWebImportLoadTimedOut => 'Page loading timed out. Please refresh and try again.';
+  String get schoolWebImportLoadTimedOut =>
+      'Page loading timed out. Please refresh and try again.';
 
   @override
-  String get schoolWebImportEmptyPage => 'The current page content is empty and cannot be imported yet.';
+  String get schoolWebImportEmptyPage =>
+      'The current page content is empty and cannot be imported yet.';
 
   @override
   String get schoolWebImportSuccess => 'Web timetable imported';
@@ -899,7 +953,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolImportParserSettingsTitle => 'Timetable parser settings';
 
   @override
-  String get schoolImportParserSettingsDesc => 'Choose the official parser or a custom OpenAI-compatible endpoint.';
+  String get schoolImportParserSettingsDesc =>
+      'Choose the official parser or a custom OpenAI-compatible endpoint.';
 
   @override
   String get schoolImportParserSourceTitle => 'Parser source';
@@ -908,28 +963,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolImportParserSourceOfficial => 'Official parser';
 
   @override
-  String get schoolImportParserSourceOfficialDesc => 'Use the built-in official parsing service configured by the app.';
+  String get schoolImportParserSourceOfficialDesc =>
+      'Use the built-in official parsing service configured by the app.';
 
   @override
-  String get schoolImportParserSourceOfficialInfo => 'The official parser uses the app\'s configured parsing backend and keeps the current import flow unchanged.';
+  String get schoolImportParserSourceOfficialInfo =>
+      'The official parser uses the app\'s configured parsing backend and keeps the current import flow unchanged.';
 
   @override
   String get schoolImportParserSourceCustomOpenAi => 'Custom OpenAI-compatible';
 
   @override
-  String get schoolImportParserSourceCustomOpenAiDesc => 'Send the page content directly to your own OpenAI-compatible endpoint.';
+  String get schoolImportParserSourceCustomOpenAiDesc =>
+      'Send the page content directly to your own OpenAI-compatible endpoint.';
 
   @override
-  String get schoolImportParserCustomOpenAi => 'Custom OpenAI-compatible parser';
+  String get schoolImportParserCustomOpenAi =>
+      'Custom OpenAI-compatible parser';
 
   @override
   String get schoolImportParserCustomPromptTitle => 'Custom prompt';
 
   @override
-  String get schoolImportParserCustomPromptDescription => 'Edit the built-in parser prompt here. Changes only affect the custom OpenAI-compatible parser.';
+  String get schoolImportParserCustomPromptDescription =>
+      'Edit the built-in parser prompt here. Changes only affect the custom OpenAI-compatible parser.';
 
   @override
-  String get schoolImportParserCustomPromptHint => 'The built-in prompt is loaded here by default. Clear it to fall back to the built-in version.';
+  String get schoolImportParserCustomPromptHint =>
+      'The built-in prompt is loaded here by default. Clear it to fall back to the built-in version.';
 
   @override
   String get schoolImportParserResetDefaultPrompt => 'Reset default prompt';
@@ -950,7 +1011,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get schoolImportParserFetchingModels => 'Fetching models...';
 
   @override
-  String get schoolImportParserNoModelsFound => 'No models were returned by the endpoint.';
+  String get schoolImportParserNoModelsFound =>
+      'No models were returned by the endpoint.';
 
   @override
   String schoolImportParserModelsFetched(int count) {
@@ -958,10 +1020,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get schoolImportParserPlaintextWarning => 'The custom API key is stored in the app\'s local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.';
+  String get schoolImportParserPlaintextWarning =>
+      'The custom API key is stored in the app\'s local settings in plaintext under the current implementation. Only use it on a device or browser environment you trust.';
 
   @override
-  String get schoolImportParserCustomConfigIncomplete => 'Custom parser configuration is incomplete. Fill in the base URL, API key, and model first.';
+  String get schoolImportParserCustomConfigIncomplete =>
+      'Custom parser configuration is incomplete. Fill in the base URL, API key, and model first.';
 
   @override
   String get schoolImportParserCurrentSourceOfficial => 'Parser: Official';
@@ -981,5 +1045,153 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyDecline => 'Decline';
 
   @override
-  String get privacyDeclineWebHint => 'This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.';
+  String get privacyDeclineWebHint =>
+      'This browser environment does not allow the app to close the page for you. If you do not agree, please close this tab or window yourself.';
+
+  @override
+  String get defaultPeriodTimeSetName => 'Default periods';
+
+  @override
+  String get periodTimeSetFallbackName => 'Period times';
+
+  @override
+  String get untitledTimetableName => 'Untitled timetable';
+
+  @override
+  String get newTimetableName => 'New timetable';
+
+  @override
+  String get newPeriodTimeSetName => 'New period time set';
+
+  @override
+  String get emptyTimetableName => 'Empty timetable';
+
+  @override
+  String importedPeriodTimeSetName(Object name) {
+    return '$name periods';
+  }
+
+  @override
+  String get importFileTypeMismatchMessage =>
+      'Import file type does not match.';
+
+  @override
+  String get importFileVersionUnsupportedMessage =>
+      'This import file version is not supported yet.';
+
+  @override
+  String get noPeriodTimesInImportMessage =>
+      'No period times found in the import file.';
+
+  @override
+  String get selectAtLeastOneTimetableMessage =>
+      'Please select at least one timetable.';
+
+  @override
+  String get noExportableTimetableMessage =>
+      'There is no timetable available to export.';
+
+  @override
+  String get replaceActiveRequiresSingleTimetableMessage =>
+      'Replacing the current timetable only supports selecting one timetable.';
+
+  @override
+  String get noActiveTimetableToReplaceMessage =>
+      'There is no current timetable to replace.';
+
+  @override
+  String periodTimeSetInUseMessage(int count) {
+    return 'This period time set is still used by $count timetable(s). Reassign them before deleting.';
+  }
+
+  @override
+  String get weekdayMonday => 'Monday';
+
+  @override
+  String get weekdayTuesday => 'Tuesday';
+
+  @override
+  String get weekdayWednesday => 'Wednesday';
+
+  @override
+  String get weekdayThursday => 'Thursday';
+
+  @override
+  String get weekdayFriday => 'Friday';
+
+  @override
+  String get weekdaySaturday => 'Saturday';
+
+  @override
+  String get weekdaySunday => 'Sunday';
+
+  @override
+  String get weekdayShortMonday => 'Mon';
+
+  @override
+  String get weekdayShortTuesday => 'Tue';
+
+  @override
+  String get weekdayShortWednesday => 'Wed';
+
+  @override
+  String get weekdayShortThursday => 'Thu';
+
+  @override
+  String get weekdayShortFriday => 'Fri';
+
+  @override
+  String get weekdayShortSaturday => 'Sat';
+
+  @override
+  String get weekdayShortSunday => 'Sun';
+
+  @override
+  String get monthJanuary => 'Jan';
+
+  @override
+  String get monthFebruary => 'Feb';
+
+  @override
+  String get monthMarch => 'Mar';
+
+  @override
+  String get monthApril => 'Apr';
+
+  @override
+  String get monthMay => 'May';
+
+  @override
+  String get monthJune => 'Jun';
+
+  @override
+  String get monthJuly => 'Jul';
+
+  @override
+  String get monthAugust => 'Aug';
+
+  @override
+  String get monthSeptember => 'Sep';
+
+  @override
+  String get monthOctober => 'Oct';
+
+  @override
+  String get monthNovember => 'Nov';
+
+  @override
+  String get monthDecember => 'Dec';
+
+  @override
+  String get semesterWeeksWholeTerm => 'All semester';
+
+  @override
+  String semesterWeeksRange(Object start, Object end) {
+    return 'Weeks $start-$end';
+  }
+
+  @override
+  String semesterWeeksList(Object value) {
+    return 'Weeks $value';
+  }
 }

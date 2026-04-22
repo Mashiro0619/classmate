@@ -240,7 +240,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get liveCourseOutlineSettings => '课程描边';
 
   @override
-  String get liveCourseOutlineSettingsHint => '可设置是否开启描边、描边目标、是否跟随主题色，以及当前实际生效的描边颜色。';
+  String get liveCourseOutlineSettingsHint =>
+      '可设置是否开启描边、描边目标、是否跟随主题色，以及当前实际生效的描边颜色。';
 
   @override
   String get liveCourseOutlineEnabled => '开启课程描边';
@@ -351,7 +352,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkForUpdates => '检测更新';
 
   @override
-  String get checkForUpdatesDesc => 'GitHub / 官网';
+  String get checkForUpdatesDesc => 'GitHub / 官网 / Google Play / 网盘';
 
   @override
   String alreadyLatestVersion(Object version) {
@@ -523,7 +524,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get browserDownloadRestrictedTitle => '浏览器下载受限';
 
   @override
-  String get browserDownloadRestrictedMessage => '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。';
+  String get browserDownloadRestrictedMessage =>
+      '当前浏览器不支持直接保存到本地文件。你可以检查浏览器下载权限，或改用分享文件。';
 
   @override
   String get switchToShare => '改用分享';
@@ -532,7 +534,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fileSaveFailedTitle => '文件保存失败';
 
   @override
-  String get fileSaveFailedWindowsMessage => '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。';
+  String get fileSaveFailedWindowsMessage =>
+      '无法写入当前路径，可能是目标文件夹受系统保护、文件被占用，或当前路径不可写。';
 
   @override
   String get fileSaveFailedGenericMessage => '系统未能完成文件保存。你可以重试、检查系统设置，或改用文件分享。';
@@ -657,43 +660,50 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get privacyPolicyIntro => '课表、课表设置、节次时间集和学校站点配置只会保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。';
+  String get privacyPolicyIntro =>
+      '课表、课表设置、节次时间集和学校站点配置只会保存在你的设备或浏览器本地。只有在你主动使用导入、网页解析、外部链接或分享等功能时，应用才会读取相关内容或把对应操作交给系统处理。';
 
   @override
   String get privacyPolicyLocalStorageTitle => '本地存储';
 
   @override
-  String get privacyPolicyLocalStorageBody => '课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。若在浏览器中使用，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。';
+  String get privacyPolicyLocalStorageBody =>
+      '课表数据和相关设置会保存在应用文档目录中的本地文件 classmate_data.json，可编辑的学校站点配置会单独保存在 classmate_school_sites.json。自定义课表解析设置中填写的 Base URL、API 密钥和所选模型也会随同应用数据保存在本地，当前实现不会使用系统安全凭据库进行保护。若在浏览器中使用，同类数据会保存在浏览器本地存储中。应用不会自动把这些本地数据上传到开发者控制的服务器。';
 
   @override
   String get privacyPolicyImportExportTitle => '导入与导出';
 
   @override
-  String get privacyPolicyImportExportBody => '只有在你主动选择文件或主动执行导出时，应用才会读取或写出 JSON 课表文件、学校站点 JSON 文件和节次模板文件。这些文件的导入导出本身属于本地操作；只有当你进一步选择网页解析时，相关页面内容才会被发送到你配置的解析接口。';
+  String get privacyPolicyImportExportBody =>
+      '只有在你主动选择文件或主动执行导出时，应用才会读取或写出 JSON 课表文件、学校站点 JSON 文件和节次模板文件。这些文件的导入导出本身属于本地操作；只有当你进一步选择网页解析时，相关页面内容才会被发送到你配置的解析接口。获取自定义模型列表同样属于你主动触发的联网操作，并且只会请求你填写的自定义接口。';
 
   @override
   String get privacyPolicySharingTitle => '分享功能';
 
   @override
-  String get privacyPolicySharingBody => '当你主动使用分享功能时，应用会把你选中的导出文件交给系统分享面板或目标应用。后续如何处理该文件，由你选择的目标应用或服务自行决定。';
+  String get privacyPolicySharingBody =>
+      '当你主动使用分享功能时，应用会把你选中的导出文件交给系统分享面板或目标应用。后续如何处理该文件，由你选择的目标应用或服务自行决定。';
 
   @override
   String get privacyPolicyExternalLinksTitle => '外部链接';
 
   @override
-  String get privacyPolicyExternalLinksBody => '当你主动打开 GitHub 仓库等外部链接时，应用会调用系统浏览器或其他外部应用。离开应用后的数据处理将受对应第三方的政策约束。';
+  String get privacyPolicyExternalLinksBody =>
+      '当你主动打开 GitHub 仓库等外部链接时，应用会调用系统浏览器或其他外部应用。离开应用后的数据处理将受对应第三方的政策约束。';
 
   @override
   String get privacyPolicyNoCollectionTitle => '不会收集的内容';
 
   @override
-  String get privacyPolicyNoCollectionBody => '应用不要求你注册 Classmate 账号，也不会启用分析统计、广告标识符或云端备份。应用本身也没有专门用于采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。';
+  String get privacyPolicyNoCollectionBody =>
+      '应用不要求你注册 Classmate 账号，也不会启用分析统计、广告标识符或云端备份。应用本身也没有专门用于采集学校账号密码的输入字段；如果你在应用内打开的学校网页中登录，该交互发生在你访问的学校页面内。';
 
   @override
   String get privacyPolicyFutureFeatureTitle => '网页解析';
 
   @override
-  String get privacyPolicyFutureFeatureBody => '当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL，以及当前应用语言发送到你配置的解析接口。该接口可能会继续把请求转发给部署者配置的 AI 服务。当前部署的后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。';
+  String get privacyPolicyFutureFeatureBody =>
+      '当你使用学校网页导入或粘贴 HTML 进行解析时，应用会先在本地压缩内容，再把你提交的页面内容、可选的页面标题与 URL、当前应用语言以及解析提示词发送到当前选择的解析接口。如果你使用官方解析，请求会发往应用配置的官方后端；如果你启用自定义 OpenAI 兼容解析，同样的内容会直接发送到你填写的第三方接口，获取模型列表时也会请求该第三方接口。自定义接口还可能按照其自身设计继续把请求转发给其他 AI 服务。当前官方后端会限制单次提交内容不得大于 300KB，使用其配置的请求超时时间，并按 IP 每天最多解析 5 次。';
 
   @override
   String get privacyPolicyUpdatesTitle => '政策更新';
@@ -707,16 +717,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyGateTitle => '使用前请先同意隐私政策';
 
   @override
-  String get privacyGateSummaryStorage => '课表、节次时间集和学校站点配置只会保存在本地，不会自动上传到开发者服务器。';
+  String get privacyGateSummaryStorage =>
+      '课表、节次时间集和学校站点配置只会保存在本地，不会自动上传到开发者服务器。';
 
   @override
-  String get privacyGateSummaryImportExport => '导入、导出和分享仅在你主动操作时触发；网页解析只会发送你主动提交的压缩后内容，并在保存前让你预览解析结果。';
+  String get privacyGateSummaryImportExport =>
+      '导入、导出和分享仅在你主动操作时触发；网页解析只会发送你主动提交的压缩后内容，并在保存前让你预览解析结果。';
 
   @override
   String get privacyGateSummaryExternal => '打开 GitHub 等外部链接会交给系统浏览器或其他应用处理。';
 
   @override
-  String get privacyGateSummaryUpdates => '如果后续版本调整了数据处理方式，应用可能会要求你重新查看更新后的隐私政策。';
+  String get privacyGateSummaryUpdates =>
+      '如果后续版本调整了数据处理方式，应用可能会要求你重新查看更新后的隐私政策。';
 
   @override
   String get schoolWebImportEntry => '从学校网页导入';
@@ -799,8 +812,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolHtmlImportHtmlHint => '请粘贴包含课程信息的页面源码或原始内容。';
 
   @override
-  String get schoolHtmlImportNonHtmlHint =>
-      '只要内容里包含课程信息，就可以解析导入，不限于 HTML。';
+  String get schoolHtmlImportNonHtmlHint => '只要内容里包含课程信息，就可以解析导入，不限于 HTML。';
 
   @override
   String get schoolHtmlImportCompress => '压缩内容';
@@ -855,7 +867,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolWebImportConfigMissing => '尚未配置网页导入后端接口地址。';
 
   @override
-  String get schoolWebImportUnsupportedPlatform => '当前平台暂不支持内嵌网页登录，请在支持 WebView 的平台上使用。';
+  String get schoolWebImportUnsupportedPlatform =>
+      '当前平台暂不支持内嵌网页登录，请在支持 WebView 的平台上使用。';
 
   @override
   String get schoolWebImportSelectSchool => '选择学校';
@@ -906,13 +919,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolImportParserSourceOfficialDesc => '使用应用内配置的官方解析服务。';
 
   @override
-  String get schoolImportParserSourceOfficialInfo => '官方解析会继续使用应用当前配置的解析后端，并保持现有导入流程不变。';
+  String get schoolImportParserSourceOfficialInfo =>
+      '官方解析会继续使用应用当前配置的解析后端，并保持现有导入流程不变。';
 
   @override
   String get schoolImportParserSourceCustomOpenAi => '自定义 OpenAI 兼容接口';
 
   @override
-  String get schoolImportParserSourceCustomOpenAiDesc => '把页面内容直接发送到你自己的 OpenAI 兼容端点。';
+  String get schoolImportParserSourceCustomOpenAiDesc =>
+      '把页面内容直接发送到你自己的 OpenAI 兼容端点。';
 
   @override
   String get schoolImportParserCustomOpenAi => '自定义 OpenAI 兼容解析';
@@ -921,7 +936,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get schoolImportParserCustomPromptTitle => '自定义提示词';
 
   @override
-  String get schoolImportParserCustomPromptDescription => '可直接在这里修改内置解析提示词，且仅对自定义 OpenAI 兼容接口生效。';
+  String get schoolImportParserCustomPromptDescription =>
+      '可直接在这里修改内置解析提示词，且仅对自定义 OpenAI 兼容接口生效。';
 
   @override
   String get schoolImportParserCustomPromptHint => '这里默认会载入内置提示词；清空后会回退为内置版本。';
@@ -953,10 +969,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get schoolImportParserPlaintextWarning => '当前实现下，自定义 API 密钥会以明文形式保存在应用本地配置中。请仅在你信任的设备或浏览器环境中使用。';
+  String get schoolImportParserPlaintextWarning =>
+      '当前实现下，自定义 API 密钥会以明文形式保存在应用本地配置中。请仅在你信任的设备或浏览器环境中使用。';
 
   @override
-  String get schoolImportParserCustomConfigIncomplete => '自定义解析配置不完整，请先填写 Base URL、API 密钥和模型名称。';
+  String get schoolImportParserCustomConfigIncomplete =>
+      '自定义解析配置不完整，请先填写 Base URL、API 密钥和模型名称。';
 
   @override
   String get schoolImportParserCurrentSourceOfficial => '解析器：官方';
@@ -977,4 +995,144 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get privacyDeclineWebHint => '当前浏览器环境无法由应用主动关闭页面。若你不同意，请直接关闭此标签页或窗口。';
+
+  @override
+  String get defaultPeriodTimeSetName => '默认节次';
+
+  @override
+  String get periodTimeSetFallbackName => '节次时间';
+
+  @override
+  String get untitledTimetableName => '未命名课表';
+
+  @override
+  String get newTimetableName => '新课表';
+
+  @override
+  String get newPeriodTimeSetName => '新节次时间';
+
+  @override
+  String get emptyTimetableName => '空课表';
+
+  @override
+  String importedPeriodTimeSetName(Object name) {
+    return '$name 节次';
+  }
+
+  @override
+  String get importFileTypeMismatchMessage => '导入文件类型不匹配';
+
+  @override
+  String get importFileVersionUnsupportedMessage => '导入文件版本暂不支持';
+
+  @override
+  String get noPeriodTimesInImportMessage => '导入文件中没有节次时间';
+
+  @override
+  String get selectAtLeastOneTimetableMessage => '请选择至少一个课表';
+
+  @override
+  String get noExportableTimetableMessage => '当前没有可导出的课表';
+
+  @override
+  String get replaceActiveRequiresSingleTimetableMessage => '覆盖当前课表时只能选择一个课表';
+
+  @override
+  String get noActiveTimetableToReplaceMessage => '当前没有可覆盖的课表';
+
+  @override
+  String periodTimeSetInUseMessage(int count) {
+    return '该节次时间仍被 $count 个课表使用，请先改关联再删除';
+  }
+
+  @override
+  String get weekdayMonday => '星期一';
+
+  @override
+  String get weekdayTuesday => '星期二';
+
+  @override
+  String get weekdayWednesday => '星期三';
+
+  @override
+  String get weekdayThursday => '星期四';
+
+  @override
+  String get weekdayFriday => '星期五';
+
+  @override
+  String get weekdaySaturday => '星期六';
+
+  @override
+  String get weekdaySunday => '星期日';
+
+  @override
+  String get weekdayShortMonday => '一';
+
+  @override
+  String get weekdayShortTuesday => '二';
+
+  @override
+  String get weekdayShortWednesday => '三';
+
+  @override
+  String get weekdayShortThursday => '四';
+
+  @override
+  String get weekdayShortFriday => '五';
+
+  @override
+  String get weekdayShortSaturday => '六';
+
+  @override
+  String get weekdayShortSunday => '日';
+
+  @override
+  String get monthJanuary => '1月';
+
+  @override
+  String get monthFebruary => '2月';
+
+  @override
+  String get monthMarch => '3月';
+
+  @override
+  String get monthApril => '4月';
+
+  @override
+  String get monthMay => '5月';
+
+  @override
+  String get monthJune => '6月';
+
+  @override
+  String get monthJuly => '7月';
+
+  @override
+  String get monthAugust => '8月';
+
+  @override
+  String get monthSeptember => '9月';
+
+  @override
+  String get monthOctober => '10月';
+
+  @override
+  String get monthNovember => '11月';
+
+  @override
+  String get monthDecember => '12月';
+
+  @override
+  String get semesterWeeksWholeTerm => '全学期';
+
+  @override
+  String semesterWeeksRange(Object start, Object end) {
+    return '第 $start-$end 周';
+  }
+
+  @override
+  String semesterWeeksList(Object value) {
+    return '第 $value 周';
+  }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../data/timetable_storage.dart';
+import '../l10n/app_locale.dart' as app_locale;
 import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
 
@@ -31,25 +32,14 @@ enum AppImportMode { replaceAll, addAll }
 enum TimetableImportMode { addAsNew, replaceActive }
 
 String resolveFirstLaunchLocaleCode(Locale? locale) {
-  if (locale == null) {
-    return 'en';
-  }
-
-  final languageCode = locale.languageCode.toLowerCase();
-  final scriptCode = locale.scriptCode?.toLowerCase();
-  final countryCode = locale.countryCode?.toUpperCase();
-  final isTraditionalChinese =
-      languageCode == 'zh' &&
-      (scriptCode == 'hant' ||
-          countryCode == 'TW' ||
-          countryCode == 'HK' ||
-          countryCode == 'MO');
-  return isTraditionalChinese ? 'zh' : 'en';
+  return app_locale.resolveFirstLaunchLocaleCode(locale);
 }
 
 String _defaultSystemLocaleCodeResolver() {
   final locales = PlatformDispatcher.instance.locales;
-  return resolveFirstLaunchLocaleCode(locales.isEmpty ? null : locales.first);
+  return app_locale.resolveFirstLaunchLocaleCode(
+    locales.isEmpty ? null : locales.first,
+  );
 }
 
 class TimetableProvider extends ChangeNotifier {
@@ -954,7 +944,7 @@ class TimetableProvider extends ChangeNotifier {
   }
 
   Future<void> updateLocaleCode(String localeCode) async {
-    final normalized = normalizeLocaleCode(localeCode);
+    final normalized = app_locale.normalizeLocaleCode(localeCode);
     if (_appData.localeCode == normalized) {
       return;
     }
@@ -1312,7 +1302,7 @@ class TimetableProvider extends ChangeNotifier {
       timetables: normalizedTimetables,
       periodTimeSets: normalizedSets,
       conflictDisplayCourseIds: filteredPrefs,
-      localeCode: normalizeLocaleCode(data.localeCode),
+      localeCode: app_locale.normalizeLocaleCode(data.localeCode),
       themeColorMode: normalizeThemeColorMode(data.themeColorMode),
       courseNameColorValues: _buildCourseNameColorValuesForTimetables(
         normalizedTimetables,

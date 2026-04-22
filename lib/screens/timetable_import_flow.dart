@@ -39,7 +39,7 @@ class TimetableImportFlow {
     TimetableProvider provider,
     String source,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     List<TimetableData> candidates;
     try {
@@ -75,7 +75,7 @@ class TimetableImportFlow {
       final pickedMode = await showDialog<TimetableImportMode>(
         context: context,
         builder: (context) {
-          final l10n = AppLocalizations.of(context)!;
+          final l10n = AppLocalizations.of(context);
           return AlertDialog(
             title: Text(l10n.importTimetableDialogTitle),
             content: Text(l10n.chooseImportMethod),
@@ -175,7 +175,7 @@ class TimetableImportFlow {
     if (!context.mounted) {
       return null;
     }
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final canDiscardBundledSets = provider.periodTimeSets.isNotEmpty;
     final dialogBody = canDiscardBundledSets
         ? l10n.importPeriodTimeSetDialogBody
@@ -245,7 +245,7 @@ class TimetableImportFlow {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final l10n = AppLocalizations.of(context)!;
+            final l10n = AppLocalizations.of(context);
             return AlertDialog(
               title: Text(title),
               content: SizedBox(

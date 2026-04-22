@@ -54,7 +54,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.schoolSitesPageTitle),
@@ -171,7 +171,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
         _sites = const [];
         _loading = false;
       });
-      _showMessage(AppLocalizations.of(context)!.schoolWebImportSchoolLoadFailed);
+      _showMessage(AppLocalizations.of(context).schoolWebImportSchoolLoadFailed);
     }
   }
 
@@ -229,7 +229,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<void> _deleteSite(int index) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final site = _sites[index];
     final confirmed = await showDialog<bool>(
       context: context,
@@ -258,7 +258,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<SchoolSite?> _showEditorDialog({SchoolSite? initialSite}) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final nameController = TextEditingController(text: initialSite?.name ?? '');
     final urlController = TextEditingController(
       text: initialSite?.loginUrl ?? '',
@@ -320,7 +320,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<void> _persistSites(List<SchoolSite> sites) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     try {
       await _siteService.saveSites(sites);
       if (!mounted) {
@@ -336,7 +336,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<void> _importJson() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
@@ -365,7 +365,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<void> _shareJson() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final content = await _siteService.exportSites(_sites);
     if (!mounted) {
       return;
@@ -379,7 +379,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
   }
 
   Future<void> _saveJsonToFile() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final result = await _exportService.saveFile(
       ExportPayload(
         fileName: l10n.schoolSitesJsonFileName,
@@ -461,7 +461,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -486,11 +486,11 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.retryLater),
+              child: Text(AppLocalizations.of(context).retryLater),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.switchToShare),
+              child: Text(AppLocalizations.of(context).switchToShare),
             ),
           ],
         );

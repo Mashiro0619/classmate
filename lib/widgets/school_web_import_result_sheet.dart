@@ -85,7 +85,7 @@ class _SchoolWebImportResultSheetState extends State<SchoolWebImportResultSheet>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final timetable = widget.response.timetable;
     final warnings = widget.response.meta.warnings;
     final theme = Theme.of(context);

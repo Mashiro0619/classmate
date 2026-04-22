@@ -36,12 +36,12 @@ String _formatOutlineWidthNumber(double width) {
 }
 
 String _formatOutlineWidthValue(BuildContext context, double width) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = AppLocalizations.of(context);
   return '${_formatOutlineWidthNumber(width)} ${l10n.outlineWidthUnit}';
 }
 
 String _outlineModeLabel(BuildContext context, String mode) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = AppLocalizations.of(context);
   return switch (mode) {
     liveCourseOutlineModeAllDisplayed =>
       l10n.liveCourseOutlineTargetAllDisplayed,
@@ -76,7 +76,7 @@ int _effectiveUiColorValue(
 }
 
 String _uiColorLabel(BuildContext context, String key) {
-  final l10n = AppLocalizations.of(context)!;
+  final l10n = AppLocalizations.of(context);
   return switch (key) {
     colorfulUiPrimaryKey => l10n.themeColorPrimary,
     colorfulUiSecondaryKey => l10n.themeColorSecondary,
@@ -93,7 +93,7 @@ class ThemeSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         final hasCustomColor = !_isPresetThemeColor(
           provider.themeSeedColorValue,
         );
@@ -155,7 +155,7 @@ class ThemeSettingsPage extends StatelessWidget {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     var selectedColor = Color(provider.themeSeedColorValue);
     await showDialog<void>(
       context: context,
@@ -226,7 +226,7 @@ class ThemeSettingsPage extends StatelessWidget {
     required int initialColorValue,
     required Future<void> Function(int colorValue) onApply,
   }) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     var selectedColor = Color(initialColorValue);
     await showDialog<void>(
       context: context,
@@ -294,7 +294,7 @@ class ThemeSettingsPage extends StatelessWidget {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     var mode = provider.colorfulCourseTextColorMode;
     var colorValue = _effectiveUiColorValue(
       context,
@@ -418,7 +418,7 @@ class ThemeSettingsPage extends StatelessWidget {
     BuildContext context,
     TimetableProvider provider,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final derivedThemeColorValue = _derivedOutlineColorValue(
       provider.themeSeedColorValue,
     );
@@ -650,7 +650,7 @@ class _ThemeModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Card.outlined(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -701,7 +701,7 @@ class _ThemeColorSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final isSingleMode = provider.themeColorMode == themeColorModeSingle;
     final courseNames = provider.courseNameColorValues.keys.toList()..sort();
     return Card.outlined(
@@ -765,7 +765,7 @@ class _SingleThemeColorSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -828,7 +828,7 @@ class _ColorfulThemeSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _ColorSettingsGroup(
-          title: AppLocalizations.of(context)!.themeColorUiColors,
+          title: AppLocalizations.of(context).themeColorUiColors,
           children: [
             for (final key in const [
               colorfulUiPrimaryKey,
@@ -845,13 +845,13 @@ class _ColorfulThemeSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _ColorSettingsGroup(
-          title: AppLocalizations.of(context)!.themeColorCourseColors,
+          title: AppLocalizations.of(context).themeColorCourseColors,
           children: courseNames.isEmpty
               ? [
                   Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(
-                      AppLocalizations.of(context)!.themeColorCourseColorsEmpty,
+                      AppLocalizations.of(context).themeColorCourseColorsEmpty,
                     ),
                   ),
                 ]
@@ -936,7 +936,7 @@ class _OutlineSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Card.outlined(
       margin: EdgeInsets.zero,
@@ -1261,7 +1261,7 @@ class _OutlineWidthSummaryRow extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            AppLocalizations.of(context)!.liveCourseOutlineWidth,
+            AppLocalizations.of(context).liveCourseOutlineWidth,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),

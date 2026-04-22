@@ -48,7 +48,7 @@ class _TextImportPageState extends State<TextImportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: ListView(
@@ -84,7 +84,7 @@ class _TextImportPageState extends State<TextImportPage> {
   }
 
   Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final content = _controller.text.trim();
     if (content.isEmpty) {
       _showMessage(l10n.jsonContentEmpty);
@@ -120,7 +120,7 @@ Future<void> showTextExportDialog(
   return showDialog<void>(
     context: context,
     builder: (dialogContext) {
-      final l10n = AppLocalizations.of(dialogContext)!;
+      final l10n = AppLocalizations.of(dialogContext);
       return AlertDialog(
         title: Text(title),
         content: SizedBox(

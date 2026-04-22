@@ -49,7 +49,7 @@ class _SchoolImportParserSettingsPageState
     return Consumer<TimetableProvider>(
       builder: (context, provider, child) {
         _syncControllers(provider);
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         final isCustom =
             provider.schoolImportParserSource ==
             schoolImportParserSourceCustomOpenAi;
@@ -308,7 +308,7 @@ class _SchoolImportParserSettingsPageState
   }
 
   Future<void> _fetchModels(TimetableProvider provider) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     setState(() => _isFetchingModels = true);
     try {
       final models = await _api.fetchCustomModels(
