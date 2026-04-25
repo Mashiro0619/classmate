@@ -375,21 +375,22 @@ void main() {
       expect(secondProvider.activeTimetable.config.name, '空课表');
     });
 
-    test('首次启动语言检测会优先命中受支持语言或中文系回退中文', () {
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh');
-      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh');
+    test('首次启动语言检测会优先命中受支持语言', () {
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'TW')), 'zh-Hant');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')), 'zh-Hant');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'HK')), 'zh-Hant');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh', 'CN')), 'zh');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('zh')), 'zh');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en')), 'en');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('en', 'US')), 'en');
     });
 
-    test('首次启动语言检测对空值或不受支持语言回退默认语言或同语言匹配', () {
-      expect(app_locale.resolveFirstLaunchLocaleCode(null), 'zh');
+    test('首次启动语言检测对空值或不受支持语言回退英语或同语言匹配', () {
+      expect(app_locale.resolveFirstLaunchLocaleCode(null), 'en');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ja')), 'ja');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('fr', 'CA')), 'fr');
       expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('ru')), 'ru');
+      expect(app_locale.resolveFirstLaunchLocaleCode(const Locale('tlh')), 'en');
     });
 
     test('中文系语言默认使用配置的更新接口', () {
@@ -900,13 +901,17 @@ void main() {
 
     test('非 UI 字符串助手会复用生成本地化内容', () {
       final zhStrings = AppStrings.forLocaleCode('zh');
+      final zhHantStrings = AppStrings.forLocaleCode('zh-Hant');
       final enStrings = AppStrings.forLocaleCode('en');
 
       expect(zhStrings.defaultPeriodTimeSetName, '默认节次');
+      expect(zhHantStrings.defaultPeriodTimeSetName, '預設節次');
       expect(enStrings.defaultPeriodTimeSetName, 'Default periods');
       expect(zhStrings.importedPeriodTimeSetName('测试课表'), '测试课表 节次');
+      expect(zhHantStrings.importedPeriodTimeSetName('測試課表'), '測試課表 節次');
       expect(enStrings.importedPeriodTimeSetName('Test Timetable'), 'Test Timetable periods');
       expect(zhStrings.formatDayOfWeekLabel(1), '星期一');
+      expect(zhHantStrings.formatDayOfWeekLabel(1), '星期一');
       expect(enStrings.formatDayOfWeekLabel(1), 'Monday');
       expect(zhStrings.formatWeekdayShortLabel(7), '日');
       expect(enStrings.formatWeekdayShortLabel(7), 'Sun');
@@ -925,11 +930,15 @@ void main() {
 
     test('locale helper 会标准化 code 并映射到受支持语言', () {
       expect(app_locale.normalizeLocaleCode('en_US'), 'en');
-      expect(app_locale.normalizeLocaleCode('zh-Hant'), 'zh');
+      expect(app_locale.normalizeLocaleCode('zh-Hant'), 'zh-Hant');
+      expect(app_locale.normalizeLocaleCode('zh_TW'), 'zh-Hant');
       expect(app_locale.normalizeLocaleCode('zh-CN'), 'zh');
       expect(app_locale.normalizeLocaleCode('ja'), 'ja');
       expect(app_locale.appLocaleFromCode('en-US'), const Locale('en'));
-      expect(app_locale.appLocaleFromCode('zh_TW'), const Locale('zh'));
+      expect(
+        app_locale.appLocaleFromCode('zh_TW'),
+        const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+      );
       expect(app_locale.languageLabelForLocaleCode('ja'), '日本語');
     });
 
@@ -1657,7 +1666,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SearchBar), findsNothing);
-      expect(find.text('中文'), findsOneWidget);
+      expect(find.text('简体中文'), findsOneWidget);
+      expect(find.text('繁体中文'), findsOneWidget);
       expect(find.text('英语'), findsWidgets);
       expect(find.text('意大利语'), findsOneWidget);
       expect(find.text('葡萄牙语'), findsOneWidget);
@@ -1669,11 +1679,14 @@ void main() {
 
       expect(find.byType(SearchBar), findsOneWidget);
 
-      await tester.tap(find.text('中文').last);
+      final simplifiedChineseOption = find.text('简体中文').last;
+      await tester.ensureVisible(simplifiedChineseOption);
+      await tester.pumpAndSettle();
+      await tester.tap(simplifiedChineseOption);
       await tester.pumpAndSettle();
 
       expect(provider.localeCode, 'zh');
-      expect(find.text('中文'), findsOneWidget);
+      expect(find.text('简体中文'), findsOneWidget);
     });
 
     testWidgets('设置-导入导出数据中可进入解析课表页面', (tester) async {
@@ -2888,9 +2901,9 @@ void main() {
       await tester.pumpWidget(MyApp(provider: provider));
       await tester.pumpAndSettle();
 
-      expect(find.text('当前没有课表'), findsOneWidget);
-      expect(find.text('新建课表'), findsOneWidget);
-      expect(find.text('导入课表'), findsOneWidget);
+      expect(find.text('No timetable yet'), findsOneWidget);
+      expect(find.text('New timetable'), findsOneWidget);
+      expect(find.text('Import timetable'), findsOneWidget);
     });
 
     testWidgets('完全冲突时默认显示更长课程并显示冲突标记', (tester) async {

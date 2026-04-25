@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locale.dart' as app_locale;
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart';
 
@@ -162,9 +163,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                               subtitle: Text(
                                 formatDayOfWeekLabel(
                                   _selectedDayOfWeek,
-                                  localeCode: Localizations.localeOf(
-                                    context,
-                                  ).languageCode,
+                                  localeCode: app_locale.localeCodeFromLocale(
+                                    Localizations.localeOf(context),
+                                  ),
                                 ),
                               ),
                               trailing: const Icon(Icons.today_outlined),
@@ -180,9 +181,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                                 formatSemesterWeeksLabel(
                                   _selectedSemesterWeeks,
                                   totalWeeks: widget.totalWeeks,
-                                  localeCode: Localizations.localeOf(
-                                    context,
-                                  ).languageCode,
+                                  localeCode: app_locale.localeCodeFromLocale(
+                                    Localizations.localeOf(context),
+                                  ),
                                 ),
                               ),
                               trailing: const Icon(Icons.edit_calendar),
@@ -327,7 +328,9 @@ class _CourseEditorSheetState extends State<CourseEditorSheet> {
                   label: Text(
                     formatDayOfWeekLabel(
                       day,
-                      localeCode: Localizations.localeOf(context).languageCode,
+                      localeCode: app_locale.localeCodeFromLocale(
+                        Localizations.localeOf(context),
+                      ),
                     ),
                   ),
                   selected: day == _selectedDayOfWeek,

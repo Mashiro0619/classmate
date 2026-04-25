@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'app_localizations.dart';
 
-const defaultLocaleCode = 'zh';
+const defaultLocaleCode = 'en';
 
 @immutable
 class AppLanguageMetadata {
@@ -19,7 +19,10 @@ class AppLanguageMetadata {
   final Map<String, String> localizedNames;
 
   String localizedNameFor(String uiLocaleCode) {
-    return localizedNames[uiLocaleCode] ??
+    final normalizedCode = normalizeLocaleCode(uiLocaleCode);
+    final languageCode = _parseLocaleCode(normalizedCode).languageCode.toLowerCase();
+    return localizedNames[normalizedCode] ??
+        localizedNames[languageCode] ??
         localizedNames[defaultLocaleCode] ??
         englishName;
   }
@@ -326,6 +329,39 @@ const _supportedLanguageMetadata = <String, AppLanguageMetadata>{
       'zh': '匈牙利语',
     },
   ),
+  'hi': AppLanguageMetadata(
+    code: 'hi',
+    nativeName: 'हिन्दी',
+    englishName: 'Hindi',
+    localizedNames: {
+      'ar': 'الهندية',
+      'bg': 'Хинди',
+      'cs': 'hindština',
+      'da': 'hindi',
+      'de': 'Hindi',
+      'el': 'Χίντι',
+      'en': 'Hindi',
+      'es': 'Hindi',
+      'et': 'Hindi',
+      'fi': 'hindi',
+      'fr': 'Hindi',
+      'hi': 'हिन्दी',
+      'hu': 'Hindi',
+      'it': 'Hindi',
+      'ja': 'ヒンディー語',
+      'ko': '힌디어',
+      'nl': 'Hindi',
+      'pl': 'Hindi',
+      'pt': 'Hindi',
+      'ro': 'Hindi',
+      'ru': 'Хинди',
+      'sl': 'hindijščina',
+      'sv': 'hindi',
+      'th': 'ภาษาฮินดี',
+      'vi': 'Tiếng Hindi',
+      'zh': '印地语',
+    },
+  ),
   'it': AppLanguageMetadata(
     code: 'it',
     nativeName: 'Italiano',
@@ -575,19 +611,38 @@ const _supportedLanguageMetadata = <String, AppLanguageMetadata>{
   ),
   'zh': AppLanguageMetadata(
     code: 'zh',
-    nativeName: '中文',
-    englishName: 'Chinese',
+    nativeName: '简体中文',
+    englishName: 'Chinese (Simplified)',
     localizedNames: {
-      'de': 'Chinesisch',
-      'en': 'Chinese',
-      'es': 'Chino',
-      'fr': 'Chinois',
-      'it': 'Cinese',
-      'ja': '中国語',
-      'ko': '중국어',
-      'pt': 'Chinês',
-      'ru': 'Китайский',
-      'zh': '中文',
+      'de': 'Chinesisch (vereinfacht)',
+      'en': 'Chinese (Simplified)',
+      'es': 'Chino simplificado',
+      'fr': 'Chinois simplifié',
+      'it': 'Cinese semplificato',
+      'ja': '中国語（簡体字）',
+      'ko': '중국어(간체)',
+      'pt': 'Chinês simplificado',
+      'ru': 'Китайский (упрощённый)',
+      'zh': '简体中文',
+      'zh-Hant': '簡體中文',
+    },
+  ),
+  'zh-Hant': AppLanguageMetadata(
+    code: 'zh-Hant',
+    nativeName: '繁體中文',
+    englishName: 'Chinese (Traditional)',
+    localizedNames: {
+      'de': 'Chinesisch (traditionell)',
+      'en': 'Chinese (Traditional)',
+      'es': 'Chino tradicional',
+      'fr': 'Chinois traditionnel',
+      'it': 'Cinese tradizionale',
+      'ja': '中国語（繁体字）',
+      'ko': '중국어(번체)',
+      'pt': 'Chinês tradicional',
+      'ru': 'Китайский (традиционный)',
+      'zh': '繁体中文',
+      'zh-Hant': '繁體中文',
     },
   ),
 };
@@ -610,8 +665,9 @@ String normalizeLocaleCode(String? localeCode) {
   if (raw == null || raw.isEmpty) {
     return localeCodeFromLocale(_defaultAppLocale);
   }
+  final requestedLocale = _canonicalizeChineseLocale(_parseLocaleCode(raw));
   final locale = _findSupportedLocale(
-    _parseLocaleCode(raw),
+    requestedLocale,
     allowLanguageFallback: true,
   );
   return locale == null
@@ -621,7 +677,7 @@ String normalizeLocaleCode(String? localeCode) {
 
 Locale appLocaleFromCode(String localeCode) {
   final locale = _findSupportedLocale(
-    _parseLocaleCode(localeCode),
+    _canonicalizeChineseLocale(_parseLocaleCode(localeCode)),
     allowLanguageFallback: true,
   );
   return locale ?? _defaultAppLocale;
@@ -631,15 +687,16 @@ String resolveFirstLaunchLocaleCode(Locale? locale) {
   if (locale == null) {
     return localeCodeFromLocale(_defaultAppLocale);
   }
+  final requestedLocale = _canonicalizeChineseLocale(locale);
   final exactLocale = _findSupportedLocale(
-    locale,
+    requestedLocale,
     allowLanguageFallback: false,
   );
   if (exactLocale != null) {
     return localeCodeFromLocale(exactLocale);
   }
   final languageLocale = _findSupportedLocale(
-    locale,
+    requestedLocale,
     allowLanguageFallback: true,
   );
   if (languageLocale != null) {
@@ -712,7 +769,8 @@ Locale? _findSupportedLocale(
   Locale locale, {
   required bool allowLanguageFallback,
 }) {
-  final requestedCode = localeCodeFromLocale(locale);
+  final requestedLocale = _canonicalizeChineseLocale(locale);
+  final requestedCode = localeCodeFromLocale(requestedLocale);
   for (final supportedLocale in AppLocalizations.supportedLocales) {
     if (localeCodeFromLocale(supportedLocale) == requestedCode) {
       return supportedLocale;
@@ -721,7 +779,7 @@ Locale? _findSupportedLocale(
   if (!allowLanguageFallback) {
     return null;
   }
-  final requestedLanguageCode = locale.languageCode.toLowerCase();
+  final requestedLanguageCode = requestedLocale.languageCode.toLowerCase();
   for (final supportedLocale in AppLocalizations.supportedLocales) {
     if (supportedLocale.languageCode.toLowerCase() == requestedLanguageCode) {
       return supportedLocale;
@@ -766,6 +824,27 @@ String _normalizeScriptCode(String scriptCode) {
     return scriptCode;
   }
   return '${scriptCode[0].toUpperCase()}${scriptCode.substring(1).toLowerCase()}';
+}
+
+Locale _canonicalizeChineseLocale(Locale locale) {
+  if (locale.languageCode.toLowerCase() != 'zh') {
+    return locale;
+  }
+
+  final normalizedScriptCode = locale.scriptCode == null || locale.scriptCode!.isEmpty
+      ? null
+      : _normalizeScriptCode(locale.scriptCode!);
+  final normalizedCountryCode = locale.countryCode == null || locale.countryCode!.isEmpty
+      ? null
+      : locale.countryCode!.toUpperCase();
+
+  const traditionalCountries = {'TW', 'HK', 'MO'};
+  if (normalizedScriptCode == 'Hant' ||
+      traditionalCountries.contains(normalizedCountryCode)) {
+    return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+  }
+
+  return const Locale('zh');
 }
 
 Locale get _defaultAppLocale {

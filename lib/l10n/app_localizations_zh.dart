@@ -1145,3 +1145,1145 @@ class AppLocalizationsZh extends AppLocalizations {
     return '第 $value 周';
   }
 }
+
+/// The translations for Chinese, using the Han script (`zh_Hant`).
+class AppLocalizationsZhHant extends AppLocalizationsZh {
+  AppLocalizationsZhHant() : super('zh_Hant');
+
+  @override
+  String get appTitle => 'Classmate';
+
+  @override
+  String weekLabel(int week) {
+    return '第 $week 週';
+  }
+
+  @override
+  String get addCourse => '添加課程';
+
+  @override
+  String get settings => '設定';
+
+  @override
+  String get multiTimetableSwitch => '多課表切換';
+
+  @override
+  String currentTimetableWeeks(int weeks) {
+    return '當前課表 · 共 $weeks 週';
+  }
+
+  @override
+  String tapToSwitchWeeks(int weeks) {
+    return '點擊切換 · 共 $weeks 週';
+  }
+
+  @override
+  String get editTimetable => '編輯課表';
+
+  @override
+  String get createTimetable => '新建課表';
+
+  @override
+  String get jumpToWeek => '快捷跳轉週數';
+
+  @override
+  String get timetable => '課表';
+
+  @override
+  String get timetableName => '課表名稱';
+
+  @override
+  String get totalWeeks => '總週數';
+
+  @override
+  String get delete => '刪除';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get save => '儲存';
+
+  @override
+  String get deleteTimetableTitle => '刪除課表';
+
+  @override
+  String deleteTimetableMessage(Object name) {
+    return '確認刪除「$name」嗎？';
+  }
+
+  @override
+  String get noTimetableTitle => '當前沒有課表';
+
+  @override
+  String get noTimetableMessage => '可以新建一個課表，或從 JSON 檔案匯入已有課表。';
+
+  @override
+  String get importTimetable => '匯入課表';
+
+  @override
+  String get courseName => '課程名稱';
+
+  @override
+  String get location => '上課地點';
+
+  @override
+  String get dayOfWeek => '上課日';
+
+  @override
+  String get semesterWeeks => '週次';
+
+  @override
+  String get startTime => '開始時間';
+
+  @override
+  String get endTime => '結束時間';
+
+  @override
+  String get linkedPeriods => '關聯節次';
+
+  @override
+  String get linkedPeriodsUnmatched => '當前時間未匹配到節次，點此手動選擇';
+
+  @override
+  String periodRangeLabel(int start, int end) {
+    return '第 $start-$end 節';
+  }
+
+  @override
+  String get teacherName => '老師姓名';
+
+  @override
+  String get credits => '學分';
+
+  @override
+  String get remarks => '備註';
+
+  @override
+  String get customFields => '自訂欄位';
+
+  @override
+  String get customFieldsHint => '每行一個，格式：鍵:值';
+
+  @override
+  String get selectDayOfWeek => '選擇上課日';
+
+  @override
+  String get selectSemesterWeeks => '選擇週次';
+
+  @override
+  String get selectAll => '全選';
+
+  @override
+  String get clear => '清空';
+
+  @override
+  String get confirm => '確定';
+
+  @override
+  String get selectLinkedPeriods => '選擇關聯節次';
+
+  @override
+  String get addCourseTitle => '添加課程';
+
+  @override
+  String get editCourseTitle => '編輯課程';
+
+  @override
+  String get editCourseTooltip => '編輯課程';
+
+  @override
+  String get place => '地點';
+
+  @override
+  String get time => '時間';
+
+  @override
+  String get notFilled => '未填寫';
+
+  @override
+  String get none => '無';
+
+  @override
+  String get conflictCourses => '衝突課程';
+
+  @override
+  String get locationNotFilled => '未填寫地點';
+
+  @override
+  String get setAsDisplayed => '設為外部顯示';
+
+  @override
+  String get editThisCourse => '編輯這門課';
+
+  @override
+  String get settingsTitle => '設定';
+
+  @override
+  String get noTimetableSettings => '當前沒有可設定的課表';
+
+  @override
+  String get semesterStartDate => '開學日期';
+
+  @override
+  String get periodTimeSets => '節次時間集';
+
+  @override
+  String get noPeriodTimeAvailable => '暫無可用節次時間';
+
+  @override
+  String periodTimeSetSummary(Object name, int count) {
+    return '$name · $count 節';
+  }
+
+  @override
+  String get coursePopupDismissSetting => '允許點擊空白處關閉課程彈窗';
+
+  @override
+  String get coursePopupDismissSettingHint => '關閉後也會一併停用下拉手勢關閉，避免誤觸。';
+
+  @override
+  String get preserveTimetableGaps => '保留課表空白時間';
+
+  @override
+  String get preserveTimetableGapsHint => '關閉後會摺疊午休、下課等非上課時間，讓後續課程向上拼接。';
+
+  @override
+  String get showPastEndedCourses => '顯示已結束課程';
+
+  @override
+  String get showPastEndedCoursesHint => '顯示按真實當前週已結束的課程，並用更淺的灰色區分。';
+
+  @override
+  String get showFutureCourses => '顯示之後的課程';
+
+  @override
+  String get showFutureCoursesHint => '顯示當前週不上、但之後週次還會上的課程，並用灰色區分。';
+
+  @override
+  String get timetableDisplaySettings => '課表顯示與互動';
+
+  @override
+  String get timetableDisplaySettingsDesc => '課程彈窗、空白時間、灰色課程與網格線';
+
+  @override
+  String get showTimetableGridLines => '顯示課表網格線';
+
+  @override
+  String get showTimetableGridLinesHint => '控制課表中的橫向與縱向網格線是否顯示。';
+
+  @override
+  String get liveCourseOutlineColor => '課程描邊顏色';
+
+  @override
+  String get liveCourseOutlineColorHint => '描邊目標可選擇當前／下一節課程，或當前頁所有已顯示課程。';
+
+  @override
+  String get liveCourseOutlineSettings => '課程描邊';
+
+  @override
+  String get liveCourseOutlineSettingsHint =>
+      '可設定是否開啟描邊、描邊目標、是否跟隨主題色，以及當前實際生效的描邊顏色。';
+
+  @override
+  String get liveCourseOutlineEnabled => '開啟課程描邊';
+
+  @override
+  String get liveCourseOutlineFollowTheme => '跟隨主題色';
+
+  @override
+  String get liveCourseOutlineTarget => '描邊目標';
+
+  @override
+  String get liveCourseOutlineTargetCurrentOrNext => '當前／下一節課程';
+
+  @override
+  String get liveCourseOutlineTargetAllDisplayed => '當前頁全部課程';
+
+  @override
+  String get liveCourseOutlineEffectiveColor => '當前生效顏色';
+
+  @override
+  String get liveCourseOutlineCustomColor => '自訂描邊顏色';
+
+  @override
+  String get liveCourseOutlineWidth => '描邊寬度';
+
+  @override
+  String get outlineWidthUnit => 'px';
+
+  @override
+  String get language => '語言';
+
+  @override
+  String get languagePageDescription => '請選擇應用當前真正支援的語言。';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+
+  @override
+  String get apiResponseTitle => 'API 回應';
+
+  @override
+  String get theme => '主題';
+
+  @override
+  String get themeFollowSystem => '跟隨系統';
+
+  @override
+  String get themeLight => '淺色';
+
+  @override
+  String get themeDark => '暗黑';
+
+  @override
+  String get themeColor => '主題色';
+
+  @override
+  String get themeColorModeSingle => '單調主題色';
+
+  @override
+  String get themeColorModeColorful => '五彩繽紛';
+
+  @override
+  String get themeColorUiColors => 'UI 配色';
+
+  @override
+  String get themeColorCourseColors => '課程顏色';
+
+  @override
+  String get themeColorPrimary => '主色';
+
+  @override
+  String get themeColorSecondary => '輔色';
+
+  @override
+  String get themeColorTertiary => '強調色';
+
+  @override
+  String get themeColorCourseText => '課程文字色';
+
+  @override
+  String get themeColorCourseTextAuto => '自動配色';
+
+  @override
+  String get themeColorCourseTextCustom => '自訂顏色';
+
+  @override
+  String get themeColorCourseColorsEmpty => '匯入課表後將自動生成課程顏色';
+
+  @override
+  String get themeCustomColor => '自訂顏色';
+
+  @override
+  String get themeApplyCustomColor => '套用顏色';
+
+  @override
+  String get themeApplySettings => '套用設定';
+
+  @override
+  String get dataImportExport => '匯入匯出資料';
+
+  @override
+  String get dataImportExportDesc => '匯入整包／單課表，或匯出當前課表與全部課表';
+
+  @override
+  String get openSourceLicenses => '開源授權';
+
+  @override
+  String get openSourceLicensesDesc => '查看 Flutter 依賴與應用內建圖示資源的授權資訊';
+
+  @override
+  String get checkForUpdates => '檢查更新';
+
+  @override
+  String get checkForUpdatesDesc => 'GitHub / 官網 / Google Play / 雲端硬碟';
+
+  @override
+  String alreadyLatestVersion(Object version) {
+    return '目前已是最新版本（$version）';
+  }
+
+  @override
+  String get currentVersionLabel => '目前版本';
+
+  @override
+  String get newVersionAvailable => '有新版本';
+
+  @override
+  String get latestVersionLabel => '最新版本';
+
+  @override
+  String get updateContentLabel => '更新內容';
+
+  @override
+  String get officialWebsite => '官網';
+
+  @override
+  String get googlePlay => 'Google Play';
+
+  @override
+  String get cloudDrive => '雲端硬碟';
+
+  @override
+  String get ignoreThisVersion => '忽略此版本';
+
+  @override
+  String get openUpdatesFailed => '無法開啟更新連結';
+
+  @override
+  String get updateCheckFailedTitle => '檢查更新失敗';
+
+  @override
+  String get updateCheckFailedMessage => '無法從更新來源取得有效版本資訊。你仍可透過下方管道手動取得更新。';
+
+  @override
+  String get githubRepository => 'GitHub 倉庫';
+
+  @override
+  String get openGithubFailed => '無法開啟 GitHub 倉庫連結';
+
+  @override
+  String get selectPeriodTimeSet => '選擇節次時間集';
+
+  @override
+  String get newItem => '新建';
+
+  @override
+  String get editPeriodTimeSet => '編輯節次時間集';
+
+  @override
+  String get importTimetableFiles => '匯入課表';
+
+  @override
+  String get importTimetableFilesDesc => '支援單個或多個課表檔案';
+
+  @override
+  String get importTimetableText => '從文字匯入課表';
+
+  @override
+  String get importTimetableTextDesc => '貼上課表 JSON 內容後匯入';
+
+  @override
+  String get shareTimetableFiles => '分享課表檔案';
+
+  @override
+  String get shareTimetableFilesDesc => '先選擇一個或多個課表';
+
+  @override
+  String get saveTimetableFiles => '儲存課表檔案';
+
+  @override
+  String get saveTimetableFilesDesc => '先選擇一個或多個課表';
+
+  @override
+  String get exportTimetableText => '匯出課表為文字';
+
+  @override
+  String get exportTimetableTextDesc => '先選擇一個或多個課表，再複製 JSON 內容';
+
+  @override
+  String get jsonContent => 'JSON 內容';
+
+  @override
+  String get pasteJsonContentHint => '請貼上要匯入的 JSON 內容';
+
+  @override
+  String get jsonContentEmpty => '請先貼上 JSON 內容';
+
+  @override
+  String get copyText => '複製';
+
+  @override
+  String get copiedToClipboard => '已複製到剪貼簿';
+
+  @override
+  String get share => '分享';
+
+  @override
+  String get selectTimetablesToExport => '選擇要匯出的課表';
+
+  @override
+  String get selectTimetablesToImport => '選擇要匯入的課表';
+
+  @override
+  String timetableCourseCount(int count) {
+    return '$count 門課程';
+  }
+
+  @override
+  String get importAction => '匯入';
+
+  @override
+  String get importTimetableDialogTitle => '匯入課表';
+
+  @override
+  String get chooseImportMethod => '請選擇匯入方式';
+
+  @override
+  String get importAsNewTimetable => '作為新課表匯入';
+
+  @override
+  String get replaceCurrentTimetable => '覆蓋當前課表';
+
+  @override
+  String get importPeriodTimeSetDialogTitle => '匯入節次時間集';
+
+  @override
+  String get importPeriodTimeSetDialogBody => '偵測到檔案內包含節次時間集。是否一併匯入並關聯它們？';
+
+  @override
+  String get importBundledPeriodTimeSets => '匯入並關聯';
+
+  @override
+  String get discardBundledPeriodTimeSets => '捨棄內含節次';
+
+  @override
+  String get importDiscardPeriodTimeSetUnavailable =>
+      '當前沒有可用節次時間集，不能捨棄檔案內節次時間集。';
+
+  @override
+  String savedToPath(Object path) {
+    return '已儲存到 $path';
+  }
+
+  @override
+  String get saveCancelled => '已取消儲存';
+
+  @override
+  String get fileSaveRestrictedTitle => '檔案儲存受限';
+
+  @override
+  String get fileSaveRestrictedRetryMessage => '目前系統未能完成檔案儲存。你可以重試，或改用檔案分享。';
+
+  @override
+  String get retrySave => '重試儲存';
+
+  @override
+  String get fileSaveRestrictedSettingsMessage => '請在系統設定中開啟檔案存取權限，然後返回重試匯出。';
+
+  @override
+  String get openSettings => '開啟設定';
+
+  @override
+  String get browserDownloadRestrictedTitle => '瀏覽器下載受限';
+
+  @override
+  String get browserDownloadRestrictedMessage =>
+      '目前瀏覽器不支援直接儲存到本機檔案。你可以檢查瀏覽器下載權限，或改用分享檔案。';
+
+  @override
+  String get switchToShare => '改用分享';
+
+  @override
+  String get fileSaveFailedTitle => '檔案儲存失敗';
+
+  @override
+  String get fileSaveFailedWindowsMessage =>
+      '無法寫入目前路徑，可能是目標資料夾受系統保護、檔案被佔用，或目前路徑不可寫入。';
+
+  @override
+  String get fileSaveFailedGenericMessage => '系統未能完成檔案儲存。你可以重試、檢查系統設定，或改用檔案分享。';
+
+  @override
+  String get retryLater => '稍後再試';
+
+  @override
+  String get exportSwitchedToShare => '已改用檔案分享匯出';
+
+  @override
+  String get saveFailedRetry => '儲存失敗，請稍後重試';
+
+  @override
+  String get importFailedCheckContent => '匯入失敗，請檢查檔案內容';
+
+  @override
+  String get noImportableTimetables => '匯入檔案中沒有可用課表';
+
+  @override
+  String importedTimetablesCount(int count) {
+    return '已匯入 $count 個課表';
+  }
+
+  @override
+  String get periodTimesTitle => '節次時間';
+
+  @override
+  String get importExport => '匯入匯出';
+
+  @override
+  String get importPeriodTemplate => '匯入節次範本';
+
+  @override
+  String get importPeriodTemplateText => '從文字匯入節次範本';
+
+  @override
+  String get sharePeriodTemplate => '分享節次範本';
+
+  @override
+  String get saveTemplateToFile => '儲存範本到檔案';
+
+  @override
+  String get exportPeriodTemplateText => '匯出節次範本為文字';
+
+  @override
+  String get deletePeriodTimeSet => '刪除節次時間';
+
+  @override
+  String get periodTimeSetName => '節次時間名稱';
+
+  @override
+  String get addOnePeriod => '增加一節';
+
+  @override
+  String periodNumberLabel(int index) {
+    return '第 $index 節';
+  }
+
+  @override
+  String get deleteThisPeriod => '刪除本節';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '時長 $minutes 分鐘';
+  }
+
+  @override
+  String gapFromPrevious(int minutes) {
+    return '與上一節間隔 $minutes 分鐘';
+  }
+
+  @override
+  String get endTimeMustBeLater => '結束時間必須晚於開始時間';
+
+  @override
+  String get periodOverlapPrevious => '當前節次與上一節時間重疊';
+
+  @override
+  String get periodTimesSaved => '已儲存節次時間';
+
+  @override
+  String get deletePeriodTimeSetTitle => '刪除節次時間';
+
+  @override
+  String deletePeriodTimeSetMessage(Object name) {
+    return '確認刪除「$name」嗎？';
+  }
+
+  @override
+  String get currentPeriodTimeSet => '當前節次時間';
+
+  @override
+  String importedPeriodTimesCount(int count) {
+    return '已匯入 $count 條節次時間';
+  }
+
+  @override
+  String get periodFilePermissionTitle => '需要檔案權限';
+
+  @override
+  String get androidFilePermissionMessage => 'Android 匯出需要檔案存取權限，請授權後繼續儲存。';
+
+  @override
+  String get reauthorize => '重新授權';
+
+  @override
+  String get permissionPermanentlyDeniedTitle => '權限已被永久拒絕';
+
+  @override
+  String get permissionSettingsExportMessage => '請在系統設定中開啟檔案存取權限，然後再回來重試匯出。';
+
+  @override
+  String get privacyPolicyTitle => '隱私政策';
+
+  @override
+  String get privacyPolicyEntryDesc => '了解應用如何處理本機儲存、學校站點設定、檔案匯入匯出、網頁解析和外部連結。';
+
+  @override
+  String privacyPolicyAcceptedVersionLabel(Object version) {
+    return '已同意版本：$version';
+  }
+
+  @override
+  String get privacyPolicyIntro =>
+      '課表、課表設定、節次時間集和學校站點設定只會儲存在你的裝置或瀏覽器本機。只有在你主動使用匯入、網頁解析、外部連結或分享等功能時，應用才會讀取相關內容或把對應操作交給系統處理。';
+
+  @override
+  String get privacyPolicyLocalStorageTitle => '本機儲存';
+
+  @override
+  String get privacyPolicyLocalStorageBody =>
+      '課表資料和相關設定會儲存在應用文件目錄中的本機檔案 classmate_data.json，可編輯的學校站點設定會單獨儲存在 classmate_school_sites.json。自訂課表解析設定中填寫的 Base URL、API 金鑰和所選模型也會隨同應用資料儲存在本機，目前實作不會使用系統安全憑證庫進行保護。若在瀏覽器中使用，同類資料會儲存在瀏覽器本機儲存中。應用不會自動把這些本機資料上傳到開發者控制的伺服器。';
+
+  @override
+  String get privacyPolicyImportExportTitle => '匯入與匯出';
+
+  @override
+  String get privacyPolicyImportExportBody =>
+      '只有在你主動選擇檔案或主動執行匯出時，應用才會讀取或寫出 JSON 課表檔案、學校站點 JSON 檔案和節次範本檔案。這些檔案的匯入匯出本身屬於本機操作；只有當你進一步選擇網頁解析時，相關頁面內容才會被發送到你設定的解析介面。取得自訂模型清單同樣屬於你主動觸發的連網操作，並且只會請求你填寫的自訂介面。';
+
+  @override
+  String get privacyPolicySharingTitle => '分享功能';
+
+  @override
+  String get privacyPolicySharingBody =>
+      '當你主動使用分享功能時，應用會把你選中的匯出檔案交給系統分享面板或目標應用。後續如何處理該檔案，由你選擇的目標應用或服務自行決定。';
+
+  @override
+  String get privacyPolicyExternalLinksTitle => '外部連結';
+
+  @override
+  String get privacyPolicyExternalLinksBody =>
+      '當你主動開啟 GitHub 倉庫等外部連結時，應用會呼叫系統瀏覽器或其他外部應用。離開應用後的資料處理將受對應第三方的政策約束。';
+
+  @override
+  String get privacyPolicyNoCollectionTitle => '不會收集的內容';
+
+  @override
+  String get privacyPolicyNoCollectionBody =>
+      '應用不要求你註冊 Classmate 帳號，也不會啟用分析統計、廣告識別碼或雲端備份。應用本身也沒有專門用於收集學校帳號密碼的輸入欄位；如果你在應用內開啟的學校網頁中登入，該互動發生在你造訪的學校頁面內。';
+
+  @override
+  String get privacyPolicyFutureFeatureTitle => '網頁解析';
+
+  @override
+  String get privacyPolicyFutureFeatureBody =>
+      '當你使用學校網頁匯入或貼上 HTML 進行解析時，應用會先在本機壓縮內容，再把你提交的頁面內容、可選的頁面標題與 URL、當前應用語言以及解析提示詞發送到當前選擇的解析介面。如果你使用官方解析，請求會發往應用設定的官方後端；如果你啟用自訂 OpenAI 相容解析，同樣的內容會直接發送到你填寫的第三方介面，取得模型清單時也會請求該第三方介面。自訂介面還可能按照其自身設計繼續把請求轉發給其他 AI 服務。目前官方後端會限制單次提交內容不得大於 300KB，使用其設定的請求逾時時間，並按 IP 每天最多解析 5 次。';
+
+  @override
+  String get privacyPolicyUpdatesTitle => '政策更新';
+
+  @override
+  String privacyPolicyUpdatesBody(Object version) {
+    return '目前隱私政策版本為 $version。如果後續版本調整了資料處理方式，應用可能會要求你重新閱讀並同意更新後的隱私政策。';
+  }
+
+  @override
+  String get privacyGateTitle => '使用前請先同意隱私政策';
+
+  @override
+  String get privacyGateSummaryStorage =>
+      '課表、節次時間集和學校站點設定只會儲存在本機，不會自動上傳到開發者伺服器。';
+
+  @override
+  String get privacyGateSummaryImportExport =>
+      '匯入、匯出和分享僅在你主動操作時觸發；網頁解析只會發送你主動提交的壓縮後內容，並在儲存前讓你預覽解析結果。';
+
+  @override
+  String get privacyGateSummaryExternal => '開啟 GitHub 等外部連結會交給系統瀏覽器或其他應用處理。';
+
+  @override
+  String get privacyGateSummaryUpdates =>
+      '如果後續版本調整了資料處理方式，應用可能會要求你重新查看更新後的隱私政策。';
+
+  @override
+  String get schoolWebImportEntry => '從學校網頁匯入';
+
+  @override
+  String get schoolWebImportEntryDesc => '進入學校網站後匯入當前課表頁。';
+
+  @override
+  String get schoolSitesManageEntry => '學校站點管理';
+
+  @override
+  String get schoolSitesManageEntryDesc => '新增、編輯、刪除學校登入地址，並支援 JSON 匯入匯出。';
+
+  @override
+  String get schoolSitesPageTitle => '學校站點管理';
+
+  @override
+  String get schoolSitesImportJson => '匯入學校 JSON';
+
+  @override
+  String get schoolSitesShareJson => '分享學校 JSON';
+
+  @override
+  String get schoolSitesSaveJson => '儲存學校 JSON';
+
+  @override
+  String get schoolSitesSaved => '學校站點已儲存';
+
+  @override
+  String get schoolSitesImported => '學校站點已匯入';
+
+  @override
+  String get schoolSitesEmpty => '當前還沒有學校站點設定。';
+
+  @override
+  String get schoolSitesNameLabel => '學校名稱';
+
+  @override
+  String get schoolSitesLoginUrlLabel => '登入頁連結';
+
+  @override
+  String get schoolSitesAdd => '新增學校';
+
+  @override
+  String get schoolSitesEdit => '編輯學校';
+
+  @override
+  String get schoolSitesDeleteTitle => '刪除學校';
+
+  @override
+  String schoolSitesDeleteMessage(Object name) {
+    return '確認刪除「$name」嗎？';
+  }
+
+  @override
+  String get schoolSitesFormInvalid => '請完整填寫學校名稱和登入頁連結。';
+
+  @override
+  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+
+  @override
+  String get schoolHtmlImportEntry => '貼上課程表頁面內容匯入';
+
+  @override
+  String get schoolHtmlImportEntryDesc => '手動貼上包含課程資訊的頁面原始碼或原始內容。';
+
+  @override
+  String get schoolHtmlImportPageTitle => '解析課表頁面內容';
+
+  @override
+  String get schoolHtmlImportUrlLabel => '來源 URL（可選）';
+
+  @override
+  String get schoolHtmlImportTitleLabel => '頁面標題（可選）';
+
+  @override
+  String get schoolHtmlImportHtmlLabel => '頁面內容';
+
+  @override
+  String get schoolHtmlImportHtmlHint => '請貼上包含課程資訊的頁面原始碼或原始內容。';
+
+  @override
+  String get schoolHtmlImportNonHtmlHint => '只要內容裡包含課程資訊，就可以解析匯入，不限於 HTML。';
+
+  @override
+  String get schoolHtmlImportCompress => '壓縮內容';
+
+  @override
+  String get schoolHtmlImportCompressed => '內容已壓縮';
+
+  @override
+  String get schoolHtmlImportCompressFirst => '請先壓縮內容。';
+
+  @override
+  String get schoolHtmlImportSubmit => '解析並匯入';
+
+  @override
+  String get schoolHtmlImportParsingMayTakeLong => '解析時間可能較長，請耐心等待。';
+
+  @override
+  String get schoolHtmlImportEmpty => '請先貼上網頁 HTML。';
+
+  @override
+  String get schoolHtmlImportReturnToWebPage => '返回網頁';
+
+  @override
+  String get schoolWebImportPageTitle => '學校網頁匯入';
+
+  @override
+  String get schoolWebImportPreview => '匯入預覽';
+
+  @override
+  String schoolWebImportCourseCount(int count) {
+    return '$count 門課程';
+  }
+
+  @override
+  String schoolWebImportPeriodCount(int count) {
+    return '$count 節';
+  }
+
+  @override
+  String get schoolWebImportPageTitleLabel => '頁面標題';
+
+  @override
+  String get schoolWebImportParserUsed => '解析器';
+
+  @override
+  String get schoolWebImportWarnings => '匯入提示';
+
+  @override
+  String get schoolWebImportOpenPageHint => '請在應用內登入學校網站，並手動切換到課表頁。';
+
+  @override
+  String get schoolWebImportConfigMissing => '尚未設定網頁匯入後端介面地址。';
+
+  @override
+  String get schoolWebImportUnsupportedPlatform =>
+      '當前平台暫不支援內嵌網頁登入，請在支援 WebView 的平台上使用。';
+
+  @override
+  String get schoolWebImportSelectSchool => '選擇學校';
+
+  @override
+  String get schoolWebImportNoSchools => '當前沒有可用學校設定，請先檢查 school_sites.json。';
+
+  @override
+  String get schoolWebImportSchoolLoadFailed => '學校設定載入失敗，請檢查 JSON 檔案格式。';
+
+  @override
+  String get schoolWebImportImportCurrentPage => '匯入目前頁面';
+
+  @override
+  String get schoolWebImportGoBack => '上一頁';
+
+  @override
+  String get schoolWebImportLoadingPage => '頁面載入中…';
+
+  @override
+  String get schoolWebImportParsing => '正在解析目前頁面…';
+
+  @override
+  String get schoolWebImportLoadFailed => '頁面載入失敗，請重新整理後重試。';
+
+  @override
+  String get schoolWebImportLoadTimedOut => '頁面載入逾時，請重新整理後重試。';
+
+  @override
+  String get schoolWebImportEmptyPage => '當前頁面內容為空，暫時無法匯入。';
+
+  @override
+  String get schoolWebImportSuccess => '網頁課表已匯入';
+
+  @override
+  String get schoolImportParserSettingsTitle => '課表解析設定';
+
+  @override
+  String get schoolImportParserSettingsDesc => '選擇官方解析，或改用自訂 OpenAI 相容介面。';
+
+  @override
+  String get schoolImportParserSourceTitle => '解析來源';
+
+  @override
+  String get schoolImportParserSourceOfficial => '官方解析';
+
+  @override
+  String get schoolImportParserSourceOfficialDesc => '使用應用內設定的官方解析服務。';
+
+  @override
+  String get schoolImportParserSourceOfficialInfo =>
+      '官方解析會繼續使用應用當前設定的解析後端，並保持現有匯入流程不變。';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAi => '自訂 OpenAI 相容介面';
+
+  @override
+  String get schoolImportParserSourceCustomOpenAiDesc =>
+      '把頁面內容直接發送到你自己的 OpenAI 相容端點。';
+
+  @override
+  String get schoolImportParserCustomOpenAi => '自訂 OpenAI 相容解析';
+
+  @override
+  String get schoolImportParserCustomPromptTitle => '自訂提示詞';
+
+  @override
+  String get schoolImportParserCustomPromptDescription =>
+      '可直接在這裡修改內建解析提示詞，且僅對自訂 OpenAI 相容介面生效。';
+
+  @override
+  String get schoolImportParserCustomPromptHint => '這裡預設會載入內建提示詞；清空後會回退為內建版本。';
+
+  @override
+  String get schoolImportParserResetDefaultPrompt => '重設預設提示詞';
+
+  @override
+  String get schoolImportParserBaseUrl => 'Base URL';
+
+  @override
+  String get schoolImportParserApiKey => 'API 金鑰';
+
+  @override
+  String get schoolImportParserModel => '模型名稱';
+
+  @override
+  String get schoolImportParserFetchModels => '取得模型清單';
+
+  @override
+  String get schoolImportParserFetchingModels => '正在取得模型清單...';
+
+  @override
+  String get schoolImportParserNoModelsFound => '該端點沒有回傳任何模型。';
+
+  @override
+  String schoolImportParserModelsFetched(int count) {
+    return '已取得 $count 個模型';
+  }
+
+  @override
+  String get schoolImportParserPlaintextWarning =>
+      '目前實作下，自訂 API 金鑰會以明文形式儲存在應用本機設定中。請僅在你信任的裝置或瀏覽器環境中使用。';
+
+  @override
+  String get schoolImportParserCustomConfigIncomplete =>
+      '自訂解析設定不完整，請先填寫 Base URL、API 金鑰和模型名稱。';
+
+  @override
+  String get schoolImportParserCurrentSourceOfficial => '解析器：官方';
+
+  @override
+  String schoolImportParserCurrentSourceCustom(Object model) {
+    return '解析器：自訂（$model）';
+  }
+
+  @override
+  String get privacyViewFullPolicy => '查看完整隱私政策';
+
+  @override
+  String get privacyAgreeAndContinue => '同意並繼續';
+
+  @override
+  String get privacyDecline => '不同意';
+
+  @override
+  String get privacyDeclineWebHint => '目前瀏覽器環境無法由應用主動關閉頁面。若你不同意，請直接關閉此分頁或視窗。';
+
+  @override
+  String get defaultPeriodTimeSetName => '預設節次';
+
+  @override
+  String get periodTimeSetFallbackName => '節次時間';
+
+  @override
+  String get untitledTimetableName => '未命名課表';
+
+  @override
+  String get newTimetableName => '新課表';
+
+  @override
+  String get newPeriodTimeSetName => '新節次時間';
+
+  @override
+  String get emptyTimetableName => '空課表';
+
+  @override
+  String importedPeriodTimeSetName(Object name) {
+    return '$name 節次';
+  }
+
+  @override
+  String get importFileTypeMismatchMessage => '匯入檔案類型不匹配';
+
+  @override
+  String get importFileVersionUnsupportedMessage => '匯入檔案版本暫不支援';
+
+  @override
+  String get noPeriodTimesInImportMessage => '匯入檔案中沒有節次時間';
+
+  @override
+  String get selectAtLeastOneTimetableMessage => '請選擇至少一個課表';
+
+  @override
+  String get noExportableTimetableMessage => '當前沒有可匯出的課表';
+
+  @override
+  String get replaceActiveRequiresSingleTimetableMessage => '覆蓋當前課表時只能選擇一個課表';
+
+  @override
+  String get noActiveTimetableToReplaceMessage => '當前沒有可覆蓋的課表';
+
+  @override
+  String periodTimeSetInUseMessage(int count) {
+    return '該節次時間仍被 $count 個課表使用，請先改關聯再刪除';
+  }
+
+  @override
+  String get weekdayMonday => '星期一';
+
+  @override
+  String get weekdayTuesday => '星期二';
+
+  @override
+  String get weekdayWednesday => '星期三';
+
+  @override
+  String get weekdayThursday => '星期四';
+
+  @override
+  String get weekdayFriday => '星期五';
+
+  @override
+  String get weekdaySaturday => '星期六';
+
+  @override
+  String get weekdaySunday => '星期日';
+
+  @override
+  String get weekdayShortMonday => '一';
+
+  @override
+  String get weekdayShortTuesday => '二';
+
+  @override
+  String get weekdayShortWednesday => '三';
+
+  @override
+  String get weekdayShortThursday => '四';
+
+  @override
+  String get weekdayShortFriday => '五';
+
+  @override
+  String get weekdayShortSaturday => '六';
+
+  @override
+  String get weekdayShortSunday => '日';
+
+  @override
+  String get monthJanuary => '1月';
+
+  @override
+  String get monthFebruary => '2月';
+
+  @override
+  String get monthMarch => '3月';
+
+  @override
+  String get monthApril => '4月';
+
+  @override
+  String get monthMay => '5月';
+
+  @override
+  String get monthJune => '6月';
+
+  @override
+  String get monthJuly => '7月';
+
+  @override
+  String get monthAugust => '8月';
+
+  @override
+  String get monthSeptember => '9月';
+
+  @override
+  String get monthOctober => '10月';
+
+  @override
+  String get monthNovember => '11月';
+
+  @override
+  String get monthDecember => '12月';
+
+  @override
+  String get semesterWeeksWholeTerm => '全學期';
+
+  @override
+  String semesterWeeksRange(Object start, Object end) {
+    return '第 $start-$end 週';
+  }
+
+  @override
+  String semesterWeeksList(Object value) {
+    return '第 $value 週';
+  }
+}

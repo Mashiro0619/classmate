@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_locale.dart' as app_locale;
 import '../l10n/app_localizations.dart';
 import '../models/timetable_models.dart'
     show
@@ -118,14 +119,14 @@ class CourseDetailsSheet extends StatelessWidget {
                     label: l10n.dayOfWeek,
                     value: formatDayOfWeekLabel(
                       course.dayOfWeek,
-                      localeCode: Localizations.localeOf(context).languageCode,
+                      localeCode: app_locale.localeCodeFromLocale(Localizations.localeOf(context)),
                     ),
                   ),
                   _DetailRow(
                     label: l10n.semesterWeeks,
                     value: formatSemesterWeeksLabel(
                       course.semesterWeeks,
-                      localeCode: Localizations.localeOf(context).languageCode,
+                      localeCode: app_locale.localeCodeFromLocale(Localizations.localeOf(context)),
                     ),
                   ),
                   _DetailRow(
