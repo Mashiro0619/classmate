@@ -337,7 +337,7 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
 
   Future<void> _importJson() async {
     final l10n = AppLocalizations.of(context);
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
       withData: true,

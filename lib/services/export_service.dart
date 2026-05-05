@@ -64,7 +64,7 @@ class ExportService {
 
     if (isAndroid) {
       try {
-        final path = await FilePicker.platform.saveFile(
+        final path = await FilePicker.saveFile(
           fileName: payload.fileName,
           type: FileType.custom,
           allowedExtensions: const ['json'],

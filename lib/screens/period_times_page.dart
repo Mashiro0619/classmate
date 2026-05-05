@@ -318,7 +318,7 @@ class _PeriodTimesPageState extends State<PeriodTimesPage> {
   Future<void> _importTemplate() async {
     final provider = context.read<TimetableProvider>();
     final l10n = AppLocalizations.of(context);
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
       withData: true,
