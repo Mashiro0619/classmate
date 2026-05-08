@@ -1,6 +1,6 @@
 {
-    "name": "classmate",
-    "short_name": "classmate",
+    "name": "KeSchedule",
+    "short_name": "KeSchedule",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

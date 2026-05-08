@@ -35,9 +35,9 @@ enum _UpdateAction { github, website, googlePlay, quark, ignore, cancel }
 class AppUpdateCoordinator {
   static const _updateService = UpdateService();
   static const _googlePlayDeepLink =
-      'market://details?id=com.mashiro.classmate';
+      'market://details?id=com.mashiro.KeSchedule';
   static const _googlePlayUrl =
-      'https://play.google.com/store/apps/details?id=com.mashiro.classmate';
+      'https://play.google.com/store/apps/details?id=com.mashiro.KeSchedule';
   static const _quarkPanUrl = 'https://pan.quark.cn/s/420966ed21ec';
 
   static Future<void> checkForUpdates(
@@ -239,7 +239,7 @@ class AppUpdateCoordinator {
       case _UpdateAction.website:
         await _openExternalPage(
           context,
-          websiteUrl ?? 'https://mashiro.tech/classmate',
+          websiteUrl ?? 'https://mashiro.tech/KeSchedule',
         );
         return;
       case _UpdateAction.googlePlay:
@@ -541,12 +541,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _openPrivacyPolicyPage() async {
-    final uri = Uri.parse('https://mashiro.tech/classmate/privacy.html');
+    final uri = Uri.parse('https://mashiro.tech/KeSchedule/privacy.html');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _openLicensesPage() {
-    showLicensePage(context: context, applicationName: 'Classmate');
+    showLicensePage(context: context, applicationName: 'KeSchedule');
   }
 
   String _buildUpdateSubtitle(
@@ -628,7 +628,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _openGithubRepo() async {
-    final uri = Uri.parse('https://github.com/Mashiro0619/classmate');
+    final uri = Uri.parse('https://github.com/Mashiro0619/KeSchedule');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
       _showMessage(AppLocalizations.of(context).openGithubFailed);
@@ -812,7 +812,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     try {
       final content = provider.exportSelectedTimetablesJson(selectedIds);
-      const fileName = 'classmate_timetables.json';
+      const fileName = 'KeSchedule_timetables.json';
       if (share) {
         await _shareJson(fileName, content);
       } else {

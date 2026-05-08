@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appTitle => 'Classmate';
+  String get appTitle => 'KeSchedule';
 
   @override
   String weekLabel(int week) {
@@ -297,7 +297,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/KeSchedule';
 
   @override
   String get apiResponseTitle => 'Ответ API';
@@ -709,14 +709,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privacyPolicyIntro =>
-      'Classmate — это локально-ориентированный инструмент для расписаний. Расписания, наборы времени пар и конфигурация школьных сайтов хранятся только на вашем устройстве или в браузере и никогда не загружаются автоматически. Приложение обрабатывает данные только тогда, когда вы явно запускаете такие действия, как импорт, разбор веб-страниц, общий доступ или открытие внешних ссылок. Полная политика конфиденциальности доступна онлайн.';
+      'KeSchedule — это локально-ориентированный инструмент для расписаний. Расписания, наборы времени пар и конфигурация школьных сайтов хранятся только на вашем устройстве или в браузере и никогда не загружаются автоматически. Приложение обрабатывает данные только тогда, когда вы явно запускаете такие действия, как импорт, разбор веб-страниц, общий доступ или открытие внешних ссылок. Полная политика конфиденциальности доступна онлайн.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Локальное хранилище';
 
   @override
   String get privacyPolicyLocalStorageBody =>
-      'Данные расписания и связанные настройки хранятся в локальном файле classmate_data.json в каталоге документов приложения. Редактируемая конфигурация школьных сайтов хранится отдельно в classmate_school_sites.json. Пользовательские настройки парсера расписания, включая Base URL, API key и выбранную модель, также хранятся локально в тех же данных приложения и не защищены системным хранилищем учётных данных. При использовании в браузере данные того же типа сохраняются в хранилище браузера. Приложение не загружает эти локальные данные автоматически на сервер, контролируемый разработчиком.';
+      'Данные расписания и связанные настройки хранятся в локальном файле KeSchedule_data.json в каталоге документов приложения. Редактируемая конфигурация школьных сайтов хранится отдельно в KeSchedule_school_sites.json. Пользовательские настройки парсера расписания, включая Base URL, API key и выбранную модель, также хранятся локально в тех же данных приложения и не защищены системным хранилищем учётных данных. При использовании в браузере данные того же типа сохраняются в хранилище браузера. Приложение не загружает эти локальные данные автоматически на сервер, контролируемый разработчиком.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Импорт и экспорт';
@@ -744,7 +744,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privacyPolicyNoCollectionBody =>
-      'Приложению не требуется учётная запись Classmate, и в нём не используются аналитика, рекламные идентификаторы или облачное резервное копирование. Также в нём нет отдельного поля для сбора паролей от школьных учётных записей. Если вы входите на школьный сайт внутри приложения, это взаимодействие происходит на открытой вами школьной странице.';
+      'Приложению не требуется учётная запись KeSchedule, и в нём не используются аналитика, рекламные идентификаторы или облачное резервное копирование. Также в нём нет отдельного поля для сбора паролей от школьных учётных записей. Если вы входите на школьный сайт внутри приложения, это взаимодействие происходит на открытой вами школьной странице.';
 
   @override
   String get privacyPolicyFutureFeatureTitle => 'Разбор веб-страниц';
@@ -838,7 +838,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Сначала заполните название учебного заведения и URL входа.';
 
   @override
-  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+  String get schoolSitesJsonFileName => 'KeSchedule_school_sites.json';
 
   @override
   String get schoolHtmlImportEntry =>

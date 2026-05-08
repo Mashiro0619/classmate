@@ -80,7 +80,7 @@ class MemoryTimetableStorage implements TimetableStorage {
   }
 
   @override
-  Future<String?> filePath() async => 'memory://classmate-test';
+  Future<String?> filePath() async => 'memory://KeSchedule-test';
 }
 
 class FakeSuccessUpdateService extends UpdateService {
@@ -346,7 +346,7 @@ void main() {
 
     test('provider 会在首次加载时创建 JSON 文件并可再次读取', () async {
       final tempRoot = Directory.systemTemp.path;
-      final file = File('$tempRoot/classmate_provider_test.json');
+      final file = File('$tempRoot/KeSchedule_provider_test.json');
       if (await file.exists()) {
         await file.delete();
       }
@@ -408,8 +408,8 @@ void main() {
 
     test('中文系主源格式错误时会回退到 GitHub', () async {
       PackageInfo.setMockInitialValues(
-        appName: 'Classmate',
-        packageName: 'com.mashiro.classmate',
+        appName: 'KeSchedule',
+        packageName: 'com.mashiro.KeSchedule',
         version: '1.0.0',
         buildNumber: '1',
         buildSignature: '',
@@ -423,7 +423,7 @@ void main() {
             return http.Response(
               jsonEncode({
                 'tag_name': 'v1.2.0',
-                'html_url': 'https://github.com/Mashiro0619/classmate/releases/tag/v1.2.0',
+                'html_url': 'https://github.com/Mashiro0619/KeSchedule/releases/tag/v1.2.0',
                 'body': 'notes',
               }),
               200,
@@ -443,8 +443,8 @@ void main() {
 
     test('非中文系主源格式错误时会回退到配置接口', () async {
       PackageInfo.setMockInitialValues(
-        appName: 'Classmate',
-        packageName: 'com.mashiro.classmate',
+        appName: 'KeSchedule',
+        packageName: 'com.mashiro.KeSchedule',
         version: '1.0.0',
         buildNumber: '1',
         buildSignature: '',
@@ -2797,8 +2797,8 @@ void main() {
           UpdateCheckResult(
             localVersion: '1.0.0',
             remoteVersion: '1.1.0',
-            releaseUrl: 'https://github.com/Mashiro0619/classmate/releases/latest',
-            officialWebsiteUrl: 'https://mashiro.tech/classmate',
+            releaseUrl: 'https://github.com/Mashiro0619/KeSchedule/releases/latest',
+            officialWebsiteUrl: 'https://mashiro.tech/KeSchedule',
             updateContent: '更新说明',
             hasUpdate: true,
           ),

@@ -299,7 +299,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get languageEnglish => 'Magyar';
 
   @override
-  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/KeSchedule';
 
   @override
   String get apiResponseTitle => 'API válasz';
@@ -711,14 +711,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get privacyPolicyIntro =>
-      'A Classmate egy helyi alapú órarend eszköz. Az órarendek, az időtartam-készletek és az iskolahely konfigurációja csak az Ön eszközén vagy böngészőjében tárolódik, és soha nem kerül automatikusan feltöltésre. Az alkalmazás csak akkor dolgoz fel adatokat, amikor kifejezetten olyan műveleteket indít, mint az importálás, a weboldal-elemzés, a megosztás vagy a külső hivatkozások megnyitása. A teljes adatvédelmi szabályzat online érhető el.';
+      'A KeSchedule egy helyi alapú órarend eszköz. Az órarendek, az időtartam-készletek és az iskolahely konfigurációja csak az Ön eszközén vagy böngészőjében tárolódik, és soha nem kerül automatikusan feltöltésre. Az alkalmazás csak akkor dolgoz fel adatokat, amikor kifejezetten olyan műveleteket indít, mint az importálás, a weboldal-elemzés, a megosztás vagy a külső hivatkozások megnyitása. A teljes adatvédelmi szabályzat online érhető el.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Helyi tárolás';
 
   @override
   String get privacyPolicyLocalStorageBody =>
-      'Az ütemtervadatok és a kapcsolódó beállítások egy classmate_data.json nevű helyi fájlban tárolódnak az alkalmazás dokumentumai könyvtárán belül. A szerkeszthető iskola-hely konfigurációja külön tárolható a classmate_school_sites.json-ban. Az egyéni ütemterv-elemző beállításai, beleértve az egyéni Bázis URL-t, API-kulcsot és a kiválasztott modellt, szintén helyileg ugyanazokban az alkalmazás adataiban tárolódnak, és nem vannak védettek a rendszerhitelesítő szekrény által. Ha böngészőben használják, ugyanazokat az adatokat tárolják a böngésző tárolójában. Az alkalmazás nem tölti fel automatikusan ezeket a helyi adatokat a fejlesztő által ellenőrzött kiszolgálóra.';
+      'Az ütemtervadatok és a kapcsolódó beállítások egy KeSchedule_data.json nevű helyi fájlban tárolódnak az alkalmazás dokumentumai könyvtárán belül. A szerkeszthető iskola-hely konfigurációja külön tárolható a KeSchedule_school_sites.json-ban. Az egyéni ütemterv-elemző beállításai, beleértve az egyéni Bázis URL-t, API-kulcsot és a kiválasztott modellt, szintén helyileg ugyanazokban az alkalmazás adataiban tárolódnak, és nem vannak védettek a rendszerhitelesítő szekrény által. Ha böngészőben használják, ugyanazokat az adatokat tárolják a böngésző tárolójában. Az alkalmazás nem tölti fel automatikusan ezeket a helyi adatokat a fejlesztő által ellenőrzött kiszolgálóra.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Import és export';
@@ -747,7 +747,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get privacyPolicyNoCollectionBody =>
-      'Az alkalmazáshoz nincs szükség Classmate fiókra, és nem engedélyezi az elemzést, a hirdetési azonosítókat vagy a felhő biztonsági mentését. Nem biztosít külön mezőt az iskola fiókjának jelszavai gyűjtésére. Ha bejelentkezik egy iskolai weboldalra az alkalmazáson belül, az interakció az Ön által megnyitott iskolai oldalon történik.';
+      'Az alkalmazáshoz nincs szükség KeSchedule fiókra, és nem engedélyezi az elemzést, a hirdetési azonosítókat vagy a felhő biztonsági mentését. Nem biztosít külön mezőt az iskola fiókjának jelszavai gyűjtésére. Ha bejelentkezik egy iskolai weboldalra az alkalmazáson belül, az interakció az Ön által megnyitott iskolai oldalon történik.';
 
   @override
   String get privacyPolicyFutureFeatureTitle => 'Weboldal elemzése';
@@ -840,7 +840,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Töltse ki először az iskola nevét és a bejelentkezési URL-t.';
 
   @override
-  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+  String get schoolSitesJsonFileName => 'KeSchedule_school_sites.json';
 
   @override
   String get schoolHtmlImportEntry =>

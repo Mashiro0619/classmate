@@ -295,7 +295,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get languageEnglish => 'englanninkielinen';
 
   @override
-  String get githubRepositoryUrl => 'github.com/Mashiro0619/classmate';
+  String get githubRepositoryUrl => 'github.com/Mashiro0619/KeSchedule';
 
   @override
   String get apiResponseTitle => 'API-vastaus';
@@ -704,14 +704,14 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get privacyPolicyIntro =>
-      'Classmate on paikalliskäyttöön keskittyvä lukujärjestystyökalu. Lukujärjestykset, ajanjaksot ja koulusivuston asetukset tallennetaan vain laitteellesi tai selaimeesi, eikä niitä koskaan ladata automaattisesti. Sovellus käsittelee tietoja vain, kun käynnistät nimenomaisesti toimintoja kuten tuonnin, verkkosivujen analysoinnin, jakamisen tai ulkoisten linkkien avaamisen. Täydellinen tietosuojakäytäntö on saatavilla verkossa.';
+      'KeSchedule on paikalliskäyttöön keskittyvä lukujärjestystyökalu. Lukujärjestykset, ajanjaksot ja koulusivuston asetukset tallennetaan vain laitteellesi tai selaimeesi, eikä niitä koskaan ladata automaattisesti. Sovellus käsittelee tietoja vain, kun käynnistät nimenomaisesti toimintoja kuten tuonnin, verkkosivujen analysoinnin, jakamisen tai ulkoisten linkkien avaamisen. Täydellinen tietosuojakäytäntö on saatavilla verkossa.';
 
   @override
   String get privacyPolicyLocalStorageTitle => 'Paikallinen varastointi';
 
   @override
   String get privacyPolicyLocalStorageBody =>
-      'Aikataulutiedot ja niihin liittyvät asetukset tallennetaan paikalliseen tiedostoon nimeltä classmate_data.json sovelluksen asiakirjat hakemiston sisällä. Muokkattava koulusivuston kokoonpano tallennetaan erikseen classmate_school_sites.jsoniin. Mukautetut aikataulun analysoijan asetukset, mukaan lukien kaikki mukautetut Base URL:t, API-avaimet ja valittu malli, tallennetaan myös paikallisesti samoihin sovelluksen tietoihin eikä niitä suojaa järjestelmän tunnistustietojen holvi. Kun sitä käytetään selaimessa, samat tiedot tallennetaan selaimen tallennukseen. Sovellus ei lataa näitä paikallisia tietoja automaattisesti kehittäjän hallitsemaan palvelimeen.';
+      'Aikataulutiedot ja niihin liittyvät asetukset tallennetaan paikalliseen tiedostoon nimeltä KeSchedule_data.json sovelluksen asiakirjat hakemiston sisällä. Muokkattava koulusivuston kokoonpano tallennetaan erikseen KeSchedule_school_sites.jsoniin. Mukautetut aikataulun analysoijan asetukset, mukaan lukien kaikki mukautetut Base URL:t, API-avaimet ja valittu malli, tallennetaan myös paikallisesti samoihin sovelluksen tietoihin eikä niitä suojaa järjestelmän tunnistustietojen holvi. Kun sitä käytetään selaimessa, samat tiedot tallennetaan selaimen tallennukseen. Sovellus ei lataa näitä paikallisia tietoja automaattisesti kehittäjän hallitsemaan palvelimeen.';
 
   @override
   String get privacyPolicyImportExportTitle => 'Tuonti ja vienti';
@@ -739,7 +739,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get privacyPolicyNoCollectionBody =>
-      'Sovellus ei vaadi Classmate-tiliä eikä salli analyysiä, mainontunnisteita tai pilvivarmuuskopiointia. Se ei myöskään tarjoa erityistä kenttää koulutilien salasanojen keräämiseen. Jos kirjaudut koulun verkkosivustoon sovelluksen sisällä, tämä vuorovaikutus tapahtuu avaamallasi koulusivulla.';
+      'Sovellus ei vaadi KeSchedule-tiliä eikä salli analyysiä, mainontunnisteita tai pilvivarmuuskopiointia. Se ei myöskään tarjoa erityistä kenttää koulutilien salasanojen keräämiseen. Jos kirjaudut koulun verkkosivustoon sovelluksen sisällä, tämä vuorovaikutus tapahtuu avaamallasi koulusivulla.';
 
   @override
   String get privacyPolicyFutureFeatureTitle => 'Verkkosivujen analysointi';
@@ -832,7 +832,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Täytä ensin koulun nimi ja kirjautumisosoite.';
 
   @override
-  String get schoolSitesJsonFileName => 'classmate_school_sites.json';
+  String get schoolSitesJsonFileName => 'KeSchedule_school_sites.json';
 
   @override
   String get schoolHtmlImportEntry =>

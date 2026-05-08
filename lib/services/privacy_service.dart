@@ -11,7 +11,7 @@ class PrivacyService {
       final client = _client ?? http.Client();
       final ownsClient = _client == null;
       try {
-        final uri = Uri.parse('https://mashiro.tech/classmate/privacy.html');
+        final uri = Uri.parse('https://mashiro.tech/KeSchedule/privacy.html');
         final response = await client.get(uri).timeout(
           const Duration(seconds: 10),
         );

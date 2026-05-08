@@ -28,6 +28,6 @@ const maxLiveCourseOutlineWidth = 4.0;
 const maxTimetableWeeks = 100;
 
 const importExportVersion = 2;
-const appDataSchema = 'classmate-app-data';
-const timetableDataSchema = 'classmate-timetable-data';
-const periodTimesSchema = 'classmate-period-times';
+const appDataSchema = 'KeSchedule-app-data';
+const timetableDataSchema = 'KeSchedule-timetable-data';
+const periodTimesSchema = 'KeSchedule-period-times';

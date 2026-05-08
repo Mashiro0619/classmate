@@ -1,6 +1,6 @@
 <div align="center">
 
-# Classmate
+# KeSchedule
 ### 一个基于 Flutter 的课程表应用
 
 <a href="README_EN.md">English</a>
@@ -8,9 +8,9 @@
 简体中文
 </p>
 
-[![GitHub release](https://img.shields.io/github/v/release/Mashiro0619/classmate?color=black&label=Stable&logo=github)](https://github.com/Mashiro0619/classmate/releases/latest/)
-[![GitHub all releases](https://img.shields.io/github/downloads/Mashiro0619/classmate/total?label=Downloads&logo=github)](https://github.com/Mashiro0619/classmate/releases/)
-[![GitHub Repo stars](https://img.shields.io/github/stars/Mashiro0619/classmate?color=informational&label=Stars)](https://github.com/Mashiro0619/classmate/stargazers)
+[![GitHub release](https://img.shields.io/github/v/release/Mashiro0619/KeSchedule?color=black&label=Stable&logo=github)](https://github.com/Mashiro0619/KeSchedule/releases/latest/)
+[![GitHub all releases](https://img.shields.io/github/downloads/Mashiro0619/KeSchedule/total?label=Downloads&logo=github)](https://github.com/Mashiro0619/KeSchedule/releases/)
+[![GitHub Repo stars](https://img.shields.io/github/stars/Mashiro0619/KeSchedule?color=informational&label=Stars)](https://github.com/Mashiro0619/KeSchedule/stargazers)
 [![Flutter](https://img.shields.io/badge/Flutter-App-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-A42E2B?logo=gnu)](LICENSE)
 
@@ -18,11 +18,11 @@
 
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.mashiro.classmate">
+  <a href="https://play.google.com/store/apps/details?id=com.mashiro.KeSchedule">
     <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="100">
   </a>
   <br>
-  <a href="https://github.com/Mashiro0619/classmate/releases">
+  <a href="https://github.com/Mashiro0619/KeSchedule/releases">
     <img src="https://img.shields.io/badge/Get%20it%20on-GitHub%20Releases-blue?style=for-the-badge&logo=github" alt="Get it on GitHub Releases" height="28">
   </a>
 </p>
@@ -81,7 +81,7 @@ web/
 课表、课表设置、节次时间集和学校站点配置保存在设备或浏览器本地，不会自动上传到开发者服务器。
 只有在你主动使用导入、导出、分享、外部链接、更新检查或网页解析等功能时，应用才会读取相关内容或把对应操作交给系统或你配置的解析接口处理。
 
-首次进入应用时会显示隐私政策确认；隐私政策全文可在 [https://mashiro.tech/classmate/privacy.html](https://mashiro.tech/classmate/privacy.html) 查看。
+首次进入应用时会显示隐私政策确认；隐私政策全文可在 [https://mashiro.tech/KeSchedule/privacy.html](https://mashiro.tech/KeSchedule/privacy.html) 查看。
 
 
 ## 学校网页导入后端
@@ -89,7 +89,7 @@ web/
 项目提供了一个可自部署的 PHP 中转接口：[web/api.php](web/api.php)。应用默认会从 [lib/config/app_config.dart](lib/config/app_config.dart) 读取学校网页导入接口地址和更新源地址，也可以通过 `--dart-define` 覆盖。
 
 - `SCHOOL_IMPORT_API_BASE_URL`：学校网页 / HTML 导入接口地址
-- `CLASSMATE_UPDATE_VERSION_URL`：自定义更新信息地址
+- `KeSchedule_UPDATE_VERSION_URL`：自定义更新信息地址
 
 ### 后端配置
 

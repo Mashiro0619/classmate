@@ -150,7 +150,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Classmate'**
+  /// **'KeSchedule'**
   String get appTitle;
 
   /// No description provided for @weekLabel.
@@ -672,7 +672,7 @@ abstract class AppLocalizations {
   /// No description provided for @githubRepositoryUrl.
   ///
   /// In en, this message translates to:
-  /// **'github.com/Mashiro0619/classmate'**
+  /// **'github.com/Mashiro0619/KeSchedule'**
   String get githubRepositoryUrl;
 
   /// No description provided for @apiResponseTitle.
@@ -1398,7 +1398,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyIntro.
   ///
   /// In en, this message translates to:
-  /// **'Classmate is a local-first timetable tool. Timetables, period-time sets, and school-site configuration are stored only on your device or in your browser, and are never automatically uploaded. The app only processes data when you explicitly trigger actions such as import, webpage parsing, sharing, or opening external links. The full privacy policy is available online.'**
+  /// **'KeSchedule is a local-first timetable tool. Timetables, period-time sets, and school-site configuration are stored only on your device or in your browser, and are never automatically uploaded. The app only processes data when you explicitly trigger actions such as import, webpage parsing, sharing, or opening external links. The full privacy policy is available online.'**
   String get privacyPolicyIntro;
 
   /// No description provided for @privacyPolicyLocalStorageTitle.
@@ -1410,7 +1410,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyLocalStorageBody.
   ///
   /// In en, this message translates to:
-  /// **'Timetable data and related settings are stored in a local file named classmate_data.json inside the app documents directory. Editable school-site configuration is stored separately in classmate_school_sites.json. Custom timetable parser settings, including any custom Base URL, API key, and selected model, are also stored locally in the same app data and are not protected by a system credential vault. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.'**
+  /// **'Timetable data and related settings are stored in a local file named KeSchedule_data.json inside the app documents directory. Editable school-site configuration is stored separately in KeSchedule_school_sites.json. Custom timetable parser settings, including any custom Base URL, API key, and selected model, are also stored locally in the same app data and are not protected by a system credential vault. When used in a browser, the same kinds of data are stored in browser storage. The app does not automatically upload this local data to a developer-controlled server.'**
   String get privacyPolicyLocalStorageBody;
 
   /// No description provided for @privacyPolicyImportExportTitle.
@@ -1458,7 +1458,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyNoCollectionBody.
   ///
   /// In en, this message translates to:
-  /// **'The app does not require a Classmate account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.'**
+  /// **'The app does not require a KeSchedule account and does not enable analytics, advertising identifiers, or cloud backup. It also does not provide a dedicated field for collecting school account passwords. If you sign in to a school website inside the app, that interaction happens on the school page you opened.'**
   String get privacyPolicyNoCollectionBody;
 
   /// No description provided for @privacyPolicyFutureFeatureTitle.
@@ -1620,7 +1620,7 @@ abstract class AppLocalizations {
   /// No description provided for @schoolSitesJsonFileName.
   ///
   /// In en, this message translates to:
-  /// **'classmate_school_sites.json'**
+  /// **'KeSchedule_school_sites.json'**
   String get schoolSitesJsonFileName;
 
   /// No description provided for @schoolHtmlImportEntry.

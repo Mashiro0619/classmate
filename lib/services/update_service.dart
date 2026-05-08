@@ -45,9 +45,9 @@ class UpdateService {
   const UpdateService({http.Client? client}) : _client = client;
 
   static const _githubLatestApi =
-      'https://api.github.com/repos/Mashiro0619/classmate/releases/latest';
+      'https://api.github.com/repos/Mashiro0619/KeSchedule/releases/latest';
   static const latestReleaseUrl =
-      'https://github.com/Mashiro0619/classmate/releases/latest';
+      'https://github.com/Mashiro0619/KeSchedule/releases/latest';
 
   final http.Client? _client;
 
