@@ -112,7 +112,7 @@ class TimetableGrid extends StatelessWidget {
       preserveGaps: preserveGaps,
     );
     final colors = Theme.of(context).colorScheme;
-    final dayLayoutsByWeekday = <int, List<_CourseLayout>>{
+    final dayLayoutsByWeekday = <int, List<CourseLayout>>{
       for (var weekday = 1; weekday <= 7; weekday++)
         weekday: _buildDayLayouts(
           timetable: timetable,
@@ -132,7 +132,7 @@ class TimetableGrid extends StatelessWidget {
         ? colorfulCourseTextColorMode == colorfulCourseTextColorModeCustom &&
                   colorfulCourseTextColorValue != null
               ? Color(colorfulCourseTextColorValue!)
-              : _resolveSharedColorfulTextColor(
+              : resolveSharedColorfulTextColor(
                   layouts: dayLayoutsByWeekday.values.expand((items) => items),
                   courseNameColorValues: courseNameColorValues,
                   surfaceColor: colors.surface,
@@ -591,7 +591,7 @@ class _TimetableVerticalLayout {
   }
 }
 
-enum _CourseDisplayState { active, futureInactive, pastEnded }
+enum CourseDisplayState { active, futureInactive, pastEnded }
 
 class _CourseCard extends StatelessWidget {
   const _CourseCard({
@@ -607,7 +607,7 @@ class _CourseCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final _CourseLayout layout;
+  final CourseLayout layout;
   final _TimetableVerticalLayout verticalLayout;
   final _TimetableMetrics metrics;
   final String themeColorMode;
@@ -619,9 +619,9 @@ class _CourseCard extends StatelessWidget {
   final VoidCallback onTap;
 
   bool get _isInactiveForCurrentWeek =>
-      layout.displayState != _CourseDisplayState.active;
+      layout.displayState != CourseDisplayState.active;
 
-  bool get _isPastEnded => layout.displayState == _CourseDisplayState.pastEnded;
+  bool get _isPastEnded => layout.displayState == CourseDisplayState.pastEnded;
 
   @override
   Widget build(BuildContext context) {
@@ -662,9 +662,9 @@ class _CourseCard extends StatelessWidget {
         : Color.lerp(colorScheme.surface, colorScheme.surfaceContainerHighest, 0.72) ??
               colorScheme.surfaceContainerHighest;
     final baseColor = switch (layout.displayState) {
-      _CourseDisplayState.active => activeBaseColor,
-      _CourseDisplayState.futureInactive => futureInactiveColor,
-      _CourseDisplayState.pastEnded => pastEndedColor,
+      CourseDisplayState.active => activeBaseColor,
+      CourseDisplayState.futureInactive => futureInactiveColor,
+      CourseDisplayState.pastEnded => pastEndedColor,
     };
     final color = baseColor.withValues(
       alpha: _isInactiveForCurrentWeek
@@ -806,8 +806,8 @@ class _CourseCard extends StatelessWidget {
   }
 }
 
-class _CourseLayout {
-  const _CourseLayout({
+class CourseLayout {
+  const CourseLayout({
     required this.course,
     required this.priorityDepth,
     required this.isFullConflict,
@@ -823,21 +823,21 @@ class _CourseLayout {
   final int priorityDepth;
   final bool isFullConflict;
   final List<CourseItem> conflictCourses;
-  final _CourseDisplayState displayState;
+  final CourseDisplayState displayState;
   final bool isLiveHighlighted;
   final bool isPrimaryLiveTarget;
   final bool liveTargetIsCurrentCourse;
   final String? conflictKey;
 }
 
-class _OverlapGroup {
-  const _OverlapGroup(this.courses);
+class OverlapGroup {
+  const OverlapGroup(this.courses);
 
   final List<CourseItem> courses;
 }
 
-Color _resolveSharedColorfulTextColor({
-  required Iterable<_CourseLayout> layouts,
+Color resolveSharedColorfulTextColor({
+  required Iterable<CourseLayout> layouts,
   required Map<String, int> courseNameColorValues,
   required Color surfaceColor,
   required Color fallbackColor,
@@ -859,15 +859,15 @@ Color _resolveSharedColorfulTextColor({
     final inactiveColor = Color.lerp(activeBaseColor, surfaceColor, 0.74) ??
         surfaceColor;
     final baseColor = switch (layout.displayState) {
-      _CourseDisplayState.active => activeBaseColor,
-      _CourseDisplayState.futureInactive =>
+      CourseDisplayState.active => activeBaseColor,
+      CourseDisplayState.futureInactive =>
         Color.lerp(activeBaseColor, surfaceColor, 0.58) ?? surfaceColor,
-      _CourseDisplayState.pastEnded => inactiveColor,
+      CourseDisplayState.pastEnded => inactiveColor,
     };
     final blendedColor = Color.alphaBlend(
       baseColor.withValues(
-        alpha: layout.displayState != _CourseDisplayState.active
-            ? (layout.displayState == _CourseDisplayState.pastEnded ? 0.92 : 0.96)
+        alpha: layout.displayState != CourseDisplayState.active
+            ? (layout.displayState == CourseDisplayState.pastEnded ? 0.92 : 0.96)
             : layout.isFullConflict
             ? 0.94
             : layout.priorityDepth == 0
@@ -890,7 +890,7 @@ Color _resolveSharedColorfulTextColor({
       fallbackColor;
 }
 
-List<_CourseLayout> _buildDayLayouts({
+List<CourseLayout> _buildDayLayouts({
   required TimetableData timetable,
   required List<CourseItem> courses,
   required int weekday,
@@ -926,8 +926,8 @@ List<_CourseLayout> _buildDayLayouts({
           return a.id.compareTo(b.id);
         });
 
-  final layouts = <_CourseLayout>[];
-  for (final group in _buildOverlapGroups(dayCourses)) {
+  final layouts = <CourseLayout>[];
+  for (final group in buildOverlapGroups(dayCourses)) {
     if (_isFullConflictGroup(group.courses)) {
       final conflictKey = _buildConflictKey(
         timetable.id,
@@ -949,7 +949,7 @@ List<_CourseLayout> _buildDayLayouts({
             showPastEndedCourses: showPastEndedCourses,
             showFutureCourses: showFutureCourses,
           ) ??
-          _CourseDisplayState.active;
+          CourseDisplayState.active;
       final isPrimaryLiveTarget =
           liveCourseOutlineEnabled &&
           liveCourseTarget?.week == selectedWeek &&
@@ -959,7 +959,7 @@ List<_CourseLayout> _buildDayLayouts({
           (liveCourseOutlineMode == liveCourseOutlineModeAllDisplayed ||
               isPrimaryLiveTarget);
       layouts.add(
-        _CourseLayout(
+        CourseLayout(
           course: displayedCourse,
           priorityDepth: 0,
           isFullConflict: true,
@@ -986,7 +986,7 @@ List<_CourseLayout> _buildDayLayouts({
             showPastEndedCourses: showPastEndedCourses,
             showFutureCourses: showFutureCourses,
           ) ??
-          _CourseDisplayState.active;
+          CourseDisplayState.active;
       final isPrimaryLiveTarget =
           liveCourseOutlineEnabled &&
           liveCourseTarget?.week == selectedWeek &&
@@ -996,7 +996,7 @@ List<_CourseLayout> _buildDayLayouts({
           (liveCourseOutlineMode == liveCourseOutlineModeAllDisplayed ||
               isPrimaryLiveTarget);
       layouts.add(
-        _CourseLayout(
+        CourseLayout(
           course: course,
           priorityDepth: index,
           isFullConflict: false,
@@ -1013,7 +1013,7 @@ List<_CourseLayout> _buildDayLayouts({
   return layouts;
 }
 
-_CourseDisplayState? _displayStateForCourse(
+CourseDisplayState? _displayStateForCourse(
   CourseItem course, {
   required int selectedWeek,
   required int realCurrentWeek,
@@ -1021,14 +1021,14 @@ _CourseDisplayState? _displayStateForCourse(
   required bool showFutureCourses,
 }) {
   if (matchesSemesterWeek(course, selectedWeek)) {
-    return _CourseDisplayState.active;
+    return CourseDisplayState.active;
   }
   if (course.semesterWeeks.isEmpty) {
-    return _CourseDisplayState.active;
+    return CourseDisplayState.active;
   }
   final normalizedWeeks = normalizeSemesterWeeks(course.semesterWeeks);
   if (normalizedWeeks.isEmpty) {
-    return _CourseDisplayState.active;
+    return CourseDisplayState.active;
   }
   if (selectedWeek < realCurrentWeek) {
     final nextWeek = normalizedWeeks.firstWhere(
@@ -1036,9 +1036,9 @@ _CourseDisplayState? _displayStateForCourse(
       orElse: () => -1,
     );
     if (nextWeek != -1) {
-      return showFutureCourses ? _CourseDisplayState.futureInactive : null;
+      return showFutureCourses ? CourseDisplayState.futureInactive : null;
     }
-    return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
+    return showPastEndedCourses ? CourseDisplayState.pastEnded : null;
   }
   if (selectedWeek > realCurrentWeek) {
     final lastWeek = normalizedWeeks.lastWhere(
@@ -1046,22 +1046,22 @@ _CourseDisplayState? _displayStateForCourse(
       orElse: () => -1,
     );
     if (lastWeek != -1) {
-      return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
+      return showPastEndedCourses ? CourseDisplayState.pastEnded : null;
     }
-    return showFutureCourses ? _CourseDisplayState.futureInactive : null;
+    return showFutureCourses ? CourseDisplayState.futureInactive : null;
   }
   final hasFutureWeek = normalizedWeeks.any((week) => week > realCurrentWeek);
   if (hasFutureWeek) {
-    return showFutureCourses ? _CourseDisplayState.futureInactive : null;
+    return showFutureCourses ? CourseDisplayState.futureInactive : null;
   }
-  return showPastEndedCourses ? _CourseDisplayState.pastEnded : null;
+  return showPastEndedCourses ? CourseDisplayState.pastEnded : null;
 }
 
-List<_OverlapGroup> _buildOverlapGroups(List<CourseItem> courses) {
+List<OverlapGroup> buildOverlapGroups(List<CourseItem> courses) {
   if (courses.isEmpty) {
     return const [];
   }
-  final groups = <_OverlapGroup>[];
+  final groups = <OverlapGroup>[];
   var currentCourses = <CourseItem>[];
   var currentEnd = -1;
 
@@ -1076,13 +1076,13 @@ List<_OverlapGroup> _buildOverlapGroups(List<CourseItem> courses) {
       currentEnd = math.max(currentEnd, course.endMinutes);
       continue;
     }
-    groups.add(_OverlapGroup(List<CourseItem>.from(currentCourses)));
+    groups.add(OverlapGroup(List<CourseItem>.from(currentCourses)));
     currentCourses = [course];
     currentEnd = course.endMinutes;
   }
 
   if (currentCourses.isNotEmpty) {
-    groups.add(_OverlapGroup(List<CourseItem>.from(currentCourses)));
+    groups.add(OverlapGroup(List<CourseItem>.from(currentCourses)));
   }
   return groups;
 }

@@ -225,7 +225,8 @@ class _SchoolWebImportPageState extends State<SchoolWebImportPage> {
       });
       await _ensureController();
       _scheduleInitialSchoolOpen();
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Failed to load schools for web import: $e\n$st');
       if (!mounted) {
         return;
       }

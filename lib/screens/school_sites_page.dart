@@ -163,7 +163,8 @@ class _SchoolSitesPageState extends State<SchoolSitesPage> {
         _sites = sites;
         _loading = false;
       });
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Failed to load school sites: $e\n$st');
       if (!mounted) {
         return;
       }

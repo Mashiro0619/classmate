@@ -3444,4 +3444,217 @@ void main() {
       expect(darkTheme.colorScheme.tertiary, const Color(0xFF334455));
     });
   });
+
+  group('纯逻辑函数', () {
+    // ── normalizeSemesterWeeks ──
+    test('normalizeSemesterWeeks 空列表保持空', () {
+      expect(normalizeSemesterWeeks([]), isEmpty);
+    });
+
+    test('normalizeSemesterWeeks 去重并排序', () {
+      expect(normalizeSemesterWeeks([3, 1, 3, 2]), [1, 2, 3]);
+    });
+
+    test('normalizeSemesterWeeks 过滤非正数', () {
+      expect(normalizeSemesterWeeks([-1, 0, 1, 2]), [1, 2]);
+    });
+
+    // ── matchesSemesterWeek ──
+    test('matchesSemesterWeek 空周列表匹配任意周', () {
+      final course = CourseItem(
+        id: '1', name: '', teacher: '', location: '',
+        dayOfWeek: 1, semesterWeeks: [], periods: [],
+        startMinutes: 0, endMinutes: 0, timeRange: '',
+        credit: 0, remarks: '', customFields: {},
+      );
+      expect(matchesSemesterWeek(course, 5), isTrue);
+    });
+
+    test('matchesSemesterWeek 精确匹配指定周', () {
+      final course = CourseItem(
+        id: '1', name: '', teacher: '', location: '',
+        dayOfWeek: 1, semesterWeeks: [1, 3, 5], periods: [],
+        startMinutes: 0, endMinutes: 0, timeRange: '',
+        credit: 0, remarks: '', customFields: {},
+      );
+      expect(matchesSemesterWeek(course, 3), isTrue);
+      expect(matchesSemesterWeek(course, 2), isFalse);
+    });
+
+    // ── buildPeriodTimesForCount ──
+    test('buildPeriodTimesForCount count=0 返回至少1个节次', () {
+      final result = buildPeriodTimesForCount(0);
+      expect(result.length, 1);
+      expect(result[0].index, 1);
+    });
+
+    test('buildPeriodTimesForCount 从 source 复制并重新编号', () {
+      final source = [
+        const CoursePeriodTime(index: 5, startMinutes: 600, endMinutes: 645),
+        const CoursePeriodTime(index: 7, startMinutes: 700, endMinutes: 745),
+      ];
+      final result = buildPeriodTimesForCount(2, source: source);
+      expect(result.length, 2);
+      expect(result[0].index, 1);
+      expect(result[0].startMinutes, 600);
+      expect(result[1].index, 2);
+      expect(result[1].startMinutes, 700);
+    });
+
+    test('buildPeriodTimesForCount 超出默认模板长度时自动补齐', () {
+      final result = buildPeriodTimesForCount(15);
+      expect(result.length, 15);
+      expect(result[0].index, 1);
+      expect(result[14].index, 15);
+      expect(result[14].startMinutes, greaterThan(result[13].endMinutes));
+    });
+
+    // ── buildOverlapGroups ──
+    test('buildOverlapGroups 空列表返回空', () {
+      expect(buildOverlapGroups([]), isEmpty);
+    });
+
+    test('buildOverlapGroups 不重叠课程各自成组', () {
+      final courses = [
+        CourseItem(id: '1', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 525,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+        CourseItem(id: '2', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 600, endMinutes: 645,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+      ];
+      final groups = buildOverlapGroups(courses);
+      expect(groups.length, 2);
+      expect(groups[0].courses.length, 1);
+      expect(groups[1].courses.length, 1);
+      expect(groups[0].courses[0].id, '1');
+      expect(groups[1].courses[0].id, '2');
+    });
+
+    test('buildOverlapGroups 时间重叠课程合并成一组', () {
+      final courses = [
+        CourseItem(id: '1', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 570,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+        CourseItem(id: '2', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 540, endMinutes: 630,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+      ];
+      final groups = buildOverlapGroups(courses);
+      expect(groups.length, 1);
+      expect(groups[0].courses.length, 2);
+    });
+
+    // ── isFullConflictGroup ──
+    test('isFullConflictGroup 单个课程不是完全冲突', () {
+      final courses = [
+        CourseItem(id: '1', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 570,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+      ];
+      expect(isFullConflictGroup(courses), isFalse);
+    });
+
+    test('isFullConflictGroup 完全相同时间范围的课程是完全冲突', () {
+      final courses = [
+        CourseItem(id: '1', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 570,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+        CourseItem(id: '2', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 570,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+      ];
+      expect(isFullConflictGroup(courses), isTrue);
+    });
+
+    test('isFullConflictGroup 一个包含另一个时也是完全冲突', () {
+      final courses = [
+        CourseItem(id: '1', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 480, endMinutes: 600,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+        CourseItem(id: '2', name: '', teacher: '', location: '', dayOfWeek: 1,
+          semesterWeeks: [], periods: [], startMinutes: 500, endMinutes: 550,
+          timeRange: '', credit: 0, remarks: '', customFields: {}),
+      ];
+      expect(isFullConflictGroup(courses), isTrue);
+    });
+
+    // ── AppData.fromJson edge cases ──
+    test('AppData.fromJson 空 Map 仍返回有效 AppData', () {
+      final data = AppData.fromJson({});
+      expect(data.timetables, isEmpty);
+      expect(data.periodTimeSets, isEmpty);
+      expect(data.activeTimetableId, '');
+    });
+
+    test('AppData.fromJson 缺失字段不崩溃', () {
+      final data = AppData.fromJson({
+        'timetables': [
+          {
+            'id': 't1',
+            'config': {'name': 'Test', 'totalWeeks': 20},
+            'courses': [],
+          }
+        ],
+      });
+      expect(data.timetables, hasLength(1));
+      expect(data.timetables.first.config.name, 'Test');
+    });
+
+    test('AppData.fromJson 忽略无效的 activeTimetableId', () {
+      final data = AppData.fromJson({
+        'activeTimetableId': 'nonexistent',
+        'timetables': [
+          {
+            'id': 't1',
+            'config': {'name': 'T1', 'totalWeeks': 10},
+            'courses': [],
+          }
+        ],
+      });
+      expect(data.activeTimetableId, 't1');
+    });
+
+    // ── ImportExportEnvelope roundtrip ──
+    test('ImportExportEnvelope encode/decode roundtrip', () {
+      final original = ImportExportEnvelope(
+        schema: appDataSchema,
+        version: importExportVersion,
+        data: {'key': 'value', 'num': 42},
+      );
+      final encoded = original.encode();
+      final decoded = ImportExportEnvelope.decode(encoded);
+      expect(decoded.schema, appDataSchema);
+      expect(decoded.version, importExportVersion);
+      expect(decoded.data['key'], 'value');
+      expect(decoded.data['num'], 42);
+    });
+
+    test('ImportExportEnvelope schema 错误时会抛异常', () {
+      final envelope = ImportExportEnvelope(
+        schema: 'wrong',
+        version: importExportVersion,
+        data: const {},
+      );
+      final source = envelope.encode();
+      // decodePeriodTimesEnvelope 内部调用 _ensureSupportedEnvelope
+      expect(
+        () => decodePeriodTimesEnvelope(source),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('ImportExportEnvelope 版本过高会抛异常', () {
+      final envelope = ImportExportEnvelope(
+        schema: periodTimesSchema,
+        version: 999,
+        data: {'periodTimes': []},
+      );
+      final source = envelope.encode();
+      expect(
+        () => decodePeriodTimesEnvelope(source),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
 }

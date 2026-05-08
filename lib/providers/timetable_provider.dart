@@ -2,12 +2,13 @@ import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import '../data/timetable_storage.dart';
 import '../l10n/app_locale.dart' as app_locale;
 import '../models/school_import_models.dart';
 import '../models/timetable_models.dart';
+import '../services/privacy_service.dart';
+import '../services/settings_service.dart';
 
 const _colorfulCoursePalette = <int>[
   0xFFE57373,
@@ -45,12 +46,18 @@ class TimetableProvider extends ChangeNotifier {
   TimetableProvider({
     TimetableStorage? storage,
     String Function()? systemLocaleCodeResolver,
+    SettingsService? settingsService,
+    PrivacyService? privacyService,
   }) : _storage = storage ?? TimetableStorage(),
        _systemLocaleCodeResolver =
-           systemLocaleCodeResolver ?? _defaultSystemLocaleCodeResolver;
+           systemLocaleCodeResolver ?? _defaultSystemLocaleCodeResolver,
+       _settings = settingsService ?? const SettingsService(),
+       _privacy = privacyService ?? const PrivacyService();
 
   final TimetableStorage _storage;
   final String Function() _systemLocaleCodeResolver;
+  final SettingsService _settings;
+  final PrivacyService _privacy;
 
   AppData _appData = buildInitialAppData(buildDefaultPeriodTimes());
   int _selectedWeek = 1;
@@ -136,25 +143,10 @@ class TimetableProvider extends ChangeNotifier {
   /// On failure (network timeout, parse error, non-200) it silently returns
   /// without changing any state.
   Future<void> fetchRemotePrivacyPolicyVersion() async {
-    try {
-      final uri = Uri.parse('https://mashiro.tech/classmate/privacy.html');
-      final response = await http.get(uri).timeout(
-        const Duration(seconds: 10),
-      );
-      if (response.statusCode != 200) return;
-      final body = response.body;
-      final match = RegExp(
-        r'<meta\s+name="privacy-policy-version"\s+content="([^"]*)"',
-      ).firstMatch(body);
-      if (match == null) return;
-      final version = match.group(1)!.trim();
-      if (version.isEmpty) return;
-      if (_remotePrivacyPolicyVersion == version) return;
-      _remotePrivacyPolicyVersion = version;
-      notifyListeners();
-    } catch (_) {
-      // Network / parse / timeout — silently skip.
-    }
+    final version = await _privacy.fetchCurrentPrivacyPolicyVersion();
+    if (version == null || _remotePrivacyPolicyVersion == version) return;
+    _remotePrivacyPolicyVersion = version;
+    notifyListeners();
   }
 
   TimetableData? get activeTimetableOrNull {
@@ -205,11 +197,13 @@ class TimetableProvider extends ChangeNotifier {
         await _save();
       }
       _storagePath = await _storage.filePath();
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Storage load failed, using defaults: $e\n$st');
       _appData = await _buildDefaultAppData();
       try {
         _storagePath = await _storage.filePath();
-      } catch (_) {
+      } catch (e2, st2) {
+        debugPrint('Storage path unavailable: $e2\n$st2');
         _storagePath = null;
       }
     } finally {
@@ -932,7 +926,8 @@ class TimetableProvider extends ChangeNotifier {
     try {
       final source = await rootBundle.loadString(defaultPeriodTimesAssetPath);
       return importPeriodTimesJson(source);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Failed to load default period times from assets: $e\n$st');
       return buildDefaultPeriodTimes();
     }
   }
@@ -948,10 +943,7 @@ class TimetableProvider extends ChangeNotifier {
   }
 
   Future<void> updateCloseCoursePopupOnOutsideTap(bool value) async {
-    if (_appData.closeCoursePopupOnOutsideTap == value) {
-      return;
-    }
-    _appData = _appData.copyWith(closeCoursePopupOnOutsideTap: value);
+    _appData = _settings.updateCloseCoursePopupOnOutsideTap(_appData, value);
     await _saveAndNotify();
   }
 
@@ -988,37 +980,22 @@ class TimetableProvider extends ChangeNotifier {
   }
 
   Future<void> updateLocaleCode(String localeCode) async {
-    final normalized = app_locale.normalizeLocaleCode(localeCode);
-    if (_appData.localeCode == normalized) {
-      return;
-    }
-    _appData = _appData.copyWith(localeCode: normalized);
+    _appData = _settings.updateLocaleCode(_appData, localeCode);
     await _saveAndNotify();
   }
 
   Future<void> updateThemeMode(String themeMode) async {
-    final normalized = normalizeThemeMode(themeMode);
-    if (_appData.themeMode == normalized) {
-      return;
-    }
-    _appData = _appData.copyWith(themeMode: normalized);
+    _appData = _settings.updateThemeMode(_appData, themeMode);
     await _saveAndNotify();
   }
 
   Future<void> updateThemeSeedColorValue(int colorValue) async {
-    if (_appData.themeSeedColorValue == colorValue) {
-      return;
-    }
-    _appData = _appData.copyWith(themeSeedColorValue: colorValue);
+    _appData = _settings.updateThemeSeedColorValue(_appData, colorValue);
     await _saveAndNotify();
   }
 
   Future<void> updateThemeColorMode(String mode) async {
-    final normalized = normalizeThemeColorMode(mode);
-    if (_appData.themeColorMode == normalized) {
-      return;
-    }
-    _appData = _appData.copyWith(themeColorMode: normalized);
+    _appData = _settings.updateThemeColorMode(_appData, mode);
     await _saveAndNotify();
   }
 

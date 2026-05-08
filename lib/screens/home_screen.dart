@@ -31,9 +31,33 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasStartedPrivacyPolicyFetch = false;
   bool _isShowingPrivacyConsentDialog = false;
   Timer? _liveCourseTimer;
+  TimetableProvider? _lastProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.read<TimetableProvider>();
+    _startPrivacyPolicyFetch(provider);
+    if (_lastProvider != provider) {
+      _lastProvider?.removeListener(_onProviderReady);
+      _lastProvider = provider;
+      provider.addListener(_onProviderReady);
+    }
+    _onProviderReady();
+  }
+
+  void _onProviderReady() {
+    if (!mounted) return;
+    final provider = _lastProvider;
+    if (provider == null || !provider.isLoaded) return;
+    _ensurePrivacyConsentDialog(provider);
+    _scheduleStartupUpdateCheck(provider);
+    _ensureLiveCourseTimer(provider);
+  }
 
   @override
   void dispose() {
+    _lastProvider?.removeListener(_onProviderReady);
     _liveCourseTimer?.cancel();
     _pageController?.dispose();
     super.dispose();
@@ -164,11 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        _startPrivacyPolicyFetch(provider);
-        _ensurePrivacyConsentDialog(provider);
-        _scheduleStartupUpdateCheck(provider);
-        _ensureLiveCourseTimer(provider);
-
         final timetable = provider.activeTimetableOrNull;
         if (timetable == null) {
           return Scaffold(
