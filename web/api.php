@@ -294,9 +294,6 @@ try {
         throw new InvalidArgumentException('Page content is empty after sanitization.');
     }
 
-    $clientIp = get_client_ip();
-    assert_rate_limit($clientIp, $maxParsesPerIpPerDay);
-
     $systemPrompt = <<<'PROMPT'
 You are an expert timetable extraction engine.
 
@@ -386,8 +383,12 @@ PROMPT;
 
     $relayBody = json_encode($relayPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
+    $clientIp = get_client_ip();
+
     // ── Non-streaming path ──
     if (!$stream) {
+        assert_rate_limit($clientIp, $maxParsesPerIpPerDay);
+
         $ch = curl_init($relayUrl);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -453,6 +454,14 @@ PROMPT;
     header('Cache-Control: no-cache');
     header('X-Accel-Buffering: no');
     if (ob_get_level()) { ob_end_flush(); }
+
+    try {
+        assert_rate_limit($clientIp, $maxParsesPerIpPerDay);
+    } catch (Throwable $error) {
+        echo json_encode(['error' => $error->getMessage()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        flush();
+        exit;
+    }
 
     $accumulatedContent = '';
     $lineBuffer = '';

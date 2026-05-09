@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
@@ -21,14 +22,17 @@ class SchoolImportStreamDialog extends StatefulWidget {
 class _SchoolImportStreamDialogState extends State<SchoolImportStreamDialog> {
   final _textBuffer = StringBuffer();
   final _scrollController = ScrollController();
+  late final TextEditingController _editController;
   StreamSubscription<SchoolImportStreamEvent>? _subscription;
   bool _isDone = false;
+  bool _isEditing = false;
   String? _error;
   SchoolImportResponse? _response;
 
   @override
   void initState() {
     super.initState();
+    _editController = TextEditingController();
     _subscription = widget.stream.listen(
       (event) {
         switch (event) {
@@ -60,10 +64,12 @@ class _SchoolImportStreamDialogState extends State<SchoolImportStreamDialog> {
   void dispose() {
     _subscription?.cancel();
     _scrollController.dispose();
+    _editController.dispose();
     super.dispose();
   }
 
   void _scrollToBottom() {
+    if (_isEditing) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -75,30 +81,74 @@ class _SchoolImportStreamDialogState extends State<SchoolImportStreamDialog> {
     });
   }
 
+  void _enterEditMode() {
+    _editController.text = _textBuffer.toString();
+    setState(() => _isEditing = true);
+  }
+
+  void _confirmEdit() {
+    final rawText = _editController.text.trim();
+    if (rawText.isEmpty) {
+      setState(() => _error = '内容不能为空。');
+      return;
+    }
+
+    final Map<String, dynamic> json;
+    try {
+      json = Map<String, dynamic>.from(jsonDecode(rawText) as Map);
+    } catch (e) {
+      setState(() => _error = 'JSON 格式无效: $e');
+      return;
+    }
+
+    try {
+      if (json.containsKey('timetable')) {
+        _response = SchoolImportResponse.fromJson(json);
+      } else if (json.containsKey('name') || json.containsKey('courses')) {
+        _response = SchoolImportApi.buildResponseFromPhpDone(json);
+      } else {
+        setState(() => _error = '无法识别的课表格式。');
+        return;
+      }
+    } catch (e) {
+      setState(() => _error = '解析失败: $e');
+      return;
+    }
+
+    _error = null;
+    Navigator.of(context).pop(_response);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasContent = _textBuffer.isNotEmpty;
 
     return PopScope(
       canPop: false,
       child: AlertDialog(
         title: Row(
           children: [
-            if (!_isDone && _error == null) ...[
+            if (_isEditing) ...[
+              const Icon(Icons.edit, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              const Text('解析课表 - 编辑中'),
+            ] else if (_error != null) ...[
+              const Icon(Icons.error_outline, color: Colors.red),
+              const SizedBox(width: 8),
+              const Text('解析课表'),
+            ] else if (_isDone) ...[
+              const Icon(Icons.check_circle_outline, color: Colors.green),
+              const SizedBox(width: 8),
+              const Text('解析课表'),
+            ] else ...[
               const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               const SizedBox(width: 12),
+              const Text('解析课表'),
             ],
-            if (_error != null)
-              const Icon(Icons.error_outline, color: Colors.red),
-            if (_isDone)
-              const Icon(Icons.check_circle_outline, color: Colors.green),
-            const SizedBox(width: 8),
-            const Text('解析课表'),
           ],
         ),
         content: SizedBox(
@@ -121,37 +171,80 @@ class _SchoolImportStreamDialogState extends State<SchoolImportStreamDialog> {
                   color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(12),
-                  child: SelectableText(
-                    hasContent
-                        ? _textBuffer.toString()
-                        : (_error != null ? '解析失败' : '正在连接...'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      height: 1.5,
-                    ),
+                child: _isEditing
+                    ? TextField(
+                        controller: _editController,
+                        maxLines: null,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                          height: 1.5,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(12),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(12),
+                        child: SelectableText(
+                          _textBuffer.isNotEmpty
+                              ? _textBuffer.toString()
+                              : (_error != null ? '解析失败' : '正在连接...'),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontFamily: 'monospace',
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      _subscription?.cancel();
+                      Navigator.of(context).pop(null);
+                    },
+                    child: const Text('取消'),
                   ),
-                ),
+                  if (_isEditing) ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () {
+                        _editController.text = _textBuffer.toString();
+                        setState(() {
+                          _isEditing = false;
+                          _error = null;
+                        });
+                      },
+                      child: const Text('重置'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: _confirmEdit,
+                      child: const Text('确定'),
+                    ),
+                  ] else ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: _isDone ? _enterEditMode : null,
+                      child: const Text('修改'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: _isDone
+                          ? () => Navigator.of(context).pop(_response)
+                          : null,
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _subscription?.cancel();
-              Navigator.of(context).pop(null);
-            },
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed:
-                _isDone ? () => Navigator.of(context).pop(_response) : null,
-            child: const Text('确定'),
-          ),
-        ],
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../models/school_import_models.dart';
-import 'school_import_content_sanitizer.dart';
 
 class SchoolWebImportPageService {
   const SchoolWebImportPageService();
@@ -26,9 +25,7 @@ class SchoolWebImportPageService {
     final html = await controller.evaluateJavascript(source: extractImportHtmlScript);
     final currentUrl = (await controller.getUrl())?.toString() ?? fallbackUrl;
     final title = await _safeGetTitle(controller, fallbackTitle: fallbackTitle);
-    final normalizedContent = SchoolImportContentSanitizer.sanitize(
-      _normalizeJavaScriptResult(html).trim(),
-    );
+    final normalizedContent = _normalizeJavaScriptResult(html).trim();
     if (normalizedContent.isEmpty) {
       throw const FormatException('Import content is empty.');
     }

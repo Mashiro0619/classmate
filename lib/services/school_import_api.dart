@@ -492,6 +492,8 @@ Populate timetable with the extracted timetable object. Keep ok=true. Fill meta.
           .transform(utf8.decoder)
           .transform(const LineSplitter());
 
+      bool terminalEventReceived = false;
+
       await for (final line in stream) {
         if (line.trim().isEmpty) continue;
         final Map<String, dynamic> json;
@@ -503,18 +505,24 @@ Populate timetable with the extracted timetable object. Keep ok=true. Fill meta.
         if (json.containsKey('delta')) {
           yield ParseDelta((json['delta'] as String?) ?? '');
         } else if (json.containsKey('done')) {
+          terminalEventReceived = true;
           try {
             yield ParseDone(
-              response: _buildResponseFromPhpDone(json),
+              response: buildResponseFromPhpDone(json),
             );
           } catch (e) {
             yield ParseError('Import response parse failed.\n\n$line\n\n$e');
           }
           return;
         } else if (json.containsKey('error')) {
+          terminalEventReceived = true;
           yield ParseError((json['error'] as String?) ?? 'Unknown error');
           return;
         }
+      }
+
+      if (!terminalEventReceived) {
+        yield const ParseError('Connection closed unexpectedly.');
       }
     } catch (e) {
       yield ParseError('Unable to connect to the import service.\n\n$e');
@@ -616,7 +624,7 @@ Populate timetable with the extracted timetable object. Keep ok=true. Fill meta.
     }
   }
 
-  SchoolImportResponse _buildResponseFromPhpDone(Map<String, dynamic> json) {
+  static SchoolImportResponse buildResponseFromPhpDone(Map<String, dynamic> json) {
     final rawTimetable =
         Map<String, dynamic>.from(json['timetable'] as Map? ?? const {});
     final periodTimeSetData =
